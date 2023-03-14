@@ -1,0 +1,20 @@
+[
+    {
+        "pair": "BTCUSDT Quarterly 0331",
+        "type": "Short",
+        "leverage": "20x",
+        "size": "0.115",
+        "entryprice": "26,078.6",
+        "markprice": "25,949.4",
+        "time": "2023-03-14 14:47:06"
+    },
+    {
+        "pair": "DOGEBUSD",
+        "type": "Long",
+        "leverage": "20x",
+        "size": "18140",
+        "entryprice": "0.113867",
+        "markprice": "0.077229",
+        "time": "2022-12-16 23:27:22"
+    }
+]

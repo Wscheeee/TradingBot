@@ -1,0 +1,101 @@
+[
+    {
+        "pair": "XTZUSDT",
+        "type": "Long",
+        "leverage": "14x",
+        "size": "3566.2",
+        "entryprice": "0.842",
+        "markprice": "0.785",
+        "time": "2022-12-27 15:47:53"
+    },
+    {
+        "pair": "SOLzdzdBUSD",
+        "type": "Long",
+        "leverage": "11x",
+        "size": "118",
+        "entryprice": "16.6601",
+        "markprice": "12.9004",
+        "time": "2022-12-21 07:58:57"
+    },
+    {
+        "pair": "LRCUSDT",
+        "type": "Long",
+        "leverage": "20x",
+        "size": "7115",
+        "entryprice": "0.21080",
+        "markprice": "0.20387",
+        "time": "2022-12-19 00:31:39"
+    },
+    {
+        "pair": "GMTBUSD",
+        "type": "Long",
+        "leverage": "20x",
+        "size": "8050.7",
+        "entryprice": "0.3101421",
+        "markprice": "0.2589000",
+        "time": "2022-12-27 15:47:13"
+    },
+    {
+        "pair": "ONEUSDT",
+        "type": "Long",
+        "leverage": "20x",
+        "size": "91996",
+        "entryprice": "0.01088",
+        "markprice": "0.01063",
+        "time": "2022-12-27 15:49:05"
+    },
+    {
+        "pair": "LINKBUSD",
+        "type": "Long",
+        "leverage": "20x",
+        "size": "254.7",
+        "entryprice": "5.8870000",
+        "markprice": "5.7820000",
+        "time": "2022-12-27 19:15:13"
+    },
+    {
+        "pair": "RLCUSDT",
+        "type": "Long",
+        "leverage": "20x",
+        "size": "1182.7",
+        "entryprice": "1.2687",
+        "markprice": "1.2900",
+        "time": "2022-12-23 08:23:19"
+    },
+    {
+        "pair": "ADABUSD",
+        "type": "Long",
+        "leverage": "20x",
+        "size": "7092",
+        "entryprice": "0.28210",
+        "markprice": "0.27590",
+        "time": "2022-12-16 23:30:20"
+    },
+    {
+        "pair": "1000SHIBBUSD",
+        "type": "Long",
+        "leverage": "20x",
+        "size": "182537",
+        "entryprice": "0.0109575",
+        "markprice": "0.0083530",
+        "time": "2022-12-16 23:27:31"
+    },
+    {
+        "pair": "DOGEBUSD",
+        "type": "Long",
+        "leverage": "20x",
+        "size": "18140",
+        "entryprice": "0.113867",
+        "markprice": "0.071610",
+        "time": "2022-12-16 23:27:22"
+    },
+    {
+        "pair": "CHZUSDT",
+        "type": "Long",
+        "leverage": "20x",
+        "size": "17780",
+        "entryprice": "0.14063",
+        "markprice": "0.10787",
+        "time": "2022-12-22 16:16:38"
+    }
+]

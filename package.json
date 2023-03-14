@@ -1,0 +1,26 @@
+{
+  "name": "v1",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "bybit": "^1.0.5",
+    "bybit-api": "^3.3.9",
+    "crypto": "^1.0.1",
+    "fetch": "^1.1.0",
+    "fs": "^0.0.1-security",
+    "lodash": "^4.17.21",
+    "mongodb": "^4.12.1",
+    "mongosh": "^1.6.1",
+    "mssql": "^9.0.1",
+    "node-cron": "^3.0.2",
+    "puppeteer": "^19.7.5",
+    "qs": "^6.11.0"
+  }
+}

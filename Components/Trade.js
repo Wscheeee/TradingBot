@@ -10,6 +10,7 @@ class Trade {
         "closePrice": "",
         "profit": "",
         "profitPercentage": "",
+        //ss
     }
     close() { 
 

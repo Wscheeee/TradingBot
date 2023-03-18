@@ -3,7 +3,8 @@
  * It uses puppeteer and an api.
  */
 const  {  Browser, Page} =  require('puppeteer');
-const {getLeaderboardRank_API} = require("./getLeaderboardRank_API");
+const {getLeaderboardRank_API,BinanceUser_Interface} = require("./getLeaderboardRank_API");
+const { getOtherLeaderboardBaseInfo_API} = require("./getOtherLeaderboardBaseInfo_API");
 
 const {createPuppeteerBrowser} = require("./createPuppeteerBrowser");
 
@@ -100,5 +101,21 @@ module.exports.BinanceScraper = class BinanceScraper {
             throw err;
         }
     }
+
+
+    /**
+     * 
+     * @param {Page} page 
+     * @param {string} userUid
+     */
+    async getOtherLeaderboardBaseInfo(page,userUid){
+        try{
+            return (await getOtherLeaderboardBaseInfo_API(page,userUid)).data
+            
+        }catch(error){
+            throw error;
+        }
+    }
+    
 
 }

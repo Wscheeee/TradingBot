@@ -13,10 +13,19 @@ const {createPuppeteerBrowser} = require("../createPuppeteerBrowser");
         const binanceScraper = new BinanceScraper({isLive:false,browser:browser})
         const page = await binanceScraper.createNewPage();
         await binanceScraper.openLeaderboardFuturesPage(page)
-        const leaderBoardUsers = await binanceScraper.getLeaderboardRankUsers(page);
+        const leaderBoardUsers = await binanceScraper.getLeaderboardRankUsers(page,{
+            isShared:true,
+            isTrader:false,
+            periodType: "WEEKLY",
+            statisticsType: "ROI",
+            tradeType: "PERPETUAL"
+        });
+        console.log("leaderBoardUsers\=============",leaderBoardUsers)
         const uid = "9D382AAAED16C245AEE83C8292E65A87"
-        const userData = await binanceScraper.getOtherLeaderboardBaseInfo(page,uid);
-        console.log({userData})
+        const userBaseInfo = await binanceScraper.getOtherLeaderboardBaseInfo(page,{encryptedUid:uid});
+        console.log("userBaseInfo\=============",userBaseInfo)
+        const userPositions = await binanceScraper.getOtherPosition(page,{encryptedUid:uid, tradeType:"PERPETUAL"})
+        console.log("userPositions\=============",userPositions)
     }catch(e){
         console.log(e);
         

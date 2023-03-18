@@ -1,20 +1,14 @@
 // const {performFetch} = require("../Utils/performFetch")
 const  {  Browser, Page} =  require('puppeteer');
+// types
+const {TradeType_Types, PeriodType_Types, StaticticsType_Types} = require("./types/index")
 /**
  * @typedef  {{
- *      deliveryPosiitionShared:boolean,
- *      followerCount: number,
- *      followingCount: number,
- *      introduction: string|"",
- *      isTwTrader: boolean,
- *      nickName: string|null,
- *      openId: null|string,
- *      portfolioId: string | null,
- *      positionShared: boolean,
- *      twShared: boolean,,
- *      twitterUrl: null|string,
- *      userPhotoUrl: string|""
- * }} BinanceOtherLeaderboardBaseInfo_Interface
+ *      periodType:PeriodType_Types,
+ *      rank: number,
+ *      statisticsType: StaticticsType_Types,
+ *      value: number
+ * }} PerformanceDataObject_Interface
  */
 
 /**
@@ -24,30 +18,34 @@ const  {  Browser, Page} =  require('puppeteer');
  *      "message":null,
  *      messageDetails: null,
  *      success: boolean,
- *      data: BinanceUser_Interface[]
- * }} GetOtherLeaderboardBaseInfo_API_Response_Interface
- */
-/**
- * @typedef {{encryptedUid:string}} GetOtherLeaderboardBaseInfo_Payload_Interface
+ *      data: {
+ *          lastTradeTime: number,
+ *          performanceRetList: PerformanceDataObject_Interface[]
+ *      }
+ * }} GetOtherPerformance_API_Response_Interface
  */
 
+/**
+ * @typedef {{encryptedUid:string, tradeType:TradeType_Types}} GetOtherPerformance_API_Payload_Interface
+ */
 /***
  * @param {Page} page
- * @param {{encryptedUid:string}} payload
- * @returns {GetOtherLeaderboardBaseInfo_API_Response_Interface} 
+ * @param {GetOtherPerformance_API_Payload_Interface} payload
+ * @returns {GetOtherPerformance_API_Response_Interface} 
  */
-exports.getOtherLeaderboardBaseInfo_API = async function getOtherLeaderboardBaseInfo_API(page,payload){
+exports.getOtherPerformance_API = async function getOtherPerformance_API(page,payload){
     try {
-        console.log("[method:getOtherLeaderboardBaseInfo_API]")
-        const res = await page.evaluate(async ({encryptedUid})=>{
-            const url = "https://www.binance.com/bapi/futures/v2/public/future/leaderboard/getOtherLeaderboardBaseInfo";
+        console.log("[method:getOtherPerformance_API]")
+        const res = await page.evaluate(async ({encryptedUid,tradeType})=>{
+            const url = "https://www.binance.com/bapi/futures/v2/public/future/leaderboard/getOtherPerformance";
             const method = "POST";
             
             /**
-             * @type {GetOtherLeaderboardBaseInfo_Payload_Interface}
+             * @type {GetOtherPerformance_API_Payload_Interface}
              */
             const requestPayload = {
-                encryptedUid
+                encryptedUid,
+                tradeType
             };
 
             const postBody = JSON.stringify(requestPayload)

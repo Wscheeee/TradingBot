@@ -30,26 +30,31 @@ const  {  Browser, Page} =  require('puppeteer');
  * }} GetLeaderboardRank_Response_Interface
  */
 
+/**
+ * @typedef {{
+ *      isShared: boolean,
+ *      isTrader: boolean,
+ *      periodType: import('./types').PeriodType_Types,
+ *      statisticsType: import('./types').StaticticsType_Types,
+ *      tradeType: import('./types').TradeType_Types
+ * }} GetOtherLeaderboardBaseInfo_API_Payload_Interface
+ */
+
+
 /***
  * @param {Page} page
+ * @param {GetOtherLeaderboardBaseInfo_API_Payload_Interface} payload 
  * @returns {GetLeaderboardRank_Response_Interface} 
  */
-exports.getLeaderboardRank_API = async function getLeaderboardRank(page){
+exports.getLeaderboardRank_API = async function getLeaderboardRank_API(page,payload){
     try {
         console.log("[method:getLeaderboardRank]")
-        const res = await page.evaluate(async ()=>{
+        const res = await page.evaluate(async (payload)=>{
             const url = "https://www.binance.com/bapi/futures/v3/public/future/leaderboard/getLeaderboardRank";
             const host = "www.binance.com";
             const pathname = "/bapi/futures/v3/public/future/leaderboard/getLeaderboardRank"
             const method = "POST";
-            const requestPayload = {
-                isShared:true,
-                isTrader:false,
-                periodType: "WEEKLY",
-                statisticsType: "ROI",
-                tradeType: "PERPETUAL"
-            }
-            const postBody = JSON.stringify(requestPayload)
+            const postBody = JSON.stringify(payload)
 
             /***
              * @type {GetLeaderboardRank_Response_Interface}
@@ -70,7 +75,7 @@ exports.getLeaderboardRank_API = async function getLeaderboardRank(page){
             }else {
                 return res;
             }
-        })
+        },payload)
         // const res = await getLeaderboardRank()
         return res;
     }catch(error){

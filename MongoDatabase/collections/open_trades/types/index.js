@@ -1,0 +1,33 @@
+const {ObjectId, WithId} = require("mongodb")
+/**
+ * part : 0 if original , 1 if resized, 1 ,2 3
+ * @typedef {{
+ *      trader_id: ObjectId,
+ *      trader_uid: string,
+ *      part: number,
+ *      original_size: number,
+ *      total_parts: number
+ *      pair: string,
+ *      direction: "LONG"|"SHORT",
+ *      leverage: number,
+ *      size: number,
+ *      entry_price: number,
+ *      mark_price: number,
+ *      open_date: number,
+ *      close_date: number,
+ *      pnl: number,
+ *      roi: number,
+ *      status: "OPEN"|"CLOSED",
+ *      followed: boolean,
+ *      document_created_at:number,
+ *      document_last_edited_at:number,
+ *      server_timezone:string 
+ * }} OpenTrades_Interface 
+ */
+
+/**
+ * @typedef {WithId<OpenTrades_Interface>} OpenTrades_Collection_Document_Interface
+ */
+
+
+module.exports = {}

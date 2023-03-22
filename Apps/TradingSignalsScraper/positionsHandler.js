@@ -3,12 +3,6 @@ const {TraderInfo_Interface} = require("../../Binance_Scraper/BinanceScraper");
 const {MongoDatabase} = require("../../MongoDatabase");
 const {sleepAsync} = require("../../Utils/sleepAsync");
 
-process.env.DB_USERNAME = "georgemburu056";
-process.env.DB_PASSWORD = "DzTnbYfVeC8x6M6n";
-process.env.DATABASE_URI = `mongodb+srv://georgemburu056:${process.env.DB_PASSWORD}@cluster0.xrwllry.mongodb.net/?retryWrites=true&w=majority`
-process.env.DATABASE_NAME = "BinanceSignals";
-const IS_LIVE = false;
-
 
 
 /**

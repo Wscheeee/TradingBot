@@ -61,7 +61,15 @@ exports.getOtherPerformance_API = async function getOtherPerformance_API(page,pa
                     "Content-Type":"application/json",
                     "User-Agent":"Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Mobile Safari/537.36"
                 }
-            }).then(res => res.json())
+            }).then(res => {
+                const resCopy = res.clone();
+                try {
+                    return res.json()
+
+                }catch(e){
+                    throw resCopy.text()
+                }
+            })
             // console.log(res)
             if(res.code!=="000000"){
                 // an error occcurred

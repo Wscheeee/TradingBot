@@ -34,10 +34,20 @@ exports.createPuppeteerBrowser =  async function createPuppeteerBrowser({
             console.log("Download complete...")
             if(revisionInfo){
                 // create browser
-                browser = await launch({
-                    ...()=>(IS_LIVE?{args: ['--no-sandbox', '--disable-setuid-sandbox']}:{}),
-                    executablePath: revisionInfo.executablePath,
-                    headless:headless,devtools:devtools});
+                if(IS_LIVE){
+                    browser = await launch({
+                        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+                        executablePath: revisionInfo.executablePath,
+                        headless:headless,devtools:devtools
+                    });
+                        
+                }else {
+                        
+                    browser = await launch({
+                        executablePath: revisionInfo.executablePath,
+                        headless:headless,devtools:devtools
+                    });
+                }
                 console.log("Browser created: revision:",canDownloadBrowserRevision)
             };
 
@@ -45,9 +55,18 @@ exports.createPuppeteerBrowser =  async function createPuppeteerBrowser({
         if(!browser){
             // create browser
             console.log("Using default browser")
-            browser = await launch({
-                ...()=>(IS_LIVE?{args: ['--no-sandbox', '--disable-setuid-sandbox']}:{}),
-                headless:headless,devtools:devtools});
+            if(IS_LIVE){
+                browser = await launch({
+                    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+                    headless:headless,devtools:devtools
+                });
+                    
+            }else {
+                browser = await launch({
+                    headless:headless,devtools:devtools
+                });
+                    
+            }
             console.log("Default Browser created")
         }
         if(!browser){

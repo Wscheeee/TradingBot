@@ -38,6 +38,10 @@ module.exports.BinanceScraper = class BinanceScraper {
         }),
         
     }
+    /**
+     * @type {import("puppeteer").Page|null}
+     */
+    #globalPage = null;
 
     /**
      * @type {SettingsObject_Interface}
@@ -51,6 +55,23 @@ module.exports.BinanceScraper = class BinanceScraper {
         this.#settings = settings;
     };
 
+    //setter
+    /**
+     * 
+     * @param {Page} page 
+     */
+    setGlobalPage(page){
+        this.#globalPage = page;
+    }
+    // gette
+    get globalPage(){
+        if(this.#globalPage){
+            return this.#globalPage
+        }else{
+            throw new Error("Global page muust be set first in order to call this.")
+        }
+    }
+
 
     async createNewPage(){
         try {
@@ -62,6 +83,7 @@ module.exports.BinanceScraper = class BinanceScraper {
             throw error;
         }
     }
+
 
     /**
      * 
@@ -255,6 +277,7 @@ module.exports.BinanceScraper = class BinanceScraper {
             throw e;
         }
     }
+
 
 
 }

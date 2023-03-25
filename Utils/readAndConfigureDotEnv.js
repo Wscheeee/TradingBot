@@ -1,7 +1,12 @@
 const path = require('node:path');
 const fs = require('node:fs');
 
-module.exports.readAndConfigureDotEnv =  function readAndConfigureDotEnv(){
+/**
+ * 
+ * @param {boolean} isLive 
+ * @returns 
+ */
+module.exports.readAndConfigureDotEnv =  function readAndConfigureDotEnv(isLive=false){
     /**
      * @type {{
      *  DATABASE_URI:string,
@@ -16,7 +21,7 @@ module.exports.readAndConfigureDotEnv =  function readAndConfigureDotEnv(){
         DATABASE_NAME:"",
         IS_LIVE: false
     }
-    const dataStr = fs.readFileSync(path.join(__dirname,'..','.env'),{encoding:'utf-8'});
+    const dataStr = isLive? fs.readFileSync(path.join(__dirname,'..','.env'),{encoding:'utf-8'}): fs.readFileSync(path.join(__dirname,'..','.env.local'),{encoding:'utf-8'})
     dataStr.split('\n').forEach((row)=>{
         const keyValueArray = row.split('=');
         const key = keyValueArray[0];
@@ -24,21 +29,6 @@ module.exports.readAndConfigureDotEnv =  function readAndConfigureDotEnv(){
         //@ts-ignore
         dotEnvObj[key] = value
     })
-    if(dotEnvObj.IS_LIVE){
-        return dotEnvObj;
-
-    }else {
-        // use .env local
-        const dataStrLocal = fs.readFileSync(path.join(__dirname,'..','.env.local'),{encoding:'utf-8'});
-        dataStrLocal.split('\n').forEach((row)=>{
-            const keyValueArray = row.split('=');
-            const key = keyValueArray[0];
-            const value = keyValueArray.slice(1,).join("=");
-            
-            //@ts-ignore
-            dotEnvObj[key] = value
-        })
-        return dotEnvObj;
-    }
+   return dotEnvObj;
 
 }

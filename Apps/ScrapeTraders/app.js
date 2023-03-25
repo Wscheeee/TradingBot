@@ -6,14 +6,14 @@ const {BinanceScraper,createPuppeteerBrowser} = require("../../Binance_Scraper")
 const {MongoDatabase} = require("../../MongoDatabase");
 const {sleepAsync} = require("../../Utils/sleepAsync");
 const {readAndConfigureDotEnv} = require("../../Utils/readAndConfigureDotEnv");
-const dotEnvObj = readAndConfigureDotEnv(); 
+const IS_LIVE = false;
+const dotEnvObj = readAndConfigureDotEnv(IS_LIVE); 
+
 
 process.env.TZ = dotEnvObj.TZ;
 process.env.DATABASE_URI = dotEnvObj.DATABASE_URI;
 process.env.DATABASE_NAME = dotEnvObj.DATABASE_NAME;
-process.env.IS_LIVE = dotEnvObj.IS_LIVE
 console.log(process.env);
-const IS_LIVE = false;
 console.log(IS_LIVE);
 (async ()=>{
     /**

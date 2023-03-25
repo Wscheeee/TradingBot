@@ -146,6 +146,18 @@ module.exports.TopTradersCollection =  class TopTradersCollection{
         }
     }
 
+    async getAllFollowedTraders(){
+        try {
+            return this.#collection.find({
+                followed: true
+            });
+        }catch(error){
+            console.log(error)
+            throw error;
+        }
+    }
+
+
      /**
      * 
      * @param {string} uid 

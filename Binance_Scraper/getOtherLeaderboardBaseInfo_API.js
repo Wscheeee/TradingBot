@@ -52,9 +52,6 @@ exports.getOtherLeaderboardBaseInfo_API = async function getOtherLeaderboardBase
 
             const postBody = JSON.stringify(requestPayload)
 
-            /***
-             * @type {GetOtherLeaderboardBaseInfo_API_Response_Interface}
-             */
             const res = await fetch(url,{
                 method,
                 body:postBody,
@@ -63,21 +60,24 @@ exports.getOtherLeaderboardBaseInfo_API = async function getOtherLeaderboardBase
                     "Content-Type":"application/json",
                     "User-Agent":"Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Mobile Safari/537.36"
                 }
-            }).then(res => {
-                const resCopy = res.clone();
-                try {
-                    return res.json()
-
-                }catch(e){
-                    throw resCopy.text()
+            });
+            const resCopy = res.clone();
+            try{
+                /***
+                 * @type {GetOtherLeaderboardBaseInfo_API_Response_Interface}
+                 * 
+                 */
+                let resJson = await res.json();
+                // console.log(res)
+                if(resJson.code!=="000000"){
+                    // an error occcurred
+                    throw new Error(resJson.message)
+                }else {
+                    return resJson;
                 }
-            })
-            // console.log(res)
-            if(res.code!=="000000"){
-                // an error occcurred
-                throw new Error(res.message)
-            }else {
-                return res;
+            }catch(error){
+                const text = await resCopy.text()
+                throw new Error(text);
             }
         },payload)
         // const res = await getLeaderboardRank()

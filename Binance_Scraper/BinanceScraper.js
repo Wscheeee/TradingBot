@@ -1,12 +1,14 @@
+//@ts-check
+
 /***
  * This class exports methods to interact wit binance leaderboard and extract data.
  * It uses puppeteer and an api.
  */
 const  {  Browser, Page} =  require('puppeteer');
-const {getLeaderboardRank_API,BinanceUser_Interface,BinanceTrader} = require("./getLeaderboardRank_API");
-const { getOtherLeaderboardBaseInfo_API, GetOtherLeaderboardBaseInfo_Payload_Interface} = require("./getOtherLeaderboardBaseInfo_API");
-const {getOtherPerformance_API,GetOtherPerformance_API_Payload_Interface,GetOtherPerformance_API_Response_Interface,BinanceTraderPerfomance} = require("./getOtherPerformance_API")
-const {getOtherPosition_API, GetOtherPosition_API_Payload_Interface, BinancePosition} = require("./getOtherPosition_API");
+const {getLeaderboardRank_API,BinanceTrader} = require("./getLeaderboardRank_API");
+const { getOtherLeaderboardBaseInfo_API} = require("./getOtherLeaderboardBaseInfo_API");
+const {getOtherPerformance_API,BinanceTraderPerfomance} = require("./getOtherPerformance_API")
+const {getOtherPosition_API, BinancePosition} = require("./getOtherPosition_API");
 
 
 
@@ -21,7 +23,6 @@ const {getOtherPosition_API, GetOtherPosition_API_Payload_Interface, BinancePosi
 **/
 
 /**
- * @template {T}
  * @typedef {{isLive:boolean, browser:Browser}} SettingsObject_Interface 
  */
 
@@ -34,7 +35,8 @@ module.exports.BinanceScraper = class BinanceScraper {
     utils = {
         closeNow: ()=>({
             close_timestamp: Date.now()
-        })
+        }),
+        
     }
 
     /**
@@ -63,8 +65,8 @@ module.exports.BinanceScraper = class BinanceScraper {
 
     /**
      * 
-     * @param {Page} param0 
-     * @returns {boolean}
+     * @param {{page,Page}} param0 
+     * @returns {Promise<boolean>}
      */
     async closePage({page}){
         try {
@@ -72,6 +74,7 @@ module.exports.BinanceScraper = class BinanceScraper {
                 await page.close();
                 return true;
             }
+            return false;
         }catch(error){
             throw error;
         }
@@ -81,7 +84,7 @@ module.exports.BinanceScraper = class BinanceScraper {
      * 
      * @param {Page} page 
      * @param {string} pageUrl 
-     * @returns {Promise<HTTPResponse | null>}
+     * @returns {Promise<import("puppeteer").HTTPResponse | null>}
      */
     async navigateToUrl(page,pageUrl){
         try {
@@ -127,7 +130,7 @@ module.exports.BinanceScraper = class BinanceScraper {
     /**
      * 
      * @param {Page} page 
-     * @param {GetOtherLeaderboardBaseInfo_Payload_Interface} getOtherLeaderboardBaseInfo_payload
+     * @param {import("./getOtherLeaderboardBaseInfo_API").GetOtherLeaderboardBaseInfo_Payload_Interface} getOtherLeaderboardBaseInfo_payload
      */
     async getOtherLeaderboardBaseInfo(page,getOtherLeaderboardBaseInfo_payload){
         try{
@@ -139,7 +142,7 @@ module.exports.BinanceScraper = class BinanceScraper {
     }
     /**
      * @param {Page} page 
-     * @param {GetOtherPerformance_API_Payload_Interface} getOtherPerformance_Payload
+     * @param {import("./getOtherPerformance_API").GetOtherPerformance_API_Payload_Interface} getOtherPerformance_Payload
      */
     async getOtherPerformance(page,getOtherPerformance_Payload){
         try{
@@ -152,7 +155,7 @@ module.exports.BinanceScraper = class BinanceScraper {
 
     /**
      * @param {Page} page 
-     * @param {GetOtherPosition_API_Payload_Interface} getOtherPosition_Payload
+     * @param {import("./getOtherPosition_API").GetOtherPosition_API_Payload_Interface} getOtherPosition_Payload
      */
     async getOtherPosition(page,getOtherPosition_Payload){
         try{
@@ -200,6 +203,46 @@ module.exports.BinanceScraper = class BinanceScraper {
                 const traderInfo = {
                     performance: traderPerformace,
                     positions: traderPositions,
+                    trader: trader
+                };
+    
+                tradersAndTheirInfo.push(traderInfo)
+            }
+
+            return tradersAndTheirInfo;
+
+        }catch(e){
+            throw e;
+        }
+    }
+    /**
+     * @param {Page} page 
+     * @param {import('./getLeaderboardRank_API').GetOtherLeaderboardBaseInfo_API_Payload_Interface} getLeaderboardRankUsers_Payload
+     */
+    async getTradersTheirInfoStatistics(page,getLeaderboardRankUsers_Payload){
+        try{
+            const traders = await this.getLeaderboardRankUsers(page,getLeaderboardRankUsers_Payload);
+    
+    
+            /**
+             * @typedef {{
+             * performance: BinanceTraderPerfomance[],
+             * trader: BinanceTrader
+             * }} TraderInfo_Interface
+             */
+            /***
+             * @type {TraderInfo_Interface[]}
+             */
+            const tradersAndTheirInfo = []
+            // loop each trader and get their positions and perfomance
+            for(const trader of traders){
+                const traderPerformace = await this.getOtherPerformance(page,{encryptedUid:trader.encryptedUid,tradeType:'PERPETUAL'});
+    
+                /**
+                 * @type {TraderInfo_Interface}
+                 */
+                const traderInfo = {
+                    performance: traderPerformace,
                     trader: trader
                 };
     

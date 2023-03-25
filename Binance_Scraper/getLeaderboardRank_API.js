@@ -56,9 +56,7 @@ exports.getLeaderboardRank_API = async function getLeaderboardRank_API(page,payl
             const method = "POST";
             const postBody = JSON.stringify(payload)
 
-            /***
-             * @type {GetLeaderboardRank_Response_Interface}
-             */
+            
             const res = await fetch(url,{
                 method,
                 body:postBody,
@@ -67,22 +65,28 @@ exports.getLeaderboardRank_API = async function getLeaderboardRank_API(page,payl
                     "Content-Type":"application/json",
                     "User-Agent":"Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Mobile Safari/537.36"
                 }
-            }).then(res =>{
-                const resCopy = res.clone();
-                try {
-                    return res.json()
-
-                }catch(e){
-                    throw resCopy.text()
+            }); 
+            const resCopy = res.clone();
+            try{
+                /***
+                 * @type {GetLeaderboardRank_Response_Interface}
+                 * 
+                 */
+                let resJson = await res.json();
+                // console.log(res)
+                if(resJson.code!=="000000"){
+                    // an error occcurred
+                    throw new Error(resJson.message)
+                }else {
+                    return resJson;
                 }
-            })
-            // console.log(res)
-            if(res.code!=="000000"){
-                // an error occcurred
-                throw new Error(res.message)
-            }else {
-                return res;
+            }catch(error){
+                const text = await resCopy.text()
+                throw new Error(text);
             }
+
+
+
         },payload)
         // const res = await getLeaderboardRank()
         return res;

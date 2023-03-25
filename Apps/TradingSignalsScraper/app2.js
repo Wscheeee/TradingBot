@@ -7,7 +7,7 @@ const dotEnvObj = readAndConfigureDotEnv();
 
 process.env.TZ = dotEnvObj.TZ;
 process.env.DATABASE_URI = dotEnvObj.DATABASE_URI;
-process.DATABASE_NAME = dotEnvObj.DATABASE_NAME;
+process.env.DATABASE_NAME = dotEnvObj.DATABASE_NAME;
 console.log(process.env);
 const IS_LIVE = false;
 (async ()=>{
@@ -19,7 +19,7 @@ const IS_LIVE = false;
              * 0. Create db and Create a browser 
              */
             mongoDatabase = new MongoDatabase(process.env.DATABASE_URI);
-            await mongoDatabase.connect(process.DATABASE_NAME);
+            await mongoDatabase.connect(process.env.DATABASE_NAME);
             browser = await createPuppeteerBrowser({
                 IS_LIVE,
                 browserRevisionToDownload:"901912",
@@ -52,6 +52,7 @@ const IS_LIVE = false;
              */
             for(const binanceTraderInfo of binanceTradersAndTheirInfo){
                 const {performance:traderPerformace,positions,trader} = binanceTraderInfo;
+               
                 const traderPerformanceIsAvailable = traderPerformace.length>0;
                 //a. save trader to db if not already saved
                 const savedTrader = await mongoDatabase.collection.topTradersCollection.getDocumentByTraderUid(trader.encryptedUid);
@@ -103,7 +104,7 @@ const IS_LIVE = false;
                         username: trader.nickName,
                         uid: trader.encryptedUid,
                         copied: savedTrader.copied,
-                        allPNL: trader.pnl,
+                        allPNL: trader.pnl, 
                         allROI: trader.roi,
                         dailyPNL: traderPerformanceIsAvailable===false?0:traderPerformace.filter((performance)=> {
                             if(performance.periodType==="DAILY" && performance.statisticsType==="PNL"){

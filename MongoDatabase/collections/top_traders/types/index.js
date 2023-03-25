@@ -12,9 +12,18 @@ const {ObjectId,WithId} = require("mongodb")
  *      weeklyROI: number,
  *      monthlyPNL: number,
  *      monthlyROI: number,
+ *      yearlyPNL: number,
+ *      yearlyROI: number,
+ *      exactWeeklyPNL: number,
+ *      exactWeeklyROI: number,
+ *      exactMonthlyPNL: number,
+ *      exactMonthlyROI: number,
+ *      exactYearlyPNL: number,
+ *      exactYearlyROI: number, 
  *      allPNL: number,
  *      allROI: number,
- *      copied: boolean
+ *      copied: boolean,
+ *      followed: boolean
  * }} TopTrader_Interface
  */
 

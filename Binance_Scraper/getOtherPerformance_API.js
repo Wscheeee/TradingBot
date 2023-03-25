@@ -1,10 +1,15 @@
 // const {performFetch} = require("../Utils/performFetch")
 const  {  Browser, Page} =  require('puppeteer');
 // types
-const {TradeType_Types, PeriodType_Types, StaticticsType_Types} = require("./types/index")
+const {TradeType_Types , StaticticsType_Types} = require("./types/index")
+/**
+ * 
+ * @typedef {"DAILY"|"WEEKLY"|"EXACT_WEEKLY"|"EXACT_YEARLY"|"EXACT_MONTHLY"|"MONTHLY"|"YEARLY"|"ALL"} PerformancePeriodType_Types
+ */
+
 /**
  * @typedef  {{
- *      periodType:PeriodType_Types,
+ *      periodType:PerformancePeriodType_Types,
  *      rank: number,
  *      statisticsType: StaticticsType_Types,
  *      value: number
@@ -50,9 +55,7 @@ exports.getOtherPerformance_API = async function getOtherPerformance_API(page,pa
 
             const postBody = JSON.stringify(requestPayload)
 
-            /***
-             * @type {GetLeaderboardRank_Response_Interface}
-             */
+
             const res = await fetch(url,{
                 method,
                 body:postBody,
@@ -61,22 +64,26 @@ exports.getOtherPerformance_API = async function getOtherPerformance_API(page,pa
                     "Content-Type":"application/json",
                     "User-Agent":"Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Mobile Safari/537.36"
                 }
-            }).then(res => {
-                const resCopy = res.clone();
-                try {
-                    return res.json()
-
-                }catch(e){
-                    throw resCopy.text()
+            });
+            const resCopy = res.clone();
+            try{
+                /***
+                 * @type {GetOtherPerformance_API_Response_Interface}
+                 * 
+                 */
+                let resJson = await res.json();
+                // console.log(res)
+                if(resJson.code!=="000000"){
+                    // an error occcurred
+                    throw new Error(resJson.message)
+                }else {
+                    return resJson;
                 }
-            })
-            // console.log(res)
-            if(res.code!=="000000"){
-                // an error occcurred
-                throw new Error(res.message)
-            }else {
-                return res;
-            }
+            }catch(error){
+                const text = await resCopy.text()
+                throw new Error(text);
+            };
+            
         },payload)
         // const res = await getLeaderboardRank()
         return res;
@@ -103,6 +110,8 @@ module.exports.BinanceTraderPerfomance = class BinanceTraderPerfomance {
     toJson(){
         return this.#performanceData;
     };
+
+    // getters
     get periodType(){
         return this.#performanceData.periodType;
     }
@@ -117,3 +126,6 @@ module.exports.BinanceTraderPerfomance = class BinanceTraderPerfomance {
     }
 
 }
+
+
+

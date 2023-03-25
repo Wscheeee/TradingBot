@@ -4,27 +4,20 @@ const {MongoDatabase} = require("../../MongoDatabase");
 const {sleepAsync} = require("../../Utils/sleepAsync");
 
 
-
 /**
  * 
- * @param { TraderInfo_Interface[]} binanceTradersAndTheirInfo 
- * @param {MongoDatabase} mongoDatabase
+ * @param {{mongoDatabase:MongoDatabase,binanceScraper:BinanceScraper}} args
  */
-module.exports.positionsHandler = async function positionsHandler(binanceTradersAndTheirInfo,mongoDatabase){
+module.exports.positionsHandler = async function positionsHandler({mongoDatabase,binanceScraper}){
+// module.exports.positionsHandler = async function positionsHandler(binanceTradersAndTheirInfo,mongoDatabase){
     try{
-    
-    
-        // console.log({binanceTradersAndTheirInfo})
-    
+        const followedTradersCursor = await mongoDatabase.collection.topTradersCollection.getAllFollowedTraders();
         /**
          * 2. Loop through the traders and their info and save or edit the required;
          */
-        for(const binanceTraderInfo of binanceTradersAndTheirInfo){
-            const {performance:traderPerformace,positions:traderPositions,trader} = binanceTraderInfo;
-            const traderPerformanceIsAvailable = traderPerformace.length>0;
-            // only work with positions that have their traders saved in DB.
-            const savedTraderDbDoc = await mongoDatabase.collection.topTradersCollection.getDocumentByTraderUid(trader.encryptedUid);
-            const savedTraderFound = !!savedTraderDbDoc;
+        while(await followedTradersCursor.hasNext()){
+            const savedTraderDbDoc = await followedTradersCursor.next();
+            const traderPositions = await binanceScraper.getOtherPosition(binanceScraper.globalPage,{encryptedUid:savedTraderDbDoc.uid,tradeType:"PERPETUAL"});
             //::## WORK ON POSITIONS
             const savedPositionsDbDocCursor = await mongoDatabase.collection.openTradesCollection.getDocumentsByTraderUid(trader.encryptedUid);
             const savedTraderPositions = await savedPositionsDbDocCursor.toArray();
@@ -66,9 +59,9 @@ module.exports.positionsHandler = async function positionsHandler(binanceTraders
                                 });
                                 // adjust the open position to partial closed
                                 await mongoDatabase.collection.openTradesCollection.updateDocument(savedPosition_._id,{
-                                  size: savedPosition_.size - (savedPosition_.size - position_.amount),
-                                  document_last_edited_at: Date.now(),
-                                   total_parts: savedPosition_.total_parts+1
+                                    size: savedPosition_.size - (savedPosition_.size - position_.amount),
+                                    document_last_edited_at: Date.now(),
+                                    total_parts: savedPosition_.total_parts+1
                                 })
                             }else{};
     
@@ -180,8 +173,10 @@ module.exports.positionsHandler = async function positionsHandler(binanceTraders
                     await mongoDatabase.collection.openTradesCollection.deleteManyDocumentsByIds([positionToClose_._id])
                 }
             }
-        }
-    
+            
+
+        };
+
         return;
     }catch(e){
         throw e;

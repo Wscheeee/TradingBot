@@ -34,7 +34,7 @@ module.exports.TopTradersCollection =  class TopTradersCollection{
     
     async createIndexes(){
         try {
-            await this.#collection.createIndex('game_round_name')
+            await this.#collection.createIndex(['uid'],{unique:true})
             console.log('Indexes created')
         }catch(error){
             throw error;

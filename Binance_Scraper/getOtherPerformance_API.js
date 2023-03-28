@@ -5,13 +5,14 @@ const {TradeType_Types , StaticticsType_Types} = require("./types/index")
 /**
  * 
  * @typedef {"DAILY"|"WEEKLY"|"EXACT_WEEKLY"|"EXACT_YEARLY"|"EXACT_MONTHLY"|"MONTHLY"|"YEARLY"|"ALL"} PerformancePeriodType_Types
+ * @typedef {"ROI"|"PNL"} Performance_StaticticsType_Types
  */
 
 /**
  * @typedef  {{
  *      periodType:PerformancePeriodType_Types,
  *      rank: number,
- *      statisticsType: StaticticsType_Types,
+ *      statisticsType: Performance_StaticticsType_Types,
  *      value: number
  * }} PerformanceDataObject_Interface
  */
@@ -95,7 +96,8 @@ exports.getOtherPerformance_API = async function getOtherPerformance_API(page,pa
 
 
 
-module.exports.BinanceTraderPerfomance = class BinanceTraderPerfomance {
+// module.exports.BinanceTraderPerfomance = //
+class BinanceTraderPerfomance {
     /**
      * @type {PerformanceDataObject_Interface}
      */
@@ -127,5 +129,46 @@ module.exports.BinanceTraderPerfomance = class BinanceTraderPerfomance {
 
 }
 
+// utils
 
+/**
+ * 
+ * @param {BinanceTraderPerfomance[]} performanceList 
+ * @param {{periodType:PerformancePeriodType_Types,statisticsType:Performance_StaticticsType_Types}} param1 
+ * @param {number|undefined} defaultValue
+ */
+module.exports.getValueForPerformance = function getValueForPerformance(performanceList,{periodType,statisticsType},defaultValue=0){
+    const defaultValue_ = defaultValue||0;
+    /**
+     * @type {{[performancePeriodType in PerformancePeriodType_Types]?:Performance_StaticticsType_Types[]}}
+    */
+    const performancePeriodTypesAvailableAndTheirAvailableStatTypes = {};
+    performanceList.forEach((performance)=> {
+         if(!performancePeriodTypesAvailableAndTheirAvailableStatTypes[performance.periodType]){
+             performancePeriodTypesAvailableAndTheirAvailableStatTypes[performance.periodType] = [];
+         };
+         performancePeriodTypesAvailableAndTheirAvailableStatTypes[performance.periodType].push(performance.statisticsType)
+
+     });
+
+    const performancePeriodTypesAvailable = performanceList.map((performance)=> performance.periodType);
+    // const performanceStatisticsTypesAvailable = performanceList.map((performance)=> performance.statisticsType);
+    const traderPerformanceIsAvailable = performanceList.length>0;
+
+    if(!traderPerformanceIsAvailable) return defaultValue_;
+ 
+    if(performancePeriodTypesAvailable.includes(periodType)===false ||
+        performancePeriodTypesAvailableAndTheirAvailableStatTypes[periodType].includes(statisticsType)===false
+    )return defaultValue_;
+    let v = defaultValue_;
+    performanceList.filter((performance)=> {
+        if(performance.periodType===periodType && performance.statisticsType===statisticsType){
+            v = performance && performance.value? performance.value: defaultValue_;
+        }
+    })
+    return v;
+
+}
+
+module.exports.BinanceTraderPerfomance = BinanceTraderPerfomance;
 

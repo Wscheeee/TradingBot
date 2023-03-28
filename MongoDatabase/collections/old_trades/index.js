@@ -10,7 +10,7 @@ module.exports.OldTradesCollection =  class OldTradesCollection{
      */
     #database;
     /**
-     * @type {Collection<OldTrades_Collection_Document_Interface>}
+     * @type {Collection<import("./types/index").OldTrades_Collection_Document_Interface>}
      */
     #collection;
     /**
@@ -30,7 +30,7 @@ module.exports.OldTradesCollection =  class OldTradesCollection{
     
     async createIndexes(){
         try {
-            await this.#collection.createIndex('game_round_name')
+            // await this.#collection.createIndex({})
             console.log('Indexes created')
         }catch(error){
             throw error;
@@ -59,7 +59,6 @@ module.exports.OldTradesCollection =  class OldTradesCollection{
     /**
      * 
      * @param {OldTrades_Interface} doc 
-     * @returns {OldTrades_Collection_Document_Interface}
      */
     async createNewDocument(doc){
         console.log(doc)
@@ -104,7 +103,6 @@ module.exports.OldTradesCollection =  class OldTradesCollection{
     /**
      * 
      * @param {string|ObjectId} id 
-     * @returns {}
      */
     async getDocumentById(id){
         try {

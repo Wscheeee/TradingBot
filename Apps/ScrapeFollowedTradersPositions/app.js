@@ -32,7 +32,7 @@ console.log(process.env);
              * 1. Get traders and their info
              */
             const binance = new BinanceScraper({
-                browser,isLive:IS_LIVE
+                browser,isLive:IS_LIVE,delayPerRequestInMs:1000
             });
             binance.setGlobalPage(page);
             await binance.openLeaderboardFuturesPage(page);
@@ -43,7 +43,7 @@ console.log(process.env);
 
             await browser.close()
             await mongoDatabase.disconnect();
-            await sleepAsync(5000)
+            // await sleepAsync(5000)
         }catch(e){
             if(browser){
                 await browser.close()
@@ -51,6 +51,7 @@ console.log(process.env);
             if(mongoDatabase){
                 await mongoDatabase.disconnect();
             }
+            await sleepAsync((1000*60))
             console.log(e);
             
         }

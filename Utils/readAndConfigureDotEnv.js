@@ -12,14 +12,18 @@ module.exports.readAndConfigureDotEnv =  function readAndConfigureDotEnv(isLive=
      *  DATABASE_URI:string,
      *  TZ:string,
      *  DATABASE_NAME: string,
-     *  IS_LIVE: boolean
+     *  IS_LIVE: boolean,
+     *  TELEGRAM_BOT_TOKEN: string,
+     *  TELEGRAM_CHANNEL_ID: string
      * }} DotEnvTypes
      */
     const dotEnvObj = {
         DATABASE_URI:"",
         TZ:"",
         DATABASE_NAME:"",
-        IS_LIVE: false
+        IS_LIVE: false,
+        TELEGRAM_BOT_TOKEN: "",
+        TELEGRAM_CHANNEL_ID: ""
     }
     const dataStr = isLive? fs.readFileSync(path.join(__dirname,'..','.env'),{encoding:'utf-8'}): fs.readFileSync(path.join(__dirname,'..','.env.local'),{encoding:'utf-8'})
     dataStr.split('\n').forEach((row)=>{

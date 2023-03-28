@@ -31,12 +31,18 @@ const  {  Browser, Page} =  require('puppeteer');
  */
 
 /**
+ * @typedef {"PERPETUAL"|"DELIVERY"} FuturesSearchQuery_TradeType_Types
+ * @typedef {"WEEKLY"|"DAILY"|"MONTHLY"|"TOTAL"} FuturesSearchQuery_PeriodType_Types
+ * @typedef {"ROI"|"PNL"} FuturesSearchQuery_StaticticsType_Types
+ */
+
+/**
  * @typedef {{
  *      isShared: boolean,
  *      isTrader: boolean,
- *      periodType: import('./types').PeriodType_Types,
- *      statisticsType: import('./types').StaticticsType_Types,
- *      tradeType: import('./types').TradeType_Types
+ *      periodType: FuturesSearchQuery_PeriodType_Types,
+ *      statisticsType: FuturesSearchQuery_StaticticsType_Types,
+ *      tradeType: FuturesSearchQuery_TradeType_Types
  * }} GetOtherLeaderboardBaseInfo_API_Payload_Interface
  */
 

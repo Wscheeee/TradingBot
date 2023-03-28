@@ -88,7 +88,7 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
     watchCollection(){
         console.log('Setting watch listener')
         const eventListenter =  this.#collection.watch()
-        this.eventListenersArray.push(eventListenter);
+        this.#eventListenersArray.push(eventListenter);
         return eventListenter;
     }
 
@@ -107,7 +107,7 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
     /**
      * 
      * @param {string|ObjectId} documentId 
-     * @returns {}
+     *
      */
     async getDocumentById(documentId){
         try {

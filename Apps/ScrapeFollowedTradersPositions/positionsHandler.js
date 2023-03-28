@@ -19,7 +19,7 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
             const savedTraderDbDoc = await followedTradersCursor.next();
             const traderPositions = await binanceScraper.getOtherPosition(binanceScraper.globalPage,{encryptedUid:savedTraderDbDoc.uid,tradeType:"PERPETUAL"});
             //::## WORK ON POSITIONS
-            const savedPositionsDbDocCursor = await mongoDatabase.collection.openTradesCollection.getDocumentsByTraderUid(trader.encryptedUid);
+            const savedPositionsDbDocCursor = await mongoDatabase.collection.openTradesCollection.getDocumentsByTraderUid(savedTraderDbDoc.uid);
             const savedTraderPositions = await savedPositionsDbDocCursor.toArray();
             for(const position_ of traderPositions){
                 let positionIsSaved = false;
@@ -43,6 +43,7 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                                     direction:savedPosition_.direction,
                                     entry_price: savedPosition_.entry_price,
                                     followed: savedPosition_.followed,
+                                    copied: savedPosition_.copied,
                                     leverage: savedPosition_.leverage,
                                     mark_price: savedPosition_.mark_price,
                                     open_date: savedPosition_.open_date,
@@ -77,6 +78,7 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                                 direction: savedPosition_.direction,
                                 entry_price: position_.entryPrice,
                                 followed: savedPosition_.followed,
+                                copied: savedPosition_.copied,
                                 leverage: savedPosition_.leverage,
                                 mark_price: position_.markPrice,
                                 open_date: position_.updateTimeStamp,
@@ -104,7 +106,8 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                         close_date: null,
                         direction: position_.direction,
                         entry_price: position_.entryPrice,
-                        followed: savedTraderDbDoc && savedTraderDbDoc.copied?true:false,
+                        followed: savedTraderDbDoc && savedTraderDbDoc.followed?true:false,
+                        copied: savedTraderDbDoc && savedTraderDbDoc.copied?true:false,
                         leverage: position_.leverage,
                         mark_price: position_.markPrice,
                         open_date: position_.updateTimeStamp,
@@ -155,6 +158,7 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                         direction:positionToClose_.direction,
                         entry_price: positionToClose_.entry_price,
                         followed: positionToClose_.followed,
+                        copied: positionToClose_.copied,
                         leverage: positionToClose_.leverage,
                         mark_price: positionToClose_.mark_price,
                         open_date: positionToClose_.open_date,

@@ -23,7 +23,8 @@ const {ObjectId,WithId} = require("mongodb")
  *      allPNL: number,
  *      allROI: number,
  *      copied: boolean,
- *      followed: boolean
+ *      followed: boolean,
+ *      updatedOn:number
  * }} TopTrader_Interface
  */
 

@@ -20,12 +20,13 @@ const {ObjectId} = require("mongodb")
 *      pnl: number,
 *      roi: number,
 *      status: "OPEN"|"CLOSED",
-*      followed: boolean
+*      followed: boolean,
+*      copied: boolean,
 * }} OldTrades_Interface 
 */
 
 /**
-* @typedef {_id:ObjectId,...OldTrades_Interface} OldTrades_Collection_Document_Interface
+* @typedef {import("mongodb").WithId<OldTrades_Interface>} OldTrades_Collection_Document_Interface
 */
 
 

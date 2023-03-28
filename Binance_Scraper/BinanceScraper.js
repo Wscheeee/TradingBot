@@ -7,7 +7,7 @@
 const  {  Browser, Page} =  require('puppeteer');
 const {getLeaderboardRank_API,BinanceTrader} = require("./getLeaderboardRank_API");
 const { getOtherLeaderboardBaseInfo_API} = require("./getOtherLeaderboardBaseInfo_API");
-const {getOtherPerformance_API,BinanceTraderPerfomance} = require("./getOtherPerformance_API")
+const {getOtherPerformance_API,BinanceTraderPerfomance, getValueForPerformance} = require("./getOtherPerformance_API")
 const {getOtherPosition_API, BinancePosition} = require("./getOtherPosition_API");
 
 
@@ -23,7 +23,7 @@ const {getOtherPosition_API, BinancePosition} = require("./getOtherPosition_API"
 **/
 
 /**
- * @typedef {{isLive:boolean, browser:Browser}} SettingsObject_Interface 
+ * @typedef {{isLive:boolean, browser:Browser, delayPerRequestInMs:number}} SettingsObject_Interface 
  */
 
 module.exports.BinanceScraper = class BinanceScraper {
@@ -36,6 +36,19 @@ module.exports.BinanceScraper = class BinanceScraper {
         closeNow: ()=>({
             close_timestamp: Date.now()
         }),
+        traderPerformance:{
+            getValueForPerformance
+        },
+        sleepAsync :async ()=>{
+            console.log("Binance sleep delay(milliseconds):",this.#settings.delayPerRequestInMs)
+            if(this.#settings.delayPerRequestInMs==0 ||!this.#settings.delayPerRequestInMs)return;
+            return new Promise((resolve,reject)=>{
+                const timeout = setTimeout(()=>{
+                    clearTimeout(timeout);
+                    resolve(true)
+                },this.#settings.delayPerRequestInMs)
+            })
+        }
         
     }
     /**
@@ -201,7 +214,7 @@ module.exports.BinanceScraper = class BinanceScraper {
     async getTradersTheirInfoAndPositions(page,getLeaderboardRankUsers_Payload){
         try{
             const traders = await this.getLeaderboardRankUsers(page,getLeaderboardRankUsers_Payload);
-    
+            
     
             /**
              * @typedef {{
@@ -216,6 +229,7 @@ module.exports.BinanceScraper = class BinanceScraper {
             const tradersAndTheirInfo = []
             // loop each trader and get their positions and perfomance
             for(const trader of traders){
+                await this.utils.sleepAsync();
                 const traderPerformace = await this.getOtherPerformance(page,{encryptedUid:trader.encryptedUid,tradeType:'PERPETUAL'});
                 const traderPositions = await this.getOtherPosition(page,{encryptedUid:trader.encryptedUid, tradeType:"PERPETUAL"})
     
@@ -258,6 +272,7 @@ module.exports.BinanceScraper = class BinanceScraper {
             const tradersAndTheirInfo = []
             // loop each trader and get their positions and perfomance
             for(const trader of traders){
+                await this.utils.sleepAsync();
                 const traderPerformace = await this.getOtherPerformance(page,{encryptedUid:trader.encryptedUid,tradeType:'PERPETUAL'});
     
                 /**

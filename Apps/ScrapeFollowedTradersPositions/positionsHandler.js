@@ -2,6 +2,7 @@ const {BinanceScraper,createPuppeteerBrowser} = require("../../Binance_Scraper")
 const {TraderInfo_Interface} = require("../../Binance_Scraper/BinanceScraper");
 const {MongoDatabase} = require("../../MongoDatabase");
 const {sleepAsync} = require("../../Utils/sleepAsync");
+const {DecimalMath} = require("../../DecimalMath/DecimalMath");
 
 
 /**
@@ -34,8 +35,10 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
     
                         // Found similar positions 
                         const isPositionRunning = position_.pnl !== savedPosition_.pnl;
+                        let currentPositionsTotalParts = savedPosition_.total_parts;
                         if(isPositionRunning){
                             if(savedPosition_.size > position_.amount){
+                                currentPositionsTotalParts = savedPosition_.total_parts+1;
                                 // means that a partial position was closed
                                 await mongoDatabase.collection.oldTradesCollection.createNewDocument({
                                     original_position_id: savedPosition_._id,
@@ -49,20 +52,21 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                                     open_date: savedPosition_.open_date,
                                     original_size: savedPosition_.original_size,
                                     pair:savedPosition_.pair,
-                                    part: savedPosition_.part,
-                                    pnl: savedPosition_.pnl - position_.pnl,
-                                    roi: savedPosition_.roi - position_.roe,
-                                    size: savedPosition_.size - position_.amount,
+                                    part: savedPosition_.total_parts,
+                                    pnl: new DecimalMath(savedPosition_.pnl).subtract(position_.pnl).getResult(),
+                                    roi: new DecimalMath(savedPosition_.roi).subtract(position_.roe).getResult(),
+                                    size: new DecimalMath(savedPosition_.size).subtract(position_.amount).getResult(),
                                     status: "CLOSED",
-                                    total_parts: savedPosition_.total_parts+1,
+                                    total_parts: currentPositionsTotalParts,
                                     trader_id: savedPosition_.trader_id,
                                     trader_uid: savedPosition_.trader_uid  
                                 });
+                                const currentOpenPositionNewSize = new DecimalMath(savedPosition_.size).subtract(new DecimalMath(savedPosition_.size).subtract(position_.amount).getResult());
                                 // adjust the open position to partial closed
                                 await mongoDatabase.collection.openTradesCollection.updateDocument(savedPosition_._id,{
-                                    size: savedPosition_.size - (savedPosition_.size - position_.amount),
+                                    size: currentOpenPositionNewSize,
                                     document_last_edited_at: Date.now(),
-                                    total_parts: savedPosition_.total_parts+1
+                                    total_parts: currentPositionsTotalParts
                                 })
                             }else{};
     
@@ -89,7 +93,7 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                                 roi: position_.roe,
                                 size: position_.amount,
                                 status: savedPosition_.status,
-                                total_parts: savedPosition_.total_parts,
+                                total_parts: currentPositionsTotalParts,
                                 document_created_at: savedPosition_.document_created_at,
                                 document_last_edited_at: Date.now(),
                                 server_timezone: process.env.TZ

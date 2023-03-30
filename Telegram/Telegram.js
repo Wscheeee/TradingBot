@@ -1,25 +1,27 @@
-/**
- * Send messages to telegram
- */
+// /**
+//  * Send messages to telegram
+//  */
 
 const {sendMessage} = require("./sendMessage");
-const {readDotEnvFile} = require("./readDotEnvFile");
+// const {readDotEnvFile} = require("./readDotEnvFile");
+const TelegramBot = require("./node_modules/node-telegram-bot-api/src/telegram");
+
 
 /**
- * @typedef {{chat_id:number,requestDelay:number}} Settings_Interface
+ * @typedef {{telegram_bot_token:string,requestDelay:number}} Settings_Interface
  */
 module.exports.Telegram = class Telegram {
+    /**
+     * @type {TelegramBot}
+     */
+    telegramBot;
     /**
      * @type {Settings_Interface}
      */
     #settings = {
         requestDelay: 5000,
-        chat_id: 0
+        telegram_bot_token: 0
     };
-    /**
-     * @type {Number}
-     */
-    #chatId;
 
 
     /**
@@ -44,26 +46,25 @@ module.exports.Telegram = class Telegram {
      * 
      * @param {Settings_Interface} settings 
      */
-    constructor({chat_id,requestDelay}){
-        // this.#chatId = chat_id;
-        this.#chatId = readDotEnvFile().TELEGRAM_CHANNEL_ID;
+    constructor({requestDelay,telegram_bot_token}){
         this.#settings ={
-            chat_id: readDotEnvFile().TELEGRAM_CHANNEL_ID,
+            telegram_bot_token:telegram_bot_token,
             requestDelay:requestDelay 
-        }
+        };
+        this.telegramBot = new TelegramBot(telegram_bot_token,{polling:true})
     }
     /**
-     * 
+     * @param {string} chatId
      * @param {string} message 
      */
-    async sendMessage(message){
+    async sendMessage(chatId,message){ 
         await this.utils.sleepAsync();
-        return await sendMessage({
-            text:message,
-            chat_id:this.#chatId
-        })
+        return await this.telegramBot.sendMessage(chatId,message)
     }
 }
 
-// const telegram = new Telegram({chat_id:Number(readDotEnvFile().TELEGRAM_CHANNEL_ID)});
-// telegram.sendMessage("Hello")
+// // const telegram = new Telegram({chat_id:Number(readDotEnvFile().TELEGRAM_CHANNEL_ID)});
+// // telegram.sendMessage("Hello")
+
+
+

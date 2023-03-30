@@ -416,7 +416,10 @@ module.exports.leaderboardTradersAndStatsHandler = async function leaderboardTra
             }
             // :: At this area a doc has been inserted
             
+            
+
         }
+        return;
     }catch(error){
         throw error;
     }

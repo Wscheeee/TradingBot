@@ -25,6 +25,8 @@ console.log(IS_LIVE);
     let lastScrapedDayNumber = -1;
     while(true){
         const TODAY_DAY_NUMBER = new Date().getDay();
+        const if3HoursPassed = new IfHoursPassed(3);
+        if3HoursPassed.start();
         while(lastScrapedDayNumber!==TODAY_DAY_NUMBER){// Scrape when day changes
             let mongoDatabase = null;
             let browser = null;

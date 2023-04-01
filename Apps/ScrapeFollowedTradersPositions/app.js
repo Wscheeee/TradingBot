@@ -3,17 +3,25 @@ const {MongoDatabase} = require("../../MongoDatabase");
 const {sleepAsync} = require("../../Utils/sleepAsync");
 const {positionsHandler} = require("./positionsHandler");
 const {readAndConfigureDotEnv} = require("../../Utils/readAndConfigureDotEnv");
+
+const {IfHoursPassed} = require("../../Utils/IfHoursPassed")
+
 const IS_LIVE = false;
 const dotEnvObj = readAndConfigureDotEnv(IS_LIVE); 
 process.env.TZ = dotEnvObj.TZ;
 process.env.DATABASE_URI = dotEnvObj.DATABASE_URI;
 process.env.DATABASE_NAME = dotEnvObj.DATABASE_NAME;
 console.log(process.env);
+
+ 
 (async ()=>{
     while(true){
         let mongoDatabase = null;
         let browser = null;
         try{
+            
+            const if3HoursPassed = new IfHoursPassed(3);
+            if3HoursPassed.start();
             /**
              * 0. Create db and Create a browser 
              */
@@ -44,6 +52,10 @@ console.log(process.env);
             await browser.close()
             await mongoDatabase.disconnect();
             // await sleepAsync(5000)
+            if(if3HoursPassed.isTrue()){
+                // process.exit();
+            }
+            
         }catch(e){
             if(browser){
                 await browser.close()

@@ -87,7 +87,7 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
               cb(fullDocument, trader);
             });
         } else {
-            console.log("OpenTrades Document has no real changes.");
+            // console.log("OpenTrades Document has no real changes.");
         }
     }
     });

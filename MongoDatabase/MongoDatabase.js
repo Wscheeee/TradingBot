@@ -6,7 +6,8 @@ const {
     MembershipUsersCollection,
     OldTradesCollection,
     OpenTradesCollection,
-    TopTradersCollection
+    TopTradersCollection,
+    TradedPositionsCollection
 } = require('./collections/');
 
 /**
@@ -14,7 +15,8 @@ const {
  *      membershipUsersCollection: MembershipUsersCollection
  *      oldTradesCollection: OldTradesCollection
  *      openTradesCollection: OpenTradesCollection
- *      topTradersCollection: TopTradersCollection
+ *      topTradersCollection: TopTradersCollection,
+ *      tradedPositionsCollection: TradedPositionsCollection
  * }} Collections_Interface
  */
 
@@ -44,7 +46,8 @@ module.exports.MongoDatabase =  class MongoDatabase{
         membershipUsersCollection:null,
         oldTradesCollection:null,
         openTradesCollection: null,
-        topTradersCollection:null
+        topTradersCollection:null,
+        tradedPositionsCollection: null
     }
     /**
      * @type {null|ClientSession}
@@ -81,7 +84,8 @@ module.exports.MongoDatabase =  class MongoDatabase{
                     membershipUsersCollection: new MembershipUsersCollection(this.#database),
                     oldTradesCollection: new OldTradesCollection(this.#database),
                     openTradesCollection: new OpenTradesCollection(this.#database),
-                    topTradersCollection: new TopTradersCollection(this.#database)
+                    topTradersCollection: new TopTradersCollection(this.#database),
+                    tradedPositionsCollection: new TradedPositionsCollection(this.#database)
                 }
                 console.log('Database connected...')
                 return true;

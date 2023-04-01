@@ -1,18 +1,16 @@
-const { MongoClient, Db, Collection, ObjectId, ExplainVerbosityLike, DeleteResult } = require("mongodb");
+const {  Db, Collection, ObjectId, ExplainVerbosityLike, DeleteResult } = require("mongodb");
 const {Document: MongoDocument, ChangeStream} = require('mongodb')
-const {OpenTrades_Interface,OpenTrades_Collection_Document_Interface} = require("./types/index")
 
 
 
-
-module.exports.OpenTradesCollection =  class OpenTradesCollection{
-    #COLLECTION_NAME = 'Open_Trades';
+module.exports.TradedPositionsCollection =  class TradedPositionsCollection{
+    #COLLECTION_NAME = 'Traded_Positions';
     /**
      * @type {Db}
      */
     #database;
     /**
-     * @type {Collection<OpenTrades_Collection_Document_Interface>}
+     * @type {Collection<import("./types").TradedPositions_Interface>}
      */
     #collection;
     /**
@@ -61,8 +59,8 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
 
     /**
      * 
-     * @param {OpenTrades_Interface} doc 
-     * @returns {OpenTrades_Collection_Document_Interface}
+     * @param {import("./types/index").TradedPositions_Interface} doc 
+     * @returns {import("./types/index").TradedPosition_Collection_Document_Interface}
      */
     async createNewDocument(doc){
         console.log(doc)
@@ -70,9 +68,9 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
             if(!doc){
                 throw new Error("No doc passed to (fn) create New Document")
             }else {
-                // if(!doc.server_timezone){
-                //     doc.server_timezone=process.env.TZ 
-                // }
+                if(!doc.server_timezone){
+                    doc.server_timezone=process.env.TZ 
+                }
                const insertedDoc =  await this.#collection.insertOne(doc);
                console.log('Doc inserted')
                return insertedDoc;
@@ -123,8 +121,8 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
 
     /**
      * @param {ObjectId} documentId
-     * @param {OpenTrades_Interface} doc 
-     * @returns {OpenTrades_Collection_Document_Interface}
+     * @param {import("./types").TradedPositions_Interface} doc 
+     * @returns {import("./types").TradedPosition_Collection_Document_Interface}
      */
     async updateDocument(documentId,doc){
         console.log(doc)
@@ -184,7 +182,6 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
      * @param {string} trader_uid 
      */
     // * @returns {FindCursor<>} 
-    //* @returns {OpenTrades_Collection_Document_Interface[]|null}
      async getDocumentsByTraderUid(trader_uid){
         try {
             return await this.#collection.find({

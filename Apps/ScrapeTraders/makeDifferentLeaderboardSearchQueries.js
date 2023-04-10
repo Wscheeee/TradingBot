@@ -12,26 +12,26 @@ module.exports.makeDifferentLeaderboardSearchQueries = function makeDifferentLea
         const isTraderValues = [true, false];
       
         periodTypes.forEach(periodType => {
-          statisticsTypes.forEach(statisticsType => {
-            tradeTypes.forEach(tradeType => {
-              isSharedValues.forEach(isShared => {
-                isTraderValues.forEach(isTrader => {
-                  allPossibleValues.push({
-                    isShared: isShared,
-                    isTrader: isTrader,
-                    periodType: periodType,
-                    statisticsType: statisticsType,
-                    tradeType: tradeType
-                  });
+            statisticsTypes.forEach(statisticsType => {
+                tradeTypes.forEach(tradeType => {
+                    isSharedValues.forEach(isShared => {
+                        isTraderValues.forEach(isTrader => {
+                            allPossibleValues.push({
+                                isShared: isShared,
+                                isTrader: isTrader,
+                                periodType: periodType,
+                                statisticsType: statisticsType,
+                                tradeType: tradeType
+                            });
+                        });
+                    });
                 });
-              });
             });
-          });
         });
       
         return allPossibleValues;
     }
-    return getAllPossibleValues()
+    return getAllPossibleValues();
     // const differenSearchQueries = [
     //     {
     //         isShared:true,
@@ -52,5 +52,5 @@ module.exports.makeDifferentLeaderboardSearchQueries = function makeDifferentLea
 
     
 
-}
+};
 

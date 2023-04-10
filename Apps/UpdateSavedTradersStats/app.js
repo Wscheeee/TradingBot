@@ -82,8 +82,9 @@ console.log(IS_LIVE);
                         copied: savedTrader.copied,
                         followed: savedTrader.followed,
                         weight:1,
-                        updatedOn:Date.now(),
-                        allPNL: 
+                        last_uptade_timestamp:Date.now(),
+                        performances_last_uptade_timestamp: Date.now(),
+                        all_pnl: 
                             binance.
                                 utils.
                                 traderPerformance.
@@ -95,7 +96,7 @@ console.log(IS_LIVE);
                                     },
                                     savedTrader.allPNL
                                 ),
-                        allROI: 
+                        all_roi: 
                             binance.
                                 utils.
                                 traderPerformance.
@@ -107,7 +108,7 @@ console.log(IS_LIVE);
                                     },
                                     savedTrader.allROI
                                 ),
-                        dailyPNL: 
+                        daily_pnl: 
                             binance.
                                 utils.
                                 traderPerformance.
@@ -119,7 +120,7 @@ console.log(IS_LIVE);
                                     },
                                     savedTrader.dailyPNL
                                 ),
-                        dailyROI: 
+                        daily_roi: 
                             binance.
                                 utils.
                                 traderPerformance.
@@ -131,7 +132,7 @@ console.log(IS_LIVE);
                                     },
                                     savedTrader.dailyROI
                                 ),
-                        weeklyPNL:
+                        weekly_pnl:
                             binance.
                                 utils.
                                 traderPerformance.
@@ -143,7 +144,7 @@ console.log(IS_LIVE);
                                     },
                                     savedTrader.weeklyPNL
                                 ),
-                        weeklyROI:
+                        weekly_roi:
                             binance.
                                 utils.
                                 traderPerformance.
@@ -155,7 +156,7 @@ console.log(IS_LIVE);
                                     },
                                     savedTrader.weeklyROI
                                 ),
-                        monthlyPNL:
+                        monthly_pnl:
                             binance.
                                 utils.
                                 traderPerformance.
@@ -167,7 +168,7 @@ console.log(IS_LIVE);
                                     },
                                     savedTrader.monthlyPNL
                                 ),
-                        monthlyROI:
+                        monthly_roi:
                             binance.
                                 utils.
                                 traderPerformance.
@@ -179,7 +180,7 @@ console.log(IS_LIVE);
                                     },
                                     savedTrader.monthlyROI
                                 ),
-                        yearlyPNL:
+                        yearly_pnl:
                             binance.
                                 utils.
                                 traderPerformance.
@@ -191,7 +192,7 @@ console.log(IS_LIVE);
                                     },
                                     savedTrader.yearlyPNL
                                 ),
-                        yearlyROI:
+                        yearly_roi:
                             binance.
                                 utils.
                                 traderPerformance.
@@ -204,7 +205,7 @@ console.log(IS_LIVE);
                                     savedTrader.yearlyROI
                                 ),
                         // exacts
-                        exactWeeklyPNL:
+                        exact_weekly_pnl:
                             binance.
                                 utils.
                                 traderPerformance.
@@ -216,7 +217,7 @@ console.log(IS_LIVE);
                                     },
                                     savedTrader.exactWeeklyPNL
                                 ),
-                        exactWeeklyROI:
+                        exact_weekly_roi:
                             binance.
                                 utils.
                                 traderPerformance.
@@ -228,7 +229,7 @@ console.log(IS_LIVE);
                                     },
                                     savedTrader.exactWeeklyROI
                                 ),
-                        exactMonthlyPNL:
+                        exact_monthly_pnl:
                             binance.
                                 utils.
                                 traderPerformance.
@@ -240,7 +241,7 @@ console.log(IS_LIVE);
                                     },
                                     savedTrader.exactMonthlyPNL
                                 ),
-                        exactMonthlyROI:
+                        exact_monthly_roi:
                             binance.
                                 utils.
                                 traderPerformance.
@@ -252,7 +253,7 @@ console.log(IS_LIVE);
                                     },
                                     savedTrader.exactMonthlyROI
                                 ),
-                        exactYearlyPNL:
+                        exact_yearly_pnl:
                             binance.
                                 utils.
                                 traderPerformance.
@@ -264,7 +265,7 @@ console.log(IS_LIVE);
                                     },
                                     savedTrader.exactYearlyPNL
                                 ),
-                        exactYearlyROI:
+                        exact_yearly_roi:
                             binance.
                                 utils.
                                 traderPerformance.

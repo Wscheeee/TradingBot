@@ -1,0 +1,42 @@
+/**
+ * @typedef {{
+ *      telegram_id: string,
+ *      telegram_username: string,
+ *      telegram_chat_id: string,
+ *      language: "ENGLISH"|"FRENCH",
+ *      bybit_public_api_key: string,
+ *      bybit_secret_api_key: string,
+ *      last_payment_timestamp: number,
+ *      last_payment_amount: number,
+ *      total_amount_in_payment_wallet:number,
+ *      monthly_fee: number,
+ *      uid_of_traders_to_copy: string[],
+ *      server_timezone: string,
+ *      creation_timestamp: number
+* }} User_Interface 
+*/
+
+/**
+* @typedef {import("mongodb").WithId<User_Interface>} Users_Collection_Document_Interface
+*/
+
+
+module.exports = {};
+
+// const userSchema = new mongoose.Schema({  username: { type: String, default: 0 },
+//     userId: { type: Number, default: 0 },  chatId: { type: Number, default: 0 },
+//     language: { type: String, default: 0 },  daysLeft: { type: Number, default: 0 },
+//     todayDate: { type: Date, default: 0 },  firstDate: { type: Date, default: 0 },
+//     totalMonths: { type: Number, default: 0 },  totalPaid: { type: Number, default: 0 },
+//     status: { type: Boolean, default: false },  traderOne: { type: Boolean, default: false },
+//     traderTwo: { type: Boolean, default: false },  traderThree: { type: Boolean, default: false },
+//     traderFour: { type: Boolean, default: false },  traderFive: { type: Boolean, default: false },
+//     traderSix: { type: Boolean, default: false },  traderSeven: { type: Boolean, default: false },
+//     traderEight: { type: Boolean, default: false },  traderNine: { type: Boolean, default: false },
+//     traderTen: { type: Boolean, default: false },  traderEleven: { type: Boolean, default: false },
+//     traderTwelve: { type: Boolean, default: false },  traderThirteen: { type: Boolean, default: false },
+//     traderFourteen: { type: Boolean, default: false },  traderFifteen: { type: Boolean, default: false },
+//     traderSixteen: { type: Boolean, default: false },  traderSeventeen: { type: Boolean, default: false },
+//     traderEighteen: { type: Boolean, default: false },  traderNineteen: { type: Boolean, default: false },
+//     traderTwenty: { type: Boolean, default: false },}, {
+//     collection: 'Users'});

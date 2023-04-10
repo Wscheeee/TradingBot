@@ -1,0 +1,12 @@
+{
+  "name": "TradingBot",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/Wscheeee/TradingBot.git",
+  "author": "Georgemburu <snooppythedj@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "eslint": "^8.37.0"
+  },
+  "dependencies": {}
+}

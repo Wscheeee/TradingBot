@@ -7,65 +7,89 @@
  * : So it is important to cache the request and have a job runner taking the trades .
  */
 
-const {LinearClient, RestClientV5} = require("bybit-api"); 
 
+const {Bybit_LinearClient} = require("./Bybit_LinearClient");
+const {Bybit_RestClientV5} = require("./Bybit_RestClientV5");
+const {Bybit_AccountAssetClientV3} = require("./Bybit_AccountAssetClientV3");
+
+const {DecimalMath} = require("../../DecimalMath/DecimalMath");
 
 /**
  * @typedef {{ sendOrders_taskRunnerInterval_duration:number}} Bybit_Settings_Interface
  */
+/**
+ * @typedef {{
+ *      bybit_LinearClient: Bybit_LinearClient,
+ *      bybit_RestClientV5: Bybit_RestClientV5,
+ *      bybit_AccountAssetClientV3: Bybit_AccountAssetClientV3
+ * }} BybitClients_Interface
+ */
 
 module.exports.Bybit = class Bybit {
- 
-   /**
+    // CLIENTS
+    /**
+     * @type {BybitClients_Interface}
+     */
+    #clients = {};
+
+
+
+    // PARAMETERS
+    /**
      * @description Locks make request is a resquest is running. Makes sure requeste run one after the other.
      */
-   #requestIsRunningLock = false;
+    #requestIsRunningLock = false;
 
-    /**
-     * @constructor
 
-     */
-    constructor(){ 
-     
+
+    // UTILS
+    utils = {
     };
 
 
-
     /**
-     * 
-     * @param {number} ms 
-     * @returns {Promise<boolean>}
+     * @constructor
+     * @param {{millisecondsToDelayBetweenRequests:number,publicKey:string,privateKey:string,testnet:boolean}} settings 
      */
-    async delayAsync(ms){
-        console.log("Waiting for a delay of ms:",ms)
-        console.log({requestIsRunningLock:this.#requestIsRunningLock})
-        return new Promise((resolve,reject)=>{
-            const timeout = setTimeout(async ()=>{
-              console.log({requestIsRunningLock:this.#requestIsRunningLock})
-                if(this.#requestIsRunningLock===false){
-                  console.log("Delay end:s")
-                    clearTimeout(timeout);
-                    resolve(true)
-                }else {
-                    this.#requestIsRunningLock = false;
-                    console.log("Reecursive",{requestIsRunningLock:this.#requestIsRunningLock})
-                    await this.delayAsync(ms)
-                }
-            },ms)
-        })
+    constructor({millisecondsToDelayBetweenRequests,privateKey,publicKey,testnet}){ 
+        this.#clients.bybit_LinearClient = new Bybit_LinearClient({
+            linearClient: Bybit_LinearClient.createLinearClient({
+                privateKey,publicKey,testnet
+            }),
+            millisecondsToDelayBetweenRequests
+        });
+
+        this.#clients.bybit_RestClientV5 = new Bybit_RestClientV5({
+            restClientV5: Bybit_RestClientV5.createRestClientV5({
+                privateKey,publicKey,testnet
+            }),
+            millisecondsToDelayBetweenRequests
+        });
+
+        this.#clients.bybit_AccountAssetClientV3 = new Bybit_AccountAssetClientV3({
+            accountAssetClientV3: Bybit_AccountAssetClientV3.createAccountAssetClientV3({
+                privateKey,publicKey,testnet
+            }),
+            millisecondsToDelayBetweenRequests
+        });
+      
     }
 
+    // GETTERS
+    get clients(){ return this.#clients;}
+    
 
-    set_requestIsRunningLock(){
-        if(this.#requestIsRunningLock){
-          this.#requestIsRunningLock = false;
-        }else {
-          this.#requestIsRunningLock = true;
-        }
-    }
-    remove_requestIsRunningLock(){
-        this.#requestIsRunningLock = false;
-    }
+
+    // set_requestIsRunningLock(){
+    //     if(this.#requestIsRunningLock){
+    //         this.#requestIsRunningLock = false;
+    //     }else {
+    //         this.#requestIsRunningLock = true;
+    //     }
+    // }
+    // remove_requestIsRunningLock(){
+    //     this.#requestIsRunningLock = false;
+    // }
 
     /**
      * Calculates the maximum quantity that can be sold based on the minimum quantity and step size of a cryptocurrency symbol.
@@ -77,15 +101,34 @@ module.exports.Bybit = class Bybit {
      *
      * @returns {number} The maximum quantity that can be sold.
      */
-    calculateQty_ForOrder({qty, minQty, stepSize}) {
-      try{
-        console.log("[method: calculateQty_ForOrder]",{qty, minQty, stepSize})
-        const maxQty = Math.floor(qty / stepSize) * stepSize;
+    #calculateQty_ForOrder({qty, minQty, stepSize}) {
+        console.log("[method: calculateQty_ForOrder]",{qty, minQty, stepSize});
+        const maxQty = new DecimalMath(Math.floor(new DecimalMath(qty).divide(stepSize).getResult())).multiply(stepSize).getResult();
         return maxQty >= minQty ? maxQty : 0;
 
-      }catch(error){
-        throw error;
-      }
+    }  
+
+    /**
+     * 
+     * @param {{symbol:string,quantity:number}} param0 
+     */
+    async standardizeQuantity({quantity,symbol}){
+        console.log("[method: standardizeQuantity]");
+        const symbolInfo = await this.#clients.bybit_LinearClient.getSymbolInfo(symbol);
+        console.log({symbolInfo});
+        if(!symbolInfo || !symbolInfo.name){
+            throw symbolInfo;
+        }else {
+            const minQty = symbolInfo.lot_size_filter.min_trading_qty;
+            const qtyStep = symbolInfo.lot_size_filter.qty_step;
+            const maxQty =  this.#calculateQty_ForOrder({
+                qty: quantity,
+                minQty:minQty,
+                stepSize:qtyStep
+            });
+            
+            return maxQty;
+        }
     }
 
 
@@ -93,50 +136,65 @@ module.exports.Bybit = class Bybit {
     
 
 
-   // MATHS
-   /**
+    // MATHS
+    /**
     * @param {import("bybit-api").PositionV5} position 
     * @returns {number}
     */
-   calculatePositionROI(position) {
-    const currentValue = parseFloat(position.positionValue);
-    const positionSize = parseFloat(position.size);
-    const averageEntryPrice = parseFloat(position.avgPrice);
+    calculatePositionROI(position) {
+        const currentValue = parseFloat(position.positionValue);
+        const positionSize = parseFloat(position.size);
+        const averageEntryPrice = parseFloat(position.avgPrice);
   
-    const initialCost = positionSize * averageEntryPrice;
-    const roi = (currentValue - initialCost) / initialCost;
+        const initialCost = positionSize * averageEntryPrice;
+        const roi = (currentValue - initialCost) / initialCost;
   
-    return roi;
-  }
-
-  /**
-    * @param {import("bybit-api").PositionV5} position 
-    * @returns {number}
-    */
-  calculatePositionPNL(position) {
-    const currentValue = parseFloat(position.positionValue);
-    const averageEntryPrice = parseFloat(position.avgPrice);
-    const realizedPNL = parseFloat(position.cumRealisedPnl);
-  
-    const initialCost = position.size * averageEntryPrice;
-    const pnl = (currentValue - initialCost) + realizedPNL;
-  
-    return pnl;
-  }
-
-  /**
-    * @param {import("bybit-api").PositionV5} position 
-    * @returns {number}
-    */
-  getPositionLeverage(position) {
-    let leverage = position.leverage;
-    
-    if (leverage === '') {
-      leverage = 0;//'Not available';
+        return roi;
     }
+    /**
+      * @param {import("bybit-api").AccountOrderV5} position 
+      * @returns {number}
+      */
+    calculateClosedPositionROI(position) {
+        const currentValue = parseFloat(position.cumExecValue);
+        const positionSize = parseFloat(position.cumExecQty);
+        const averageEntryPrice = parseFloat(position.avgPrice);
+
+        const initialCost = positionSize * averageEntryPrice;
+        const roi = (currentValue - initialCost) / initialCost;
+
+        return roi;
+    }
+
+    /**
+    * @param {import("bybit-api").PositionV5} position 
+    * @returns {number}
+    */
+    calculatePositionPNL(position) {
+        const currentValue = parseFloat(position.positionValue);
+        const averageEntryPrice = parseFloat(position.avgPrice);
+        const realizedPNL = parseFloat(position.cumRealisedPnl);
+  
+        const initialCost = position.size * averageEntryPrice;
+        const pnl = (currentValue - initialCost) + realizedPNL;
+  
+        return pnl;
+    }
+
+
+    /**
+    * @param {import("bybit-api").PositionV5} position 
+    * @returns {number}
+    */
+    getPositionLeverage(position) {
+        let leverage = position.leverage;
     
-    return leverage;
-  }
+        if (leverage === "") {
+            leverage = 0;//'Not available';
+        }
+    
+        return leverage;
+    }
 
     /**
     * @param {import("bybit-api").PositionV5} position 
@@ -170,10 +228,11 @@ module.exports.Bybit = class Bybit {
     }
       
       
+
   
   
   
   
 
 
-}
+};

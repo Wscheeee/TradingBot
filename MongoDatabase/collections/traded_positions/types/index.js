@@ -1,11 +1,10 @@
-const {ObjectId,WithId} = require("mongodb")
-
 /**
  * @typedef  {{
- *    trader_uid: ObjectId,
+ *    trader_uid: import("mongodb").ObjectId,
  *    trader_username: string,
- *    position_id_in_oldTradesCollection: ObjectId,
- *    position_id_in_openTradesCollection: ObjectId,
+ *    position_id_in_oldTradesCollection: import("mongodb").ObjectId,
+ *    position_id_in_openTradesCollection: import("mongodb").ObjectId,
+ *    direction:"LONG"|"SHORT",
  *    pair: string,
  *    leverage: number
  *    size: number,
@@ -20,9 +19,9 @@ const {ObjectId,WithId} = require("mongodb")
 
 
 /**
- * @typedef { WithId<TradedPosition_Interface>} TradedPosition_Collection_Document_Interface 
+ * @typedef { import("mongodb").WithId<TradedPosition_Interface>} TradedPosition_Collection_Document_Interface 
  */
 
 
 
-module.exports = {}
+module.exports = {};

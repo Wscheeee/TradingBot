@@ -1,15 +1,14 @@
 "use-strict";
-//@ts-check
 
-const { RestClientV5 } = require("bybit-api");
-const { Bybit } = require("./Bybit")
+const { RestClientV5} = require("bybit-api");
+
+const {RateLimiter} = require("../utils/RateLimiter");
 
 
-
-module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5 extends Bybit{
+module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
 
     /**
-     * @type {RestClientV5}
+     * @type {import("bybit-api").RestClientV5}
      */
     #restClientV5;
 
@@ -17,15 +16,23 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5 extends Bybit{
      * @type {number}
      */
     #millisecondsToDelayBetweenRequests = 0;
+
+    /**
+     * @type {RateLimiter}
+     */
+    #rateLimiter;
+
     /**
      * 
-     * @param {{restClientV5:RestClientV5,millisecondsToDelayBetweenRequests:number}} settings 
+     * @param {{restClientV5:import("bybit-api").RestClientV5,millisecondsToDelayBetweenRequests:number}} settings 
      */
     constructor({restClientV5,millisecondsToDelayBetweenRequests}){
-        super();
         this.#restClientV5 = restClientV5;
         this.#millisecondsToDelayBetweenRequests = millisecondsToDelayBetweenRequests;
-    };
+        this.#rateLimiter = new RateLimiter({
+            delayms: millisecondsToDelayBetweenRequests
+        });
+    }
 
     // STATIC
     /**
@@ -33,17 +40,12 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5 extends Bybit{
      * @returns {RestClientV5}
      */
     static  createRestClientV5({privateKey,publicKey,testnet}){
-        try{
-            
-            const client =  new RestClientV5({
-                key: publicKey,
-                secret: privateKey,
-                testnet:testnet
-            });
-             return client;
-        }catch(error){
-            throw error;
-        }
+        const client =  new RestClientV5({
+            key: publicKey,
+            secret: privateKey,
+            testnet:testnet
+        });
+        return client;
     }
 
     // public
@@ -51,39 +53,33 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5 extends Bybit{
      * 
      * @param {import("bybit-api").OrderParamsV5} orderParamsV5 
      */
-    async openNewPosition(orderParamsV5){
-        try {
-            await this.delayAsync(this.#millisecondsToDelayBetweenRequests);
-            console.log("[method: openNewPosition]")
-            
-            console.log(orderParamsV5)
-            const res = await this.#restClientV5.submitOrder(orderParamsV5);
-            
-            // console.log({res})
-            return res;
-        }catch(error){
-            
-            throw error;
-        }
+    async openANewPosition(orderParamsV5){
+        await this.#rateLimiter.addJob();
+        console.log("[method: openNewPosition]");        
+        console.log(orderParamsV5);
+        const res = await this.#restClientV5.submitOrder(orderParamsV5);
+        return res;
     }
 
-     /**
+
+    /**
+     * @param {import("bybit-api").CancelOrderParamsV5} cancelOrderParamsV5
+     */
+    async cancelAnOrder(cancelOrderParamsV5){
+        const cancelOrderRes = await this.#restClientV5.cancelOrder(cancelOrderParamsV5);
+        return cancelOrderRes;
+    }
+
+    /**
      * 
      * @param {import("bybit-api").OrderParamsV5} orderParamsV5 
      */
     async closeAPosition(orderParamsV5){
-        try{
-            await this.delayAsync(this.#millisecondsToDelayBetweenRequests);
-            console.log("[method: closeAPosition]")
-            
-            console.log(orderParamsV5)
-            const res = await this.#restClientV5.submitOrder(orderParamsV5);
-            
-            return res;
-        }catch(error){
-            
-            throw error;
-        }
+        await this.#rateLimiter.addJob();
+        console.log("[method: closeAPosition]");        
+        console.log(orderParamsV5);
+        const res = await this.#restClientV5.submitOrder(orderParamsV5);        
+        return res;
     }
 
     /**
@@ -91,38 +87,25 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5 extends Bybit{
      * @param {import("bybit-api").OrderParamsV5} orderParamsV5 
      */
     async updateAPosition(orderParamsV5){
-        try{
-            await this.delayAsync(this.#millisecondsToDelayBetweenRequests);
-            console.log("[method: updateAPosition]")
-            
-            console.log(orderParamsV5)
-            const res = await this.#restClientV5.submitOrder(orderParamsV5);
-            
-            return res;
-        }catch(error){
-            
-            throw error;
-        }
+        await this.#rateLimiter.addJob();
+        console.log("[method: updateAPosition]");        
+        console.log(orderParamsV5);
+        const res = await this.#restClientV5.submitOrder(orderParamsV5);        
+        return res;
     }
 
 
     /**
      * 
      * @param {import("bybit-api").PositionInfoParamsV5} positionInfoParamsV5 
-     */
+    */
+    // * @returns {Promise<import("bybit-api").APIResponseV3WithTime<import("bybit-api").CategoryCursorListV5<import("bybit-api").PositionV5[], import("bybit-api").CategoryV5>>>}
     async getOpenPositions(positionInfoParamsV5){
-        try{
-            await this.delayAsync(this.#millisecondsToDelayBetweenRequests);
-            console.log("[method: getOpenPosition]")
-            
-            console.log(positionInfoParamsV5)
-            const res = await this.#restClientV5.getPositionInfo(positionInfoParamsV5);
-            
-            return res;
-        }catch(error){
-            
-            throw error;
-        }
+        await this.#rateLimiter.addJob();
+        console.log("[method: getOpenPosition]");        
+        console.log(positionInfoParamsV5);
+        const res = await this.#restClientV5.getPositionInfo(positionInfoParamsV5);
+        return res;
     }
 
 
@@ -134,21 +117,40 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5 extends Bybit{
      * @param {import('bybit-api').GetAllCoinsBalanceParamsV5} params 
      */
     async getAllCoinsBalance(params){
-        try {
-            await this.delayAsync(this.#millisecondsToDelayBetweenRequests);
-            
-            console.log("[method: getAllCoinsBalance]")
-            const res =  await this.#restClientV5.getAllCoinsBalance(params)
-            
-            return res;
-        }catch(error){
-            
-            throw error;
-        }
+        await this.#rateLimiter.addJob();
+        console.log("[method: getAllCoinsBalance]");
+        const res =  await this.#restClientV5.getAllCoinsBalance(params);
+        return res;
     }
 
 
+    /**
+     * 
+     * @param {import("bybit-api").GetAccountOrdersParams} getAccountOrdersParams 
+     */
+    async getClosedPositionInfo(getAccountOrdersParams){
+        await this.#rateLimiter.addJob();
+        console.log("[method: getClosedPositionInfo]");
+        const res = await this.#restClientV5.getHistoricOrders(getAccountOrdersParams);
+        return res;
+    }
+
+
+    /**
+     * 
+     * @param {import("bybit-api").GetClosedPnLParamsV5} getClosedPnLParamsV5 
+     */
+    async getClosedPositionPNL(getClosedPnLParamsV5){
+        await this.#rateLimiter.addJob();
+        console.log("[method: getClosedPositionInfo]");
+        const res = await this.#restClientV5.getClosedPnL(getClosedPnLParamsV5);
+        return res;
+    }
+    
+
+
+   
 
 
     
-}
+};

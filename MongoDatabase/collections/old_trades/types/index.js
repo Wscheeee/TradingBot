@@ -1,10 +1,8 @@
-const {ObjectId} = require("mongodb")
-
 /**
  * part : 0 if original , 1 if resized, 1 ,2 3
  * @typedef {{
- *     original_position_id: ObjectId,
- *     trader_id: ObjectId,
+ *     original_position_id: import("mongodb").ObjectId,
+ *     trader_id: import("mongodb").ObjectId,
 *      trader_uid: string,
 *      part: number,
 *      original_size: number,
@@ -22,6 +20,7 @@ const {ObjectId} = require("mongodb")
 *      status: "OPEN"|"CLOSED",
 *      followed: boolean,
 *      copied: boolean,
+*      server_timezone: string,
 * }} OldTrades_Interface 
 */
 
@@ -30,4 +29,4 @@ const {ObjectId} = require("mongodb")
 */
 
 
-module.exports = {}
+module.exports = {};

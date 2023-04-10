@@ -1,11 +1,11 @@
-const {ObjectId,WithId} = require("mongodb")
-
 /**
  * @typedef  {{
- *      _id?:string
+ *      unique_number: string,
  *      uid: string
  *      username:string|null,
- *      url:string,
+ *      average_concurrent_trades: number, 
+ *      average_trade_count_value: number,
+ *      averages_last_uptade_timestamp: number,
  *      dailyPNL: number,
  *      dailyROI: number,
  *      weeklyPNL: number,
@@ -24,18 +24,20 @@ const {ObjectId,WithId} = require("mongodb")
  *      allROI: number,
  *      copied: boolean,
  *      followed: boolean,
- *      updatedOn:number
+ *      updatedOn:number,
+ *      weight: number,
+ *      totalROI: number,
+ *      SharpeRatio: number,
+ *      MaxDrawdown: number,
+ *      WinRate: number,
+ *      server_timezone:string 
  * }} TopTrader_Interface
  */
 
 /**
- * @typedef {{_id:ObjectId}} DocumentIDAdded_interface
- */
-/**
- * @typedef { TopTrader_Interface} TopTraderCollection_Document_Interface 
- * @property {{_id:ObjectId}}
+ * @typedef {import("mongodb").WithId<TopTrader_Interface>} TopTraderCollection_Document_Interface 
  */
 
 
 
-module.exports = {}
+module.exports = {};

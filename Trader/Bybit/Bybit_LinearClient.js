@@ -1,10 +1,9 @@
 "use-strict";
-//@ts-check
 
 const { LinearClient } = require("bybit-api");
-const { Bybit } = require("./Bybit")
+const {RateLimiter} = require("../utils/RateLimiter");
 
-module.exports.Bybit_LinearClient = class Bybit_LinearClient extends Bybit {
+module.exports.Bybit_LinearClient = class Bybit_LinearClient {
     /**
      * @type {import("bybit-api").SymbolInfo[]}
      */
@@ -18,15 +17,22 @@ module.exports.Bybit_LinearClient = class Bybit_LinearClient extends Bybit {
      * @type {number}
      */
     #millisecondsToDelayBetweenRequests = 0;
+
+    /**
+     * @type {RateLimiter}
+     */
+    #rateLimiter;
     /**
      * 
      * @param {{linearClient:LinearClient,millisecondsToDelayBetweenRequests:number}} settings 
      */
     constructor({linearClient,millisecondsToDelayBetweenRequests}){
-        super();
         this.#linearClient = linearClient;
         this.#millisecondsToDelayBetweenRequests = millisecondsToDelayBetweenRequests;
-    };
+        this.#rateLimiter = new RateLimiter({
+            delayms: millisecondsToDelayBetweenRequests
+        });
+    }
 
     // STATIC
     /**
@@ -34,57 +40,46 @@ module.exports.Bybit_LinearClient = class Bybit_LinearClient extends Bybit {
      * @returns {LinearClient}
      */
     static  createLinearClient({privateKey,publicKey,testnet}){
-        try{
-            const linearClient =  new LinearClient({
-                key: publicKey,
-                secret: privateKey,
-                testnet:testnet
-            });
-             return linearClient;
-        }catch(error){
-            throw error;
-        }
-    };
+        const linearClient =  new LinearClient({
+            key: publicKey,
+            secret: privateKey,
+            testnet:testnet
+        });
+        return linearClient;
+    }
 
 
     // Public
 
     async getAllSymbols(){
-        try{
-            console.log("[method: getAllSymbols]")
-           
-            await this.delayAsync(this.#millisecondsToDelayBetweenRequests);
-            const res = await this.#linearClient.getSymbols();
-            if(res.result){
-                this.#symbols = res.result.map(s => s);
-            }
-            
-            return res;
-        }catch(error){
-            
-            throw error;
+        console.log("[method: getAllSymbols]");
+        // await this.#rateLimiter.delayAsync(this.#millisecondsToDelayBetweenRequests);
+        await this.#rateLimiter.addJob();
+        const res = await this.#linearClient.getSymbols();
+        if(res.result){
+            this.#symbols = res.result.map(s => s);
         }
+        
+        return res;
     }
     /**
      * @description get te information regarding a certain symbol
      * @param {string} symbolName 
      */
     async getSymbolInfo(symbolName){
-        try{
-            await this.delayAsync(this.#millisecondsToDelayBetweenRequests);
-            console.log("[method: getSymbolInfo]")     
-            if(this.#symbols.length<1){
-                await this.getAllSymbols();
-            }
-            
-            const symbolInfo =  this.#symbols.find((s)=> s.name===symbolName)
-            return symbolInfo;
-            
-        }catch(error){
-            
-            throw error;
+        await this.#rateLimiter.addJob();
+        console.log("[method: getSymbolInfo]");
+        if(this.#symbols.length<1){
+            await this.getAllSymbols();
         }
+        
+        const symbolInfo =  this.#symbols.find((s)=> s.name===symbolName);
+        return symbolInfo;
     }
+
+
+   
+
 
 
 
@@ -94,29 +89,25 @@ module.exports.Bybit_LinearClient = class Bybit_LinearClient extends Bybit {
      * 
      * @param {{symbol:string,quantity:number}} param0 
      */
-    async formatSellQuantity({quantity,symbol}){
-        try{
-            console.log("[method: formatSellQuantity]")
-            await this.delayAsync(this.#millisecondsToDelayBetweenRequests);
-            const symbolInfo = await this.getSymbolInfo(symbol)
-            console.log({symbolInfo})
-            if(!symbolInfo || !symbolInfo.name){
-                throw symbolInfo
-            }else {
-                const minQty = symbolInfo.lot_size_filter.min_trading_qty;
-                const qtyStep = symbolInfo.lot_size_filter.qty_step;
-                const maxQty =  this.calculateQty_ForOrder({
-                    qty: quantity,
-                    minQty:minQty,
-                    stepSize:qtyStep
-                });
-                
-                return maxQty;
-            }
-        }catch(error){
-            throw error;
+    async standardizeQuantity({quantity,symbol}){
+        console.log("[method: standardizeQuantity]");
+        await this.#rateLimiter.addJob();
+        const symbolInfo = await this.getSymbolInfo(symbol);
+        console.log({symbolInfo});
+        if(!symbolInfo || !symbolInfo.name){
+            throw symbolInfo;
+        }else {
+            const minQty = symbolInfo.lot_size_filter.min_trading_qty;
+            const qtyStep = symbolInfo.lot_size_filter.qty_step;
+            const maxQty =  this.calculateQty_ForOrder({
+                qty: quantity,
+                minQty:minQty,
+                stepSize:qtyStep
+            });
+            
+            return maxQty;
         }
     }
-}
+};
 
 

@@ -1,13 +1,17 @@
 module.exports = {
     apps : [
         {
+            name: "Executor",
+            script: "./Executor/app.js"
+        },
+        {
             name : "ScrapeFollowedTradersPositions",
             script : "./ScrapeFollowedTradersPositions/app.js"
         },
         {
             name : "ScrapeTraders",
             script : "./ScrapeTraders/app.js",
-            restart_delay: "10800000" // 3 hours in milliseconds
+            // restart_delay: "10800000" // 3 hours in milliseconds
         },
         {
             name   : "SendSignalsToTelegram",
@@ -17,7 +21,7 @@ module.exports = {
         {
             name : "UpdateSavedTradersStats",
             script : "./UpdateSavedTradersStats/app.js",
-            restart_delay: "10800000" // 3 hours in milliseconds
+            // restart_delay: "10800000" // 3 hours in milliseconds
         }
     ]
   }

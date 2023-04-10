@@ -1,18 +1,18 @@
 /**
  * Instatiate the database and hande db commands
  */
-const { Db, MongoClient,ClientSession} = require('mongodb');
+const {  MongoClient} = require("mongodb");
 const {
-    MembershipUsersCollection,
+    UsersCollection,
     OldTradesCollection,
     OpenTradesCollection,
     TopTradersCollection,
     TradedPositionsCollection
-} = require('./collections/');
+} = require("./collections/");
 
 /**
  * @typedef {{
- *      membershipUsersCollection: MembershipUsersCollection
+ *      usersCollection: UsersCollection
  *      oldTradesCollection: OldTradesCollection
  *      openTradesCollection: OpenTradesCollection
  *      topTradersCollection: TopTradersCollection,
@@ -25,13 +25,13 @@ module.exports.MongoDatabase =  class MongoDatabase{
     /**
      * @type {string}
      */
-    #uri = '';
+    #uri = "";
     /**
-     * @type {MongoClient}
+     * @type {import("mongodb").MongoClient}
      */
     #client; 
     /**
-     * @type {null|Db}
+     * @type {null|import("mongodb").Db}
      */
     #database = null;
     /**
@@ -43,14 +43,14 @@ module.exports.MongoDatabase =  class MongoDatabase{
      * @type {Collections_Interface}
      */
     collection = {
-        membershipUsersCollection:null,
+        usersCollection:null,
         oldTradesCollection:null,
         openTradesCollection: null,
         topTradersCollection:null,
         tradedPositionsCollection: null
-    }
+    };
     /**
-     * @type {null|ClientSession}
+     * @type {null|import("mongodb").ClientSession}
      */
     #session = null;
     // static utils = utils
@@ -71,27 +71,27 @@ module.exports.MongoDatabase =  class MongoDatabase{
     async connect(databaseName){
         try {
             if(!this.uri){
-                throw new Error('Uri is required to connect')
+                throw new Error("Uri is required to connect");
             }else {
                 // check if db already connected
                 if(this.#dbIsConnected && this.#database)return true;
-                await this.#client.connect()
-                console.log("Client connected")
+                await this.#client.connect();
+                console.log("Client connected");
                 this.#session = this.#client.startSession();// what is this ?
                 this.#dbIsConnected = true;
-                this.#database = this.#client.db(databaseName)
+                this.#database = this.#client.db(databaseName);
                 this.collection = {
-                    membershipUsersCollection: new MembershipUsersCollection(this.#database),
+                    usersCollection: new UsersCollection(this.#database),
                     oldTradesCollection: new OldTradesCollection(this.#database),
                     openTradesCollection: new OpenTradesCollection(this.#database),
                     topTradersCollection: new TopTradersCollection(this.#database),
                     tradedPositionsCollection: new TradedPositionsCollection(this.#database)
-                }
-                console.log('Database connected...')
+                };
+                console.log("Database connected...");
                 return true;
             }
         }catch(error){
-            console.log('Error connecting to database')
+            console.log("Error connecting to database");
             throw error;
         }
     }
@@ -104,17 +104,17 @@ module.exports.MongoDatabase =  class MongoDatabase{
             if(this.database){
                 await this.client.close();
                 this.#dbIsConnected = false;
-                console.log('Database connection closed.')
+                console.log("Database connection closed.");
                 return true;
             }
         }catch(error){
-            console.log('Error closing database connection')
+            console.log("Error closing database connection");
             throw error;
         }
     }
 
 
 
-}
+};
 
 

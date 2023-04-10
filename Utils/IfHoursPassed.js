@@ -17,7 +17,7 @@ module.exports.IfHoursPassed = class IfHoursPassed {
     constructor(hours){
         const oneHourInMs = ((1000*60)*60);
         this.#hoursInMilliseconds = oneHourInMs*hours;
-    };
+    }
     start(){
         this.#startTimeInMilliseconds = Date.now();
     }
@@ -30,5 +30,38 @@ module.exports.IfHoursPassed = class IfHoursPassed {
         }else {
             return false;
         }
+    }
+
+
+    // STATIC
+    /**
+     * 
+     * @param {numbeer} fromTimestamp 
+     * @returns 
+     */
+    static from(fromTimestamp){
+        return {
+            /**
+             * 
+             * @param {number} toTimestamp 
+             * @returns 
+             */
+            to: (toTimestamp)=>{
+                return {
+                    /**
+                     * 
+                     * @param {number} hours 
+                     */
+                    hours:(hours)=>{
+                        const deltaTimeInMs = toTimestamp - fromTimestamp;
+                        if(deltaTimeInMs >= ((this.#hoursInMilliseconds)*hours)){
+                            return true;
+                        }else {
+                            return false;
+                        }
+                    }
+                };
+            }
+        };
     }
 }

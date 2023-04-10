@@ -3,8 +3,11 @@ const {MongoDatabase} = require("../../MongoDatabase");
 const {sleepAsync} = require("../../Utils/sleepAsync");
 const {positionsHandler} = require("./positionsHandler");
 const {readAndConfigureDotEnv} = require("../../Utils/readAndConfigureDotEnv");
-
-const {IfHoursPassed} = require("../../Utils/IfHoursPassed")
+const {Telegram} = require("../../Telegram");
+const {Logger} = require("../../Logger");
+const APP_NAME = "App:ScrapeFolledTradersPositions";
+const logger = new Logger({app_name:APP_NAME});
+const {IfHoursPassed} = require("../../Utils/IfHoursPassed");
 
 const IS_LIVE = false;
 const dotEnvObj = readAndConfigureDotEnv(IS_LIVE); 
@@ -15,10 +18,17 @@ console.log(process.env);
 
  
 (async ()=>{
-    while(true){
-        let mongoDatabase = null;
-        let browser = null;
+    let mongoDatabase = null;
+    let browser = null;
+    let run = true;
+    while(run){
         try{
+            const errorbot = new Telegram({telegram_bot_token:dotEnvObj.TELEGRAM_BOT_TOKEN,requestDelay:2000});
+            logger.info("Create Telegram error bot");
+            logger.addLogCallback("error",async (cbIndex,message)=>{
+                await errorbot.sendMessage(dotEnvObj.TELEGRAM_ERROR_CHHANNEL_ID,message);
+                logger.info("Send error message to telegram error channel");
+            });
             
             const if3HoursPassed = new IfHoursPassed(3);
             if3HoursPassed.start();
@@ -34,7 +44,7 @@ console.log(process.env);
                 headless:true,
                 downloadBrowserRevision: false
             });
-            const page = await browser.newPage()
+            const page = await browser.newPage();
             page.setDefaultNavigationTimeout(0);
             /**
              * 1. Get traders and their info
@@ -47,27 +57,29 @@ console.log(process.env);
             // get traders from db that have followed key set to true
 
             //::## WORK ON POSITIONS
-            await positionsHandler({binanceScraper:binance,mongoDatabase:mongoDatabase})
+            await positionsHandler({binanceScraper:binance,mongoDatabase:mongoDatabase});
 
-            await browser.close()
+            await browser.close();
             await mongoDatabase.disconnect();
-            // await sleepAsync(5000)
+            await sleepAsync((1000*60));
             if(if3HoursPassed.isTrue()){
-                // process.exit();
+                process.exit();
             }
             
-        }catch(e){
+        }catch(error){
             if(browser){
-                await browser.close()
+                await browser.close();
             }
             if(mongoDatabase){
                 await mongoDatabase.disconnect();
             }
-            await sleepAsync((1000*60))
-            console.log(e);
+            logger.error(JSON.stringify(error.message));
+            await sleepAsync((1000*60));
+            console.log(error);
+            process.exit();
             
         }
 
         
     }
-})()
+})();

@@ -14,7 +14,8 @@ module.exports.readAndConfigureDotEnv =  function readAndConfigureDotEnv(isLive=
      *  DATABASE_NAME: string,
      *  IS_LIVE: boolean,
      *  TELEGRAM_BOT_TOKEN: string,
-     *  TELEGRAM_CHANNEL_ID: string,
+     *  TELEGRAM_SIGNALS_CHANNEL_ID: string,
+     *  TELEGRAM_ERROR_CHHANNEL_ID: string
      *  BYBIT_PUBLIC_KEY: string,
      *  BYBIT_PRIVATE_KEY: string,
      *  BYBIT_ACCOUNT_IS_LIVE: boolean
@@ -26,7 +27,8 @@ module.exports.readAndConfigureDotEnv =  function readAndConfigureDotEnv(isLive=
         DATABASE_NAME:"",
         IS_LIVE: false,
         TELEGRAM_BOT_TOKEN: "",
-        TELEGRAM_CHANNEL_ID: "",
+        TELEGRAM_SIGNALS_CHANNEL_ID: "",
+        TELEGRAM_ERROR_CHHANNEL_ID:"",
         BYBIT_PRIVATE_KEY: "",
         BYBIT_PUBLIC_KEY: "",
         BYBIT_ACCOUNT_IS_LIVE: false

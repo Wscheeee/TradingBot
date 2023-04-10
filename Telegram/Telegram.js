@@ -2,9 +2,10 @@
 //  * Send messages to telegram
 //  */
 
-const {sendMessage} = require("./sendMessage");
+// const {sendMessage} = require("./sendMessage");
 // const {readDotEnvFile} = require("./readDotEnvFile");
 const TelegramBot = require("./node_modules/node-telegram-bot-api/src/telegram");
+
 
 
 /**
@@ -31,16 +32,16 @@ module.exports.Telegram = class Telegram {
      */
     utils= {
         sleepAsync : async ()=>{
-            console.log("Telegram sleep delay(milliseconds):",this.#settings.requestDelay)
+            console.log("Telegram sleep delay(milliseconds):",this.#settings.requestDelay);
             if(this.#settings.requestDelay==0 ||!this.#settings.requestDelay)return;
-            return new Promise((resolve,reject)=>{
+            return new Promise((resolve)=>{
                 const timeout = setTimeout(()=>{
                     clearTimeout(timeout);
-                    resolve(true)
-                },this.#settings.requestDelay)
-            })
+                    resolve(true);
+                },this.#settings.requestDelay);
+            });
         }
-    }
+    };
 
     /**
      * 
@@ -51,20 +52,20 @@ module.exports.Telegram = class Telegram {
             telegram_bot_token:telegram_bot_token,
             requestDelay:requestDelay 
         };
-        this.telegramBot = new TelegramBot(telegram_bot_token,{polling:true})
+        this.telegramBot = new TelegramBot(telegram_bot_token,{polling:false});
     }
+
+
     /**
      * @param {string} chatId
      * @param {string} message 
      */
     async sendMessage(chatId,message){ 
         await this.utils.sleepAsync();
-        return await this.telegramBot.sendMessage(chatId,message)
+        return await this.telegramBot.sendMessage(chatId,message);
     }
-}
+};
 
-// // const telegram = new Telegram({chat_id:Number(readDotEnvFile().TELEGRAM_CHANNEL_ID)});
-// // telegram.sendMessage("Hello")
 
 
 

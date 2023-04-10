@@ -1,8 +1,7 @@
-const {ObjectId, WithId} = require("mongodb")
 /**
  * part : 0 if original , 1 if resized, 1 ,2 3
  * @typedef {{
- *      trader_id: ObjectId,
+ *      trader_id: import("mongodb").ObjectId,
  *      trader_uid: string,
  *      part: number,
  *      original_size: number,
@@ -27,8 +26,8 @@ const {ObjectId, WithId} = require("mongodb")
  */ 
 
 /**
- * @typedef {WithId<OpenTrades_Interface>} OpenTrades_Collection_Document_Interface
+ * @typedef {import("mongodb").WithId<OpenTrades_Interface>} OpenTrades_Collection_Document_Interface
  */
 
 
-module.exports = {}
+module.exports = {};

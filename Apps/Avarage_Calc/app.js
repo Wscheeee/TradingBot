@@ -8,7 +8,7 @@ const {MongoDatabase} = require("../../MongoDatabase");
 const {sleepAsync} = require("../../Utils/sleepAsync");
 const {readAndConfigureDotEnv} = require("../../Utils/readAndConfigureDotEnv");
 
-const IS_LIVE = true;
+const {IS_LIVE} = require("../../appConfig");
 const dotEnvObj = readAndConfigureDotEnv(IS_LIVE); 
 const {Telegram} = require("../../Telegram");
 const {Logger} = require("../../Logger");

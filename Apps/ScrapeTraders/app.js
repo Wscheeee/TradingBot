@@ -13,7 +13,7 @@ const {Logger} = require("../../Logger");
 const APP_NAME = "App:ScrapeTraders";
 const logger = new Logger({app_name:APP_NAME});
 
-const IS_LIVE = false;
+const {IS_LIVE} = require("../../appConfig");
 const dotEnvObj = readAndConfigureDotEnv(IS_LIVE); 
 
 

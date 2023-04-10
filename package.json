@@ -5,6 +5,14 @@
   "repository": "https://github.com/Wscheeee/TradingBot.git",
   "author": "Georgemburu <snooppythedj@gmail.com>",
   "license": "MIT",
+  "scripts":{
+      "Trader:install": "cd Trader && npm install",
+      "MongoDatabase:install":"cd MongoDatabase && npm install",
+      "Binance_Scraper:install": "cd Binance_Scraper && npm install",
+      "Telegram:install": "cd Telegram && npm install",
+      "dep-install-npm":"npm run Trader:install && npm run MongoDatabase:install && npm run Binance_Scraper:install && npm run Telegram:install",
+      "dep-install-yarn":"yarn Trader:install && yarn MongoDatabase:install && yarn Binance_Scraper:install && yarn Telegram:install"
+  },
   "devDependencies": {
     "eslint": "^8.37.0"
   },

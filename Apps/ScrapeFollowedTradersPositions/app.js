@@ -9,7 +9,7 @@ const APP_NAME = "App:ScrapeFolledTradersPositions";
 const logger = new Logger({app_name:APP_NAME});
 const {IfHoursPassed} = require("../../Utils/IfHoursPassed");
 
-const IS_LIVE = false;
+const {IS_LIVE} = require("../../appConfig");
 const dotEnvObj = readAndConfigureDotEnv(IS_LIVE); 
 process.env.TZ = dotEnvObj.TZ;
 process.env.DATABASE_URI = dotEnvObj.DATABASE_URI;

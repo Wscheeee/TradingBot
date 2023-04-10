@@ -7,7 +7,7 @@ const {Logger} = require("../../Logger");
 const { readAndConfigureDotEnv } = require("../../Utils/readAndConfigureDotEnv");
 
 
-const IS_LIVE = true;
+const {IS_LIVE} = require("../../appConfig");
 const dotEnvObj = readAndConfigureDotEnv(IS_LIVE);
 const APP_NAME = "App:SendSignalsToTelegram";
 const logger = new Logger({app_name:APP_NAME});

@@ -32,7 +32,7 @@ const {positionCloseHandler} = require("./positionCloseHandler");
 
 const APP_NAME = "App:Executor";
 const logger = new Logger({app_name:APP_NAME});
-const IS_LIVE = true;
+const {IS_LIVE} = require("../../appConfig");
 const dotEnvObj = readAndConfigureDotEnv(IS_LIVE);
 process.env.TZ = dotEnvObj.TZ;
 

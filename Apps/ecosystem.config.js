@@ -1,6 +1,10 @@
 module.exports = {
     apps : [
         {
+            name: "Average_Calc",
+            script: "./Average_Calc/app.js"
+        },
+        {
             name: "Executor",
             script: "./Executor/app.js"
         },
@@ -24,5 +28,5 @@ module.exports = {
             // restart_delay: "10800000" // 3 hours in milliseconds
         }
     ]
-  }
+};
   

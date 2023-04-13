@@ -6,7 +6,7 @@
 *      trader_uid: string,
 *      part: number,
 *      original_size: number,
-*      total_parts: number
+*      total_parts: number,
 *      pair: string,
 *      direction: "LONG"|"SHORT",
 *      leverage: number,
@@ -20,6 +20,8 @@
 *      status: "OPEN"|"CLOSED",
 *      followed: boolean,
 *      copied: boolean,
+*      document_created_at_timestamp:number,
+*      document_last_edited_at_timestamp:number,
 *      server_timezone: string,
 * }} OldTrades_Interface 
 */

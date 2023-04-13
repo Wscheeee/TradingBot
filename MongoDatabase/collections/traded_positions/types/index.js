@@ -11,9 +11,14 @@
  *    entry_price: number,
  *    close_price: number,
  *    status: "OPEN"|"CLOSED",
- *    closedROI: number,
- *    closedPNL: number,
+ *    closed_roi_percentage: number,
+ *    closed_pnl: number,
  *    server_timezone: string,
+ *    allocation_percentage: number,
+ *    entry_timestamp: number,
+ *    close_timestamp: number,
+ *    roi_percentage: number,
+ *    document_created_at_timestamp: number,
  * }} TradedPositions_Interface
  */
 

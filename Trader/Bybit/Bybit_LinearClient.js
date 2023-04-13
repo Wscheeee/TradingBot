@@ -59,7 +59,6 @@ module.exports.Bybit_LinearClient = class Bybit_LinearClient {
         if(res.result){
             this.#symbols = res.result.map(s => s);
         }
-        
         return res;
     }
     /**

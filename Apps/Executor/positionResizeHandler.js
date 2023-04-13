@@ -55,14 +55,14 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
                         }
 
                         // calculate he position sizee to close
-                        const standardizedQTY = await percentageBased_DynamicPositionSizingAlgo({
+                        const {standardized_qty,trade_allocation_percentage} = await percentageBased_DynamicPositionSizingAlgo({
                             bybit,position,trader
                         });
 
                         const closePositionRes = await bybit.clients.bybit_RestClientV5.closeAPosition({
                             category:"linear",
                             orderType:"Market",
-                            qty:String(standardizedQTY),
+                            qty:String(standardized_qty),
                             side: position.direction==="LONG"?"Sell":"Buy",
                             symbol: position.pair
                         });
@@ -86,21 +86,27 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
                         }
                         
                         const closedPartialPNL  = closedPartialPNL_res.result.list[0].closedPnl;
+                        const timestampNow = Date.now();
                         // Add the partial position to DB
                         await mongoDatabase.collection.tradedPositionsCollection.createNewDocument({
                             close_price: parseFloat(closed_positionInExchange.avgExitPrice),
-                            closedPNL: parseFloat(closedPartialPNL),
-                            closedROI:  bybit.clients.bybit_LinearClient.calculateClosedPositionROI(closed_positionInExchange),
+                            closed_pnl: parseFloat(closedPartialPNL),
+                            closed_roi_percentage:  bybit.clients.bybit_LinearClient.calculateClosedPositionROI(closed_positionInExchange),
                             entry_price: bybit.clients.bybit_LinearClient.getPositionEntryPrice(positionInExchange),
                             leverage: bybit.clients.bybit_LinearClient.getPositionLeverage(positionInExchange),
                             pair: position.pair,
                             position_id_in_oldTradesCollection: position._id,
-                            position_id_in_openTradesCollection: originalPosition._id,
+                            position_id_in_openTradesCollection: tradedOpenPositionDocument.position_id_in_openTradesCollection,
                             server_timezone: process.env.TZ,
                             size: parseFloat(closed_positionInExchange.qty),//bybit_LinearClient.getPositionSize(positionInExchange),
                             status: "CLOSED",
                             trader_uid: trader.uid,
-                            trader_username: trader.username
+                            trader_username: trader.username,
+                            direction: tradedOpenPositionDocument.direction,
+                            entry_timestamp: tradedOpenPositionDocument.entry_timestamp,
+                            allocation_percentage: trade_allocation_percentage,
+                            close_timestamp: timestampNow,
+                            document_created_at_timestamp: tradedOpenPositionDocument.document_created_at_timestamp,
                         });
                         logger.info("Saved the partial closed position to DB");
 
@@ -110,8 +116,8 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
                         await mongoDatabase.collection.tradedPositionsCollection.
                             updateDocument(tradedOpenPositionDocument._id,{
                                 close_price: bybit.clients.bybit_LinearClient.getPositionClosePrice(positionInExchange,"Linear"),
-                                closedPNL: bybit.clients.bybit_LinearClient.calculatePositionPNL(positionInExchange),
-                                closedROI: bybit.clients.bybit_LinearClient.calculatePositionROI(positionInExchange),
+                                closed_pnl: bybit.clients.bybit_LinearClient.calculatePositionPNL(positionInExchange),
+                                closed_roi_percentage: bybit.clients.bybit_LinearClient.calculatePositionROI(positionInExchange),
                                 entry_price: bybit.clients.bybit_LinearClient.getPositionEntryPrice(positionInExchange),
                                 leverage: bybit.clients.bybit_LinearClient.getPositionLeverage(positionInExchange),
                                 pair: position.pair,
@@ -121,7 +127,8 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
                                 size: parseFloat(closed_positionInExchange.leavesQty),
                                 status: "OPEN",
                                 trader_uid: trader.uid,
-                                trader_username: trader.username
+                                trader_username: trader.username,
+                                allocation_percentage: tradedOpenPositionDocument.allocation_percentage - trade_allocation_percentage,
                             });
                         logger.info("Updated position in tradedPositionCollection db");
 

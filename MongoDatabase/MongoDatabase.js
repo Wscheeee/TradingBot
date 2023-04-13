@@ -7,7 +7,8 @@ const {
     OldTradesCollection,
     OpenTradesCollection,
     TopTradersCollection,
-    TradedPositionsCollection
+    TradedPositionsCollection,
+    PerformanceCollection
 } = require("./collections/");
 
 /**
@@ -16,7 +17,8 @@ const {
  *      oldTradesCollection: OldTradesCollection
  *      openTradesCollection: OpenTradesCollection
  *      topTradersCollection: TopTradersCollection,
- *      tradedPositionsCollection: TradedPositionsCollection
+ *      tradedPositionsCollection: TradedPositionsCollection,
+ *      performanceCollection: PerformanceCollection,
  * }} Collections_Interface
  */
 
@@ -47,7 +49,8 @@ module.exports.MongoDatabase =  class MongoDatabase{
         oldTradesCollection:null,
         openTradesCollection: null,
         topTradersCollection:null,
-        tradedPositionsCollection: null
+        tradedPositionsCollection: null,
+        performanceCollection: null
     };
     /**
      * @type {null|import("mongodb").ClientSession}
@@ -85,9 +88,18 @@ module.exports.MongoDatabase =  class MongoDatabase{
                     oldTradesCollection: new OldTradesCollection(this.#database),
                     openTradesCollection: new OpenTradesCollection(this.#database),
                     topTradersCollection: new TopTradersCollection(this.#database),
-                    tradedPositionsCollection: new TradedPositionsCollection(this.#database)
+                    tradedPositionsCollection: new TradedPositionsCollection(this.#database),
+                    performanceCollection: new PerformanceCollection(this.#database),
                 };
                 console.log("Database connected...");
+                // Ping the DB every 30 min
+                // Set an interval for sending a ping message every 30 minutes (1800000 ms)
+                console.log("Setting database ping");
+                setInterval(() => {
+                    // Send a dummy query or operation to the collection to keep the stream active
+                    this.collection.usersCollection.findOne({}); // Replace with your specific query or operation
+                    console.log("Ping database");
+                }, 1800000);
                 return true;
             }
         }catch(error){

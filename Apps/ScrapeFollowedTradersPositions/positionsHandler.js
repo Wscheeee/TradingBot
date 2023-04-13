@@ -120,8 +120,8 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                     size: position_.amount,
                     status: "OPEN",
                     total_parts: 1,
-                    document_created_at: Date.now(),
-                    document_last_edited_at: Date.now(),
+                    document_created_at_timestamp: Date.now(),
+                    document_last_edited_at_timestamp: Date.now(),
                     server_timezone: process.env.TZ
                 });
             }
@@ -172,7 +172,8 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                     status: "CLOSED",
                     total_parts: positionToClose_.total_parts,
                     trader_id: positionToClose_.trader_id,
-                    trader_uid: positionToClose_.trader_uid  
+                    trader_uid: positionToClose_.trader_uid ,
+                    
                 });
                 // delete from openPositions collections
                 await mongoDatabase.collection.openTradesCollection.deleteManyDocumentsByIds([positionToClose_._id]);

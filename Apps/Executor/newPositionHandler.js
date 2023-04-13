@@ -17,14 +17,14 @@ module.exports.newPositionHandler = async function newPositionHandler({
         logger.info("New Position Added To DB");
         try{
             logger.info("Calculate percentageBased_DynamicPositionSizingAlgo");
-            const standardizedQTY = await percentageBased_DynamicPositionSizingAlgo({
+            const {standardized_qty,trade_allocation_percentage} = await percentageBased_DynamicPositionSizingAlgo({
                 bybit,position,trader
             });
             logger.info("Sending openANewPosition Order to bybit_RestClientV5");
             const openPositionRes = await bybit.clients.bybit_RestClientV5.openANewPosition({
                 category:"linear",
                 orderType:"Market",
-                qty:String(standardizedQTY),//String(symbolInfo.lot_size_filter.min_trading_qty),
+                qty:String(standardized_qty),//String(symbolInfo.lot_size_filter.min_trading_qty),
                 side: position.direction==="LONG"?"Buy":"Sell",
                 symbol: position.pair,
                 
@@ -45,10 +45,11 @@ module.exports.newPositionHandler = async function newPositionHandler({
                     console.log({positionInExchange});
                     logger.info("Saving thee position to DB");
                     // successfully placedd a position
+                    const timestampNow = Date.now();
                     await mongoDatabase.collection.tradedPositionsCollection.createNewDocument({
                         close_price: bybit.clients.bybit_LinearClient.getPositionClosePrice(positionInExchange,"Linear"),
-                        closedPNL: bybit.clients.bybit_LinearClient.calculatePositionPNL(positionInExchange),
-                        closedROI: bybit.clients.bybit_LinearClient.calculatePositionROI(positionInExchange),
+                        closed_pnl: bybit.clients.bybit_LinearClient.calculatePositionPNL(positionInExchange),
+                        closed_roi_percentage: bybit.clients.bybit_LinearClient.calculatePositionROI(positionInExchange),
                         entry_price: bybit.clients.bybit_LinearClient.getPositionEntryPrice(positionInExchange),
                         leverage: bybit.clients.bybit_LinearClient.getPositionLeverage(positionInExchange),
                         pair: position.pair,
@@ -58,7 +59,12 @@ module.exports.newPositionHandler = async function newPositionHandler({
                         size: bybit.clients.bybit_LinearClient.getPositionSize(positionInExchange),
                         status: "OPEN",
                         trader_uid: trader.uid,
-                        trader_username: trader.username
+                        trader_username: trader.username,
+                        entry_timestamp: new Date(positionInExchange.createdTime).getTime(),
+                        document_created_at_timestamp: timestampNow,
+                        direction: position.direction,
+                        close_timestamp: timestampNow,
+                        allocation_percentage: trade_allocation_percentage,
                     });
                     logger.info("Saved the position to DB");
                 }else {

@@ -29,7 +29,7 @@ const {positionUpdateHandler} = require("./positionUpdateHandler");
 const {positionResizeHandler} = require("./positionResizeHandler"); 
 const {positionCloseHandler} = require("./positionCloseHandler"); 
 
-
+ 
 const APP_NAME = "App:Executor";
 const logger = new Logger({app_name:APP_NAME});
 const {IS_LIVE} = require("../../appConfig");
@@ -66,8 +66,6 @@ process.env.TZ = dotEnvObj.TZ;
         });
 
         logger.info("Create Bybit Client");
-        
-
       
         console.log(dotEnvObj);
         mongoDatabase = new MongoDatabase(dotEnvObj.DATABASE_URI);

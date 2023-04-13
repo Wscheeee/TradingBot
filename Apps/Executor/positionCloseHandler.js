@@ -54,9 +54,9 @@ module.exports.positionCloseHandler = async function positionCloseHandler({
                             await mongoDatabase.collection.tradedPositionsCollection.
                                 updateDocument(tradedOpenPositionDocument._id,{
                                     close_price: bybit.clients.bybit_LinearClient.getPositionClosePrice(positionInExchange,"Linear"),
-                                    closedPNL: bybit.clients.bybit_LinearClient.calculatePositionPNL(positionInExchange),
-                                    closedROI: bybit.clients.bybit_LinearClient.calculatePositionROI(positionInExchange),
-                                    entry_price: bybit.clients.bybit_LinearClient.getPositionEntryPrice(positionInExchange),
+                                    closed_pnl: bybit.clients.bybit_LinearClient.calculatePositionPNL(positionInExchange),
+                                    closed_roi_percentage: bybit.clients.bybit_LinearClient.calculatePositionROI(positionInExchange),
+                                    //entry_price: bybit.clients.bybit_LinearClient.getPositionEntryPrice(positionInExchange),
                                     leverage: bybit.clients.bybit_LinearClient.getPositionLeverage(positionInExchange),
                                     // pair: position.pair,
                                     position_id_in_oldTradesCollection: position._id,
@@ -64,6 +64,7 @@ module.exports.positionCloseHandler = async function positionCloseHandler({
                                     // server_timezone: process.env.TZ,
                                     size: bybit.clients.bybit_LinearClient.getPositionSize(positionInExchange),
                                     status: "CLOSED",
+                                    close_timestamp: new Date(positionInExchange.updatedTime).getTime(),
                                     // trader_uid: trader.uid,
                                     // trader_username: trader.username
                                 });

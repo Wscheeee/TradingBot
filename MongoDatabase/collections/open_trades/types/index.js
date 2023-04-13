@@ -19,8 +19,8 @@
  *      status: "OPEN"|"CLOSED",
  *      followed: boolean,
  *      copied: boolean,
- *      document_created_at:number,
- *      document_last_edited_at:number,
+ *      document_created_at_timestamp:number,
+ *      document_last_edited_at_timestamp:number,
  *      server_timezone:string 
  * }} OpenTrades_Interface 
  */ 

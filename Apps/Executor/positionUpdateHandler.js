@@ -34,15 +34,15 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
                     }
                     // as the query includes symbol and only one position per symbol is handled
                     // Calculate the new qty
-                    logger.log("Calculate percentageBased_DynamicPositionSizingAlgo");
-                    const standardizedQTY = await percentageBased_DynamicPositionSizingAlgo({
+                    logger.info("Calculate percentageBased_DynamicPositionSizingAlgo");
+                    const {standardized_qty,trade_allocation_percentage} = await percentageBased_DynamicPositionSizingAlgo({
                         bybit,position,trader
                     });
                     logger.info("Sending an order to update the position at bybit_RestClientV5");
                     const updatePositionRes = await bybit.clients.bybit_RestClientV5.updateAPosition({
                         category:"linear",
                         orderType:"Market",
-                        qty:String(standardizedQTY),
+                        qty:String(standardized_qty),
                         side: position.direction==="LONG"?"Buy":"Sell",
                         symbol: position.pair,
                     });
@@ -68,8 +68,8 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
                         await mongoDatabase.collection.tradedPositionsCollection.
                             updateDocument(tradedOpenPositionDocument._id,{
                                 close_price: bybit.clients.bybit_LinearClient.getPositionClosePrice(positionInExchange,"Linear"),
-                                closedPNL: bybit.clients.bybit_LinearClient.calculatePositionPNL(positionInExchange),
-                                closedROI: bybit.clients.bybit_LinearClient.calculatePositionROI(positionInExchange),
+                                closed_pnl: bybit.clients.bybit_LinearClient.calculatePositionPNL(positionInExchange),
+                                closed_roi_percentage: bybit.clients.bybit_LinearClient.calculatePositionROI(positionInExchange),
                                 entry_price: bybit.clients.bybit_LinearClient.getPositionEntryPrice(positionInExchange),
                                 leverage: bybit.clients.bybit_LinearClient.getPositionLeverage(positionInExchange),
                                 pair: position.pair,
@@ -79,7 +79,8 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
                                 size: bybit.clients.bybit_LinearClient.getPositionSize(positionInExchange),
                                 status: "OPEN",
                                 trader_uid: trader.uid,
-                                trader_username: trader.username
+                                trader_username: trader.username,
+                                allocation_percentage: trade_allocation_percentage
                             });
                         logger.info("Updated position in tradedPositionCollection db");
                     }

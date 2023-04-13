@@ -1,13 +1,18 @@
-const { ObjectId } = require("mongodb");
+const {  ObjectId } = require("mongodb");
 
-module.exports.UsersCollection =  class UsersCollection{
-    #COLLECTION_NAME = "Users";
+
+
+module.exports.PerformanceCollection =  class PerformanceCollection{
     /**
-     * @type {import("mongodb").Db}
+     * @type {string}
+     */
+    #COLLECTION_NAME = "Performance";
+    /**
+     * @type {Db}
      */
     #database;
     /**
-     * @type {import("mongodb").Collection<import("./types").User_Interface>}
+     * @type {import("mongodb").Collection<import("./types").Performance_Interface>}
      */
     #collection;
     /**
@@ -26,17 +31,14 @@ module.exports.UsersCollection =  class UsersCollection{
     }
     
     async createIndexes(){
-        await this.#collection.createIndex("_id");
+        await this.#collection.createIndex(["_id"]);
         console.log("Indexes created");
     }
 
-    get collectionName(){
-        return this.#COLLECTION_NAME;
-    }
+    
     /**
      * 
      * @param {string[]|import("mongodb").ObjectId[]} ids 
-     * @returns {Promise<import("mongodb").DeleteResult>}
      */
     async deleteManyDocumentsByIds(ids){
         // delete many
@@ -48,23 +50,40 @@ module.exports.UsersCollection =  class UsersCollection{
 
     /**
      * 
-     * @param {import("./types").User_Interface} doc 
-     * @returns {import("./types").Users_Collection_Document_Interface}
+     * @param {import("./types").Performance_Interface} doc 
+     * @returns {import("./types").Performance_Collection_Document_Interface}
      */
     async createNewDocument(doc){
-        console.log(doc);
         if(!doc){
             throw new Error("No doc passed to (fn) create New Document");
         }else {
-            if(!doc.server_timezone){
-                doc.server_timezone=process.env.TZ;
-            }
-            if(!doc.creation_timestamp){
-                doc.creation_timestamp = Date.now();
-            }
+            // if(!doc.server_timezone){
+            //     doc.server_timezone=process.env.TZ 
+            // }
             const insertedDoc =  await this.#collection.insertOne(doc);
             console.log("Doc inserted");
             return insertedDoc;
+        }
+    }
+
+    
+
+
+    /**
+     * @param {import("mongodb").ObjectId} documentId
+     * @param {import("./types").Performance_Interface} doc 
+     * @returns {import("./types").Performance_Collection_Document_Interface}
+     */
+    async updateDocument(documentId,doc){
+        console.log(doc);
+        if(!doc){
+            throw new Error("No doc passed to (fn) update Document");
+        }else {
+            const updatedDoc =  await this.#collection.updateOne({
+                _id: documentId,
+            },{$set:doc});
+            console.log("Doc updated");
+            return updatedDoc;
         }
     }
 
@@ -74,9 +93,6 @@ module.exports.UsersCollection =  class UsersCollection{
     watchCollection(){
         console.log("Setting watch listener");
         const eventListenter =  this.#collection.watch();
-        // eventListenter.addListener("close",()=>{
-        //     console.log(this.#COLLECTION_NAME+" Stream Closed");
-        // });
         this.#eventListenersArray.push(eventListenter);
         return eventListenter;
     }
@@ -91,10 +107,29 @@ module.exports.UsersCollection =  class UsersCollection{
     /**
      * 
      * @param {string|import("mongodb").ObjectId} id 
+     * @returns {Promise<import("mongodb").WithId<import("./types").Performance_Interface> | null> }
      */
     async getDocumentById(id){
         return await this.#collection.findOne({
             _id: new ObjectId(id)
+        });
+    }
+
+    async getAllFollowedTraders(){
+        return this.#collection.find({
+            followed: true
+        });
+    }
+
+
+    /**
+     * 
+     * @param {string} uid 
+     * @returns {Promise<import("./types").Performance_Collection_Document_Interface|null>}
+     */
+    async getDocumentByTraderUid(uid){
+        return await this.#collection.findOne({
+            uid:uid
         });
     }
 
@@ -106,30 +141,31 @@ module.exports.UsersCollection =  class UsersCollection{
      */
     async getAllDocuments(sort=true){
         if(sort){
-            return await this.#collection.find({}).sort();
+            return  await this.#collection.find({}).sort();
+
         }else {
             return  await this.#collection.find({}); 
         }
     }
+    /**
+     * @param {import("./types").Performance_Interface} filter
+     */
+    async findOne(filter){
+        return await this.#collection.findOne(filter);
+    }
 
     /**
-     * @param {import("./types").User_Interface} by 
-     * @param {boolean?} sort 
+     * @param {import("./types").Performance_Collection_Document_Interface} by
+     * @param {boolean} sort 
      * @returns 
      */
     async getAllDocumentsBy(by={},sort=true){
         if(sort){
-            return await  this.#collection.find(by).sort();
-        }else {
-            return await  this.#collection.find(by); 
-        }
-    }
+            return  await this.#collection.find(by).sort();
 
-    /**
-     * @param {import("./types").User_Interface} filter
-     */
-    async findOne(filter){
-        return await this.#collection.findOne(filter);
+        }else {
+            return  await this.#collection.find(by); 
+        }
     }
   
 
@@ -144,7 +180,5 @@ module.exports.UsersCollection =  class UsersCollection{
     }
 
    
-
-
 
 };

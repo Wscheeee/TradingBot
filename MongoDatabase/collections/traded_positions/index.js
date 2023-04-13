@@ -6,22 +6,22 @@ const { ObjectId} = require("mongodb");
 module.exports.TradedPositionsCollection =  class TradedPositionsCollection{
     #COLLECTION_NAME = "Traded_Positions";
     /**
-     * @type {Db}
+     * @type {import("mongodb").Db}
      */
     #database;
     /**
-     * @type {Collection<import("./types").TradedPositions_Interface>}
+     * @type {import("mongodb").Collection<import("./types").TradedPositions_Interface>}
      */
     #collection;
     /**
-     * @type {ChangeStream[]}
+     * @type {import("mongodb").ChangeStream[]}
      */
     #eventListenersArray = [];
 
 
     /**
      * 
-     * @param {Db} database 
+     * @param {import("mongodb").Db} database 
      */
     constructor(database){
         this.#database = database;
@@ -37,8 +37,8 @@ module.exports.TradedPositionsCollection =  class TradedPositionsCollection{
     
     /**
      * 
-     * @param {string[]|ObjectId[]} documentIds 
-     * @returns {Promise<DeleteResult>}
+     * @param {string[]|import("mongodb").ObjectId[]} documentIds 
+     * @returns {Promise<import("mongodb").DeleteResult>}
      */
     async deleteManyDocumentsByIds(documentIds){
         // delete many
@@ -87,7 +87,7 @@ module.exports.TradedPositionsCollection =  class TradedPositionsCollection{
     
     /**
      * 
-     * @param {string|ObjectId} documentId 
+     * @param {string|import("mongodb").ObjectId} documentId 
      *
      */
     async getDocumentById(documentId){
@@ -100,10 +100,11 @@ module.exports.TradedPositionsCollection =  class TradedPositionsCollection{
             throw error;
         }
     }
+    
 
 
     /**
-     * @param {ObjectId} documentId
+     * @param {import("mongodb").ObjectId} documentId
      * @param {import("./types").TradedPositions_Interface} doc 
      * @returns {import("./types").TradedPosition_Collection_Document_Interface}
      */
@@ -134,11 +135,30 @@ module.exports.TradedPositionsCollection =  class TradedPositionsCollection{
         }
     }
   
+    /**
+     * @param {import("./types").TradedPositions_Interface} by 
+     * @param {boolean?} sort 
+     * @returns 
+     */
+    async getAllDocumentsBy(by={},sort=true){
+        if(sort){
+            return await  this.#collection.find(by).sort();
+        }else {
+            return await  this.#collection.find(by); 
+        }
+    }
+
+    /**
+     * @param {import("./types").TradedPositions_Interface} filter
+     */
+    async findOne(filter){
+        return await this.#collection.findOne(filter);
+    }
 
   
     /**
      * 
-     * @param {ExplainVerbosityLike} verbosity 
+     * @param {import("mongodb").ExplainVerbosityLike} verbosity 
      * @returns 
      */
     async explainGetAllDocument(verbosity){
@@ -163,12 +183,13 @@ module.exports.TradedPositionsCollection =  class TradedPositionsCollection{
      * @param {{pair:string,trader_uid:string,direction:"LONG"|"SHORT"}} param0 
      */
     async getOneOpenPositionBy({pair,trader_uid,direction}){
-        return await this.#collection.findOne({
+        const res =  await this.#collection.findOne({
             status:"OPEN",
             pair: pair,
             trader_uid: trader_uid,
             direction:direction
         });
+        return res;
     }
 
 

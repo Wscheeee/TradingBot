@@ -27,18 +27,20 @@ module.exports.percentageBased_DynamicPositionSizingAlgo = async function percen
         coin: COIN
     });
     if(!accountBalance_Resp.result || !accountBalance_Resp.result.balance){
+        console.log({accountBalance_Resp});
         throw new Error(accountBalance_Resp.ret_msg);
     }
     const totalUSDT_balance = parseFloat(accountBalance_Resp.result.balance.walletBalance);
     /**
-             * - (METHOD: Get Position Info) check the total value of 
+             * - (METHOD: Get Positions Info) check the total value of 
              * the open positions at the time it was opened (Open Balance)
              */
     const openPositions_Resp = await bybit.clients.bybit_RestClientV5.getOpenPositions({
         category:"linear",//@todo maybe add more checks
-        symbol: position.pair
+        settleCoin:"USDT"
     });
-    if(!openPositions_Resp.result || !openPositions_Resp.result.category){
+    if(!openPositions_Resp.result || Object.keys(openPositions_Resp.result).length===0){
+        console.log({openPositions_Resp});
         throw new Error(openPositions_Resp.retMsg);
     }
     let totalValueOfTheOpenPositions = 0;
@@ -56,10 +58,10 @@ module.exports.percentageBased_DynamicPositionSizingAlgo = async function percen
              * - calculate the trade allocation based on :
              */
     // - Total Balance - Open Balance = Available Balance
-    const availableBalance = totalUSDT_balance - totalValueOfTheOpenPositions;
+    const availableBalance = new DecimalMath(totalUSDT_balance).subtract(totalValueOfTheOpenPositions).getResult();
     console.log({availableBalance});
     // - Open Balance / Total Balance * 100 = % of Open Balance
-    const percentageOfOpenBalace = (totalValueOfTheOpenPositions/totalUSDT_balance)*100;
+    const percentageOfOpenBalace = new DecimalMath(totalValueOfTheOpenPositions).divide(totalUSDT_balance).multiply(100).getResult();
     console.log({percentageOfOpenBalace});
     // - % of Open Balance should never be more than 80%, 
     // if its more than 80 don’t execute the trade ( 20% of reserved balance )
@@ -75,7 +77,7 @@ module.exports.percentageBased_DynamicPositionSizingAlgo = async function percen
              *   - 0,4 x 50 = 20
              *  - 20 is the trader’s allocated % balance on the Total Balance (100%)
              */
-    const traderAllocatedPercentageBalance = traderWeight * 50;
+    const traderAllocatedPercentageBalance = new DecimalMath(traderWeight).multiply(50).getResult();
 
     /**
              * - Now calculate the trades allocation %
@@ -129,5 +131,5 @@ module.exports.percentageBased_DynamicPositionSizingAlgo = async function percen
     // standardize the qty
     const standardizedQTY = await bybit.standardizeQuantity({quantity:qtyToByWith,symbol:position.pair});
     console.log({standardizedQTY});
-    return standardizedQTY;
+    return {standardized_qty:standardizedQTY,trade_allocation_percentage:tradeAllocationPercentage};
 };

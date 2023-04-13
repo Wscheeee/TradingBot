@@ -13,7 +13,7 @@ const dotEnvObj = readAndConfigureDotEnv(IS_LIVE);
 const {Telegram} = require("../../Telegram");
 const {Logger} = require("../../Logger");
 const {IfHoursPassed} = require("../../Utils/IfHoursPassed");
-const APP_NAME = "App:Average_Calc";
+const APP_NAME = "App:AverageCalc";
 const logger = new Logger({app_name:APP_NAME});
 
 process.env.TZ = dotEnvObj.TZ;

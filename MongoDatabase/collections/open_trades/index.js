@@ -1,84 +1,70 @@
-const { MongoClient, Db, Collection, ObjectId, ExplainVerbosityLike, DeleteResult } = require("mongodb");
-const {Document: MongoDocument, ChangeStream} = require('mongodb')
-const {OpenTrades_Interface,OpenTrades_Collection_Document_Interface} = require("./types/index")
+const { ObjectId } = require("mongodb");
+
 
 
 
 
 module.exports.OpenTradesCollection =  class OpenTradesCollection{
-    #COLLECTION_NAME = 'Open_Trades';
+    #COLLECTION_NAME = "Open_Trades";
     /**
-     * @type {Db}
+     * @type {import("mongodb").Db}
      */
     #database;
     /**
-     * @type {Collection<OpenTrades_Collection_Document_Interface>}
+     * @type {import("mongodb").Collection<import("./types").OpenTrades_Collection_Document_Interface>}
      */
     #collection;
     /**
-     * @type {ChangeStream[]}
+     * @type {import("mongodb").ChangeStream[]}
      */
     #eventListenersArray = [];
 
 
     /**
      * 
-     * @param {Db} database 
+     * @param {import("mongodb").Db} database 
      */
     constructor(database){
         this.#database = database;
-        this.#collection = this.#database.collection(this.#COLLECTION_NAME)
+        this.#collection = this.#database.collection(this.#COLLECTION_NAME);
     }
     
     async createIndexes(){
-        try {
-            await this.#collection.createIndex('_id')
-            console.log('Indexes created')
-            return
-        }catch(error){
-            throw error;
-        }
+        await this.#collection.createIndex("_id");
+        console.log("Indexes created");
+        return;
     }
 
     
     /**
      * 
-     * @param {string[]|ObjectId[]} documentIds 
-     * @returns {Promise<DeleteResult>}
+     * @param {string[]|import("mongodb").ObjectId[]} documentIds 
+     * @returns {Promise<import("mongodb").DeleteResult>}
      */
     async deleteManyDocumentsByIds(documentIds){
-        try {
-            // delete many
-            const newObjectIds = documentIds.map((str)=>new ObjectId(str))
-            const deleteResults = await this.#collection.deleteMany({_id:{$in: newObjectIds}})
-            
-            return deleteResults;
-        }catch(error){
-            throw error;
-        }
+        // delete many
+        const newObjectIds = documentIds.map((str)=>new ObjectId(str));
+        const deleteResults = await this.#collection.deleteMany({_id:{$in: newObjectIds}});
+        return deleteResults;
     }
 
 
     /**
      * 
-     * @param {OpenTrades_Interface} doc 
-     * @returns {OpenTrades_Collection_Document_Interface}
+     * @param {import("./types").OpenTrades_Interface} doc 
+     * @returns {import("./types").OpenTrades_Collection_Document_Interface}
      */
     async createNewDocument(doc){
-        console.log(doc)
-        try {
-            if(!doc){
-                throw new Error("No doc passed to (fn) create New Document")
-            }else {
-                // if(!doc.server_timezone){
-                //     doc.server_timezone=process.env.TZ 
-                // }
-               const insertedDoc =  await this.#collection.insertOne(doc);
-               console.log('Doc inserted')
-               return insertedDoc;
+        console.log(doc);
+        if(!doc){
+            throw new Error("No doc passed to (fn) create New Document");
+        }else {
+            if(!doc.server_timezone){
+                doc.server_timezone=process.env.TZ; 
             }
-        }catch(error){
-            throw error;
+            const insertedDoc =  await this.#collection.insertOne(doc);
+            console.log("Doc inserted");
+            return insertedDoc;
         }
     }
 
@@ -86,60 +72,46 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
 
     // added
     watchCollection(){
-        console.log('Setting watch listener')
-        const eventListenter =  this.#collection.watch()
+        console.log("Setting watch listener");
+        const eventListenter =  this.#collection.watch();
         this.#eventListenersArray.push(eventListenter);
         return eventListenter;
     }
 
     async releaseAllEventListeners(){
-        try {
-            for(const listener in this.#eventListenersArray){
-                await listener.removeAllListeners()
-            }
-            return;
-        }catch(error){
-            throw error;
-
+        for(const listener in this.#eventListenersArray){
+            await listener.removeAllListeners();
         }
+        return;
     }
     
     /**
      * 
-     * @param {string|ObjectId} documentId 
+     * @param {string|import("mongodb").ObjectId} documentId 
      *
      */
     async getDocumentById(documentId){
-        try {
-            return await this.#collection.findOne({
-                _id: new ObjectId(documentId)
-            });
-        }catch(error){
-            console.log(error)
-            throw error;
-        }
+        return await this.#collection.findOne({
+            _id: new ObjectId(documentId)
+        });
     }
 
 
     /**
-     * @param {ObjectId} documentId
-     * @param {OpenTrades_Interface} doc 
-     * @returns {OpenTrades_Collection_Document_Interface}
+     * @param {import("mongodb").ObjectId} documentId
+     * @param {import("./types").OpenTrades_Interface} doc 
+     * @returns {import("./types").OpenTrades_Collection_Document_Interface}
      */
     async updateDocument(documentId,doc){
-        console.log(doc)
-        try {
-            if(!doc){
-                throw new Error("No doc passed to (fn) update Document")
-            }else {
-               const updatedDoc =  await this.#collection.updateOne({
+        console.log(doc);
+        if(!doc){
+            throw new Error("No doc passed to (fn) update Document");
+        }else {
+            const updatedDoc =  await this.#collection.updateOne({
                 _id: documentId,
-               },{$set:doc});
-               console.log('Doc updated')
-               return updatedDoc;
-            }
-        }catch(error){
-            throw error;
+            },{$set:doc});
+            console.log("Doc updated");
+            return updatedDoc;
         }
     }
 
@@ -149,49 +121,58 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
      * @returns 
      */
     async getAllDocuments(sort=true){
-        try {
+        if(sort){
+            return  await this.#collection.find({}).sort();
 
-            if(sort){
-                return  await this.#collection.find({}).sort()
+        }else {
+            return  await this.#collection.find({}); 
+        }
+    }
 
-            }else {
-                return  await this.#collection.find({}) 
-            }
-        }catch(error){
-            throw error;
+    /**
+     * @param {import("./types").OpenTrades_Interface} by 
+     * @param {boolean?} sort 
+     * @returns 
+     */
+    async getAllDocumentsBy(by={},sort=true){
+        if(sort){
+            return await  this.#collection.find(by).sort();
+        }else {
+            return await  this.#collection.find(by); 
         }
     }
   
+    /**
+     * @param {import("./types").OpenTrades_Interface} filter
+     */
+    async findOne(filter){
+        return await this.#collection.findOne(filter);
+    }
 
   
     /**
      * 
-     * @param {ExplainVerbosityLike} verbosity 
+     * @param {import("mongodb").ExplainVerbosityLike} verbosity 
      * @returns 
      */
     async explainGetAllDocument(verbosity){
-        try {
-            // const a:ExplainVerbosityLike  = ""
-            return  await this.#collection.find({}).explain(verbosity||true)
-        }catch(error){
-            throw error;
-        }
+        return  await this.#collection.find({}).explain(verbosity||true);
     }
 
 
-     /**
+    /**
      * 
      * @param {string} trader_uid 
      */
     // * @returns {FindCursor<>} 
     //* @returns {OpenTrades_Collection_Document_Interface[]|null}
-     async getDocumentsByTraderUid(trader_uid){
+    async getDocumentsByTraderUid(trader_uid){
         try {
             return await this.#collection.find({
                 trader_uid:trader_uid
             });
         }catch(error){
-            console.log(error)
+            console.log(error);
             throw error;
         }
     }
@@ -199,4 +180,4 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
 
 
 
-}
+};

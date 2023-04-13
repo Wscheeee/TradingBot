@@ -52,6 +52,9 @@ console.log(process.env);
             if (sizeChange >= 0) {
                 sizeChange = "+" + sizeChange; }
 
+            if(Number.isNaN(sizeChange)){
+                logger.error(`Size change is :${sizeChange} \n ${{"position.size":position.size, "position.original_size":position.original_size }}`);
+            }
             bot.sendMessage("@AtomosTradingSignals",
                 `✴️ Position Updated ✴️
 

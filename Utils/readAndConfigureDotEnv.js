@@ -1,5 +1,5 @@
-const path = require('node:path');
-const fs = require('node:fs');
+const path = require("node:path");
+const fs = require("node:fs");
 
 /**
  * 
@@ -32,15 +32,18 @@ module.exports.readAndConfigureDotEnv =  function readAndConfigureDotEnv(isLive=
         BYBIT_PRIVATE_KEY: "",
         BYBIT_PUBLIC_KEY: "",
         BYBIT_ACCOUNT_IS_LIVE: false
-    }
-    const dataStr = isLive? fs.readFileSync(path.join(__dirname,'..','.env'),{encoding:'utf-8'}): fs.readFileSync(path.join(__dirname,'..','.env.local'),{encoding:'utf-8'})
-    dataStr.split('\n').forEach((row)=>{
-        const keyValueArray = row.split('=');
+    };
+    const dataStr = isLive? fs.readFileSync(path.join(__dirname,"..",".env"),{encoding:"utf-8"}): fs.readFileSync(path.join(__dirname,"..",".env.local"),{encoding:"utf-8"});
+    dataStr.split("\n").forEach((row)=>{
+        const keyValueArray = row.split("=");
         const key = keyValueArray[0];
         const value = keyValueArray.slice(1,).join("=");
         //@ts-ignore
-        dotEnvObj[key] = value
-    })
-   return dotEnvObj;
+        dotEnvObj[key] = value;
+    });
+    // set TZ
+    process.env.TZ = dotEnvObj.TZ;
+    console.log("process.TZ set");
+    return dotEnvObj;
 
-}
+};

@@ -147,6 +147,12 @@ module.exports.TopTradersCollection =  class TopTradersCollection{
             return  await this.#collection.find({}); 
         }
     }
+    /**
+     * @param {import("./types").TopTrader_Interface} filter
+     */
+    async findOne(filter){
+        return await this.#collection.findOne(filter);
+    }
 
     /**
      * @param {import("./types").TopTraderCollection_Document_Interface} by

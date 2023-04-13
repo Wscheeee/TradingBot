@@ -124,6 +124,13 @@ module.exports.OldTradesCollection =  class OldTradesCollection{
             return await  this.#collection.find(by); 
         }
     }
+
+    /**
+     * @param {import("./types").OldTrades_Interface} filter
+     */
+    async findOne(filter){
+        return await this.#collection.findOne(filter);
+    }
   
 
   

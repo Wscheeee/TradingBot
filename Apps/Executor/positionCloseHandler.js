@@ -53,16 +53,16 @@ module.exports.positionCloseHandler = async function positionCloseHandler({
                             logger.info("Position in Bybit found in DB");
                             await mongoDatabase.collection.tradedPositionsCollection.
                                 updateDocument(tradedOpenPositionDocument._id,{
-                                    close_price: bybit.clients.bybit_LinearClient.getPositionClosePrice(positionInExchange,"Linear"),
-                                    closed_pnl: bybit.clients.bybit_LinearClient.calculatePositionPNL(positionInExchange),
-                                    closed_roi_percentage: bybit.clients.bybit_LinearClient.calculatePositionROI(positionInExchange),
-                                    //entry_price: bybit.clients.bybit_LinearClient.getPositionEntryPrice(positionInExchange),
-                                    leverage: bybit.clients.bybit_LinearClient.getPositionLeverage(positionInExchange),
+                                    close_price: bybit.getPositionClosePrice(positionInExchange,"Linear"),
+                                    closed_pnl: bybit.calculatePositionPNL(positionInExchange),
+                                    closed_roi_percentage: bybit.calculatePositionROI(positionInExchange),
+                                    //entry_price: bybit.getPositionEntryPrice(positionInExchange),
+                                    leverage: bybit.getPositionLeverage(positionInExchange),
                                     // pair: position.pair,
                                     position_id_in_oldTradesCollection: position._id,
                                     // position_id_in_openTradesCollection: position._id,
                                     // server_timezone: process.env.TZ,
-                                    size: bybit.clients.bybit_LinearClient.getPositionSize(positionInExchange),
+                                    size: bybit.getPositionSize(positionInExchange),
                                     status: "CLOSED",
                                     close_timestamp: new Date(positionInExchange.updatedTime).getTime(),
                                     // trader_uid: trader.uid,

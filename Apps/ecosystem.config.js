@@ -9,6 +9,10 @@ module.exports = {
             script: "./Executor/app.js"
         },
         {
+            name: "PerformanceCalc",
+            script: "./PerformanceCalc/app.js"
+        },
+        {
             name : "ScrapeFollowedTradersPositions",
             script : "./ScrapeFollowedTradersPositions/app.js"
         },

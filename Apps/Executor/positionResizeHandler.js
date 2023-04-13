@@ -91,9 +91,9 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
                         await mongoDatabase.collection.tradedPositionsCollection.createNewDocument({
                             close_price: parseFloat(closed_positionInExchange.avgExitPrice),
                             closed_pnl: parseFloat(closedPartialPNL),
-                            closed_roi_percentage:  bybit.clients.bybit_LinearClient.calculateClosedPositionROI(closed_positionInExchange),
-                            entry_price: bybit.clients.bybit_LinearClient.getPositionEntryPrice(positionInExchange),
-                            leverage: bybit.clients.bybit_LinearClient.getPositionLeverage(positionInExchange),
+                            closed_roi_percentage:  bybit.calculateClosedPositionROI(closed_positionInExchange),
+                            entry_price: bybit.getPositionEntryPrice(positionInExchange),
+                            leverage: bybit.getPositionLeverage(positionInExchange),
                             pair: position.pair,
                             position_id_in_oldTradesCollection: position._id,
                             position_id_in_openTradesCollection: tradedOpenPositionDocument.position_id_in_openTradesCollection,
@@ -115,11 +115,11 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
                         // Update the original traded position in DB
                         await mongoDatabase.collection.tradedPositionsCollection.
                             updateDocument(tradedOpenPositionDocument._id,{
-                                close_price: bybit.clients.bybit_LinearClient.getPositionClosePrice(positionInExchange,"Linear"),
-                                closed_pnl: bybit.clients.bybit_LinearClient.calculatePositionPNL(positionInExchange),
-                                closed_roi_percentage: bybit.clients.bybit_LinearClient.calculatePositionROI(positionInExchange),
-                                entry_price: bybit.clients.bybit_LinearClient.getPositionEntryPrice(positionInExchange),
-                                leverage: bybit.clients.bybit_LinearClient.getPositionLeverage(positionInExchange),
+                                close_price: bybit.getPositionClosePrice(positionInExchange,"Linear"),
+                                closed_pnl: bybit.calculatePositionPNL(positionInExchange),
+                                closed_roi_percentage: bybit.calculatePositionROI(positionInExchange),
+                                entry_price: bybit.getPositionEntryPrice(positionInExchange),
+                                leverage: bybit.getPositionLeverage(positionInExchange),
                                 pair: position.pair,
                                 position_id_in_oldTradesCollection: null,
                                 position_id_in_openTradesCollection: position._id,

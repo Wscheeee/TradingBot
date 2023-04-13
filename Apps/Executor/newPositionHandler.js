@@ -46,17 +46,18 @@ module.exports.newPositionHandler = async function newPositionHandler({
                     logger.info("Saving thee position to DB");
                     // successfully placedd a position
                     const timestampNow = Date.now();
+                    
                     await mongoDatabase.collection.tradedPositionsCollection.createNewDocument({
-                        close_price: bybit.clients.bybit_LinearClient.getPositionClosePrice(positionInExchange,"Linear"),
-                        closed_pnl: bybit.clients.bybit_LinearClient.calculatePositionPNL(positionInExchange),
-                        closed_roi_percentage: bybit.clients.bybit_LinearClient.calculatePositionROI(positionInExchange),
-                        entry_price: bybit.clients.bybit_LinearClient.getPositionEntryPrice(positionInExchange),
-                        leverage: bybit.clients.bybit_LinearClient.getPositionLeverage(positionInExchange),
+                        close_price: bybit.getPositionClosePrice(positionInExchange,"Linear"),
+                        closed_pnl: bybit.calculatePositionPNL(positionInExchange),
+                        closed_roi_percentage: bybit.calculatePositionROI(positionInExchange),
+                        entry_price: bybit.getPositionEntryPrice(positionInExchange),
+                        leverage: bybit.getPositionLeverage(positionInExchange),
                         pair: position.pair,
                         position_id_in_oldTradesCollection: null,
                         position_id_in_openTradesCollection: position._id,
                         server_timezone: process.env.TZ,
-                        size: bybit.clients.bybit_LinearClient.getPositionSize(positionInExchange),
+                        size: bybit.getPositionSize(positionInExchange),
                         status: "OPEN",
                         trader_uid: trader.uid,
                         trader_username: trader.username,

@@ -78,7 +78,14 @@ module.exports.Bybit_LinearClient = class Bybit_LinearClient {
 
 
    
-
+    /****
+     * @param {import("bybit-api").LinearSetUserLeverageRequest} linearSetUserLeverageRequest_params
+     */
+    async setUserLeverage(linearSetUserLeverageRequest_params){
+        await this.#rateLimiter.addJob();
+        console.log("[method: setUserLeverage]");
+        return await this.#linearClient.setUserLeverage(linearSetUserLeverageRequest_params);
+    }
 
 
 

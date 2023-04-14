@@ -13,12 +13,12 @@
  *    status: "OPEN"|"CLOSED",
  *    closed_roi_percentage: number,
  *    closed_pnl: number,
- *    server_timezone: string,
  *    allocation_percentage: number,
- *    entry_timestamp: number,
- *    close_timestamp: number,
- *    roi_percentage: number,
- *    document_created_at_timestamp: number,
+ *    entry_datetime: Date,
+ *    close_datetime: Date,
+ *    document_created_at_datetime:Date,
+ *    document_last_edited_at_datetime:Date,
+ *    server_timezone: string,
  * }} TradedPositions_Interface
  */
 

@@ -46,6 +46,7 @@ module.exports.newPositionHandler = async function newPositionHandler({
                     logger.info("Saving thee position to DB");
                     // successfully placedd a position
                     const timestampNow = Date.now();
+                    const datetimeNow = new Date(timestampNow);
                     
                     await mongoDatabase.collection.tradedPositionsCollection.createNewDocument({
                         close_price: bybit.getPositionClosePrice(positionInExchange,"Linear"),
@@ -56,16 +57,17 @@ module.exports.newPositionHandler = async function newPositionHandler({
                         pair: position.pair,
                         position_id_in_oldTradesCollection: null,
                         position_id_in_openTradesCollection: position._id,
-                        server_timezone: process.env.TZ,
                         size: bybit.getPositionSize(positionInExchange),
                         status: "OPEN",
                         trader_uid: trader.uid,
                         trader_username: trader.username,
-                        entry_timestamp: new Date(positionInExchange.createdTime).getTime(),
-                        document_created_at_timestamp: timestampNow,
+                        entry_datetime: new Date(positionInExchange.createdTime),
+                        document_created_at_datetime: datetimeNow,
+                        document_last_edited_at_datetime: datetimeNow,
                         direction: position.direction,
-                        close_timestamp: timestampNow,
+                        close_datetime: datetimeNow,
                         allocation_percentage: trade_allocation_percentage,
+                        server_timezone: process.env.TZ,
                     });
                     logger.info("Saved the position to DB");
                 }else {

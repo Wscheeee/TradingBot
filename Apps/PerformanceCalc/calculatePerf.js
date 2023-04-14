@@ -10,7 +10,16 @@ module.exports.calculatePerf = async function calculatePerf({mongoDatabase}) {
     async function calculate() {
 
         //calculatePeriodStats
+        /***
+         * @param {DateTime} startDate
+         * @param {DateTime} endDate
+         */
         async function calculatePeriodStats(startDate, endDate) {
+            // console.log({startDate, endDate});
+            // console.log({
+            //     startDate_toMillis:startDate.toMillis(), 
+            //     endDate:endDate.ts
+            // });
             // /**
             //  * @type {import("../../MongoDatabase/collections/traded_positions/types").TradedPosition_Collection_Document_Interface} 
             //  */
@@ -40,7 +49,7 @@ module.exports.calculatePerf = async function calculatePerf({mongoDatabase}) {
             });
         
             totalRealROI /= totalTrades;
-        
+            if(Number.isNaN(totalRealROI))totalRealROI=0;
             return {
                 totalROI,
                 totalRealROI,

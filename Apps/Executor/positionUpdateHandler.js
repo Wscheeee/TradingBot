@@ -80,7 +80,8 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
                                 status: "OPEN",
                                 trader_uid: trader.uid,
                                 trader_username: trader.username,
-                                allocation_percentage: trade_allocation_percentage
+                                allocation_percentage: trade_allocation_percentage,
+                                document_last_edited_at_datetime: new Date()
                             });
                         logger.info("Updated position in tradedPositionCollection db");
                     }

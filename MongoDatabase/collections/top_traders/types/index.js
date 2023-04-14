@@ -5,7 +5,7 @@
  *      username:string|null,
  *      average_concurrent_trades: number, 
  *      average_trade_count_value: number,
- *      averages_last_uptade_timestamp: number,
+ *      averages_last_uptade_datetime: Date,
  *      daily_pnl: number,
  *      daily_roi: number,
  *      weekly_pnl: number,
@@ -22,17 +22,17 @@
  *      exact_yearly_roi: number, 
  *      all_pnl: number,
  *      all_roi: number,
- *      performances_last_uptade_timestamp: number,
+ *      performances_last_uptade_datetime: Date,
  *      copied: boolean,
  *      followed: boolean,
- *      last_uptade_timestamp:number,
  *      weight: number,
  *      total_roi: number,
  *      sharpe_ratio: number,
  *      max_drawdown: number,
  *      winrate: number,
  *      server_timezone:string ,
- *      created_on_timestamp: number
+ *      document_created_at_datetime:Date,
+ *      document_last_edited_at_datetime:Date,
  * }} TopTrader_Interface
  */
 

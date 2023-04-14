@@ -97,16 +97,17 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
                             pair: position.pair,
                             position_id_in_oldTradesCollection: position._id,
                             position_id_in_openTradesCollection: tradedOpenPositionDocument.position_id_in_openTradesCollection,
-                            server_timezone: process.env.TZ,
                             size: parseFloat(closed_positionInExchange.qty),//bybit_LinearClient.getPositionSize(positionInExchange),
                             status: "CLOSED",
                             trader_uid: trader.uid,
                             trader_username: trader.username,
                             direction: tradedOpenPositionDocument.direction,
-                            entry_timestamp: tradedOpenPositionDocument.entry_timestamp,
+                            entry_datetime: tradedOpenPositionDocument.entry_datetime,
                             allocation_percentage: trade_allocation_percentage,
-                            close_timestamp: timestampNow,
-                            document_created_at_timestamp: tradedOpenPositionDocument.document_created_at_timestamp,
+                            close_datetime: new Date(timestampNow),
+                            document_created_at_datetime: tradedOpenPositionDocument.document_created_at_datetime,
+                            document_last_edited_at_datetime: new Date(),
+                            server_timezone: process.env.TZ,
                         });
                         logger.info("Saved the partial closed position to DB");
 
@@ -129,6 +130,7 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
                                 trader_uid: trader.uid,
                                 trader_username: trader.username,
                                 allocation_percentage: tradedOpenPositionDocument.allocation_percentage - trade_allocation_percentage,
+                                document_last_edited_at_datetime: new Date()
                             });
                         logger.info("Updated position in tradedPositionCollection db");
 

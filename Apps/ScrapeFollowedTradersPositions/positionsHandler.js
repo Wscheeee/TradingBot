@@ -39,14 +39,14 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                             // means that a partial position was closed
                             await mongoDatabase.collection.oldTradesCollection.createNewDocument({
                                 original_position_id: savedPosition_._id,
-                                close_date: Date.now(),//binance.utils.closeNow().close_timestamp,
+                                close_datetime: Date.now(),//binance.utils.closeNow().close_timestamp,
                                 direction:savedPosition_.direction,
                                 entry_price: savedPosition_.entry_price,
                                 followed: savedPosition_.followed,
                                 copied: savedPosition_.copied,
                                 leverage: savedPosition_.leverage,
                                 mark_price: savedPosition_.mark_price,
-                                open_date: savedPosition_.open_date,
+                                open_datetime: savedPosition_.open_datetime,
                                 original_size: savedPosition_.original_size,
                                 pair:savedPosition_.pair,
                                 part: savedPosition_.total_parts,
@@ -56,13 +56,16 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                                 status: "CLOSED",
                                 total_parts: currentPositionsTotalParts,
                                 trader_id: savedPosition_.trader_id,
-                                trader_uid: savedPosition_.trader_uid  
+                                trader_uid: savedPosition_.trader_uid,
+                                document_created_at_datetime: savedPosition_.document_created_at_datetime,
+                                document_last_edited_at_datetime: new Date(),
+                                server_timezone: process.env.TZ
                             });
                             const currentOpenPositionNewSize = new DecimalMath(savedPosition_.size).subtract(new DecimalMath(savedPosition_.size).subtract(position_.amount).getResult());
                             // adjust the open position to partial closed
                             await mongoDatabase.collection.openTradesCollection.updateDocument(savedPosition_._id,{
                                 size: currentOpenPositionNewSize,
-                                document_last_edited_at: Date.now(),
+                                document_last_edited_at_datetime: new Date(),
                                 total_parts: currentPositionsTotalParts
                             });
                         }
@@ -75,14 +78,14 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                     await mongoDatabase.collection.openTradesCollection.updateDocument(savedPosition_._id,{
                         trader_id: savedPosition_.trader_id,
                         trader_uid: savedPosition_.trader_uid,
-                        close_date: null,
+                        // close_datetime: null,
                         direction: savedPosition_.direction,
                         entry_price: position_.entryPrice,
                         followed: savedPosition_.followed,
                         copied: savedPosition_.copied,
                         leverage: savedPosition_.leverage,
                         mark_price: position_.markPrice,
-                        open_date: position_.updateTimeStamp,
+                        open_datetime: savedPosition_.open_datetime,
                         original_size: savedPosition_.original_size,
                         pair: savedPosition_.pair,
                         part: savedPosition_.part,
@@ -91,8 +94,8 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                         size: position_.amount,
                         status: savedPosition_.status,
                         total_parts: currentPositionsTotalParts,
-                        document_created_at: savedPosition_.document_created_at,
-                        document_last_edited_at: Date.now(),
+                        document_created_at_datetime: savedPosition_.document_created_at_datetime,
+                        document_last_edited_at_datetime: new Date(),
                         server_timezone: process.env.TZ
                     });
                         
@@ -101,10 +104,11 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
             }
             if(positionIsSaved===false){
                 // save position for the first time
+                const datetimeNow = new Date();
                 await mongoDatabase.collection.openTradesCollection.createNewDocument({
                     trader_id: savedTraderDbDoc._id,
                     trader_uid: savedTraderDbDoc.uid,
-                    close_date: null,
+                    close_datetime: null,
                     direction: position_.direction,
                     entry_price: position_.entryPrice,
                     followed: savedTraderDbDoc && savedTraderDbDoc.followed?true:false,
@@ -120,8 +124,8 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                     size: position_.amount,
                     status: "OPEN",
                     total_parts: 1,
-                    document_created_at_timestamp: Date.now(),
-                    document_last_edited_at_timestamp: Date.now(),
+                    document_created_at_datetime: datetimeNow,
+                    document_last_edited_at_datetime: datetimeNow,
                     server_timezone: process.env.TZ
                 });
             }

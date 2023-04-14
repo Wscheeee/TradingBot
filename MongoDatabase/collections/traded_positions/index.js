@@ -1,4 +1,4 @@
-const { ObjectId} = require("mongodb");
+const { ObjectId } = require("mongodb");
 // const {Document: MongoDocument, ChangeStream} = require("mongodb");
 
 
@@ -136,11 +136,12 @@ module.exports.TradedPositionsCollection =  class TradedPositionsCollection{
     }
   
     /**
-     * @param {import("./types").TradedPositions_Interface} by 
+     * @param {import("mongodb").Filter<import("./types").TradedPositions_Interface>} by 
      * @param {boolean?} sort 
      * @returns 
      */
     async getAllDocumentsBy(by={},sort=true){
+        console.log({by});
         if(sort){
             return await  this.#collection.find(by).sort();
         }else {

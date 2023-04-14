@@ -6,13 +6,14 @@
  *      language: "ENGLISH"|"FRENCH",
  *      bybit_public_api_key: string,
  *      bybit_secret_api_key: string,
- *      last_payment_timestamp: number,
+ *      last_payment_datetime: number,
  *      last_payment_amount: number,
  *      total_amount_in_payment_wallet:number,
  *      monthly_fee: number,
  *      uid_of_traders_to_copy: string[],
+ *      document_created_at_datetime:Date,
+ *      document_last_edited_at_datetime:Date,
  *      server_timezone: string,
- *      creation_timestamp: number
 * }} User_Interface 
 */
 

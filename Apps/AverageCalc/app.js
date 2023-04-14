@@ -75,7 +75,7 @@ console.log(IS_LIVE);
                     await mongoDatabase.collection.topTradersCollection.updateDocument(savedTrader._id,{
                         average_concurrent_trades,
                         average_trade_count_value,
-                        averages_last_uptade_timestamp:Date.now()
+                        averages_last_uptade_datetime:new Date(),
                     });
 
                 }

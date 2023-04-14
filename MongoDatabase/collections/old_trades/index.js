@@ -57,7 +57,7 @@ module.exports.OldTradesCollection =  class OldTradesCollection{
 
     /**
      * 
-     * @param {OldTrades_Interface} doc 
+     * @param {import("./types").OldTrades_Interface} doc 
      */
     async createNewDocument(doc){
         if(!doc){

@@ -31,9 +31,9 @@ module.exports.leaderboardTradersAndStatsHandler = async function leaderboardTra
                 uid: trader.encryptedUid,
                 copied: false,
                 followed: false,
-                last_uptade_timestamp:Date.now(),
-                performances_last_uptade_timestamp: Date.now(),
-                created_on_timestamp: Date.now(),
+                document_last_edited_at_datetime: new Date(),
+                performances_last_uptade_datetime: new Date(),
+                document_created_at_datetime: new Date(),
                 all_pnl: 
                     binance.
                         utils.
@@ -220,8 +220,8 @@ module.exports.leaderboardTradersAndStatsHandler = async function leaderboardTra
                 uid: trader.encryptedUid,
                 copied: savedTrader.copied,
                 followed: savedTrader.followed,
-                last_uptade_timestamp:Date.now(),
-                performances_last_uptade_timestamp: Date.now(),
+                document_last_edited_at_datetime:Date.now(),
+                performances_last_uptade_datetime: new Date,
                 all_pnl: 
                     binance.
                         utils.

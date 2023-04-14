@@ -64,7 +64,9 @@ module.exports.positionCloseHandler = async function positionCloseHandler({
                                     // server_timezone: process.env.TZ,
                                     size: bybit.getPositionSize(positionInExchange),
                                     status: "CLOSED",
-                                    close_timestamp: new Date(positionInExchange.updatedTime).getTime(),
+                                    close_datetime: new Date(positionInExchange.updatedTime),
+                                    document_last_edited_at_datetime: new Date(),
+                                    
                                     // trader_uid: trader.uid,
                                     // trader_username: trader.username
                                 });

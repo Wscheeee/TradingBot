@@ -38,6 +38,16 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
                     const {standardized_qty,trade_allocation_percentage} = await percentageBased_DynamicPositionSizingAlgo({
                         bybit,position,trader
                     });
+                    // set user leverage
+                    const setUserLeverage_Resp = await bybit.clients.bybit_LinearClient.setUserLeverage({
+                        buy_leverage: position.leverage,
+                        sell_leverage: position.leverage,
+                        symbol: position.pair
+                    });
+                    if(setUserLeverage_Resp.ret_code!==0){
+                        // an error
+                        logger.error("setUserLeverage_Resp: "+setUserLeverage_Resp.ret_msg);
+                    }
                     logger.info("Sending an order to update the position at bybit_RestClientV5");
                     const updatePositionRes = await bybit.clients.bybit_RestClientV5.updateAPosition({
                         category:"linear",

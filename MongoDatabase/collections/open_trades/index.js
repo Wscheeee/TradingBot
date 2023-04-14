@@ -73,7 +73,10 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
     // added
     watchCollection(){
         console.log("Setting watch listener");
-        const eventListenter =  this.#collection.watch();
+        const eventListenter =  this.#collection.watch(undefined,{
+            fullDocumentBeforeChange:"whenAvailable",
+            fullDocument: "updateLookup"
+        });
         this.#eventListenersArray.push(eventListenter);
         return eventListenter;
     }

@@ -14,6 +14,14 @@ module.exports.positionCloseHandler = async function positionCloseHandler({
     positionsStateDetector.onPositionClose(async (position, trader) => {
         logger.info("Position closed On DB");
         try{
+            // get the open position from DB
+            // const openPositionsInDB_Cursor = await mongoDatabase.collection.openTradesCollection.getAllDocumentsBy({
+            //     direction: position.direction,
+            //     leverage: position.leverage,
+            //     part: 0,
+            //     pair: position.pair,
+            //     size: position.size
+            // });
             // get the open position quantity and close
             logger.info("Getting a list of open positions from bybit_RestClientV5");
             const openPositionsRes = await bybit.clients.bybit_RestClientV5.getOpenPositions({

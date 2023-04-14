@@ -146,7 +146,7 @@ module.exports.Bybit = class Bybit {
         const positionSize = parseFloat(position.size);
         const averageEntryPrice = parseFloat(position.avgPrice);
   
-        const initialCost = positionSize * averageEntryPrice;
+        const initialCost = (positionSize * averageEntryPrice)/position.leverage;
         const roi = (currentValue - initialCost) / initialCost;
   
         return roi;

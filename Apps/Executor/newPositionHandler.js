@@ -16,6 +16,37 @@ module.exports.newPositionHandler = async function newPositionHandler({
     positionsStateDetector.onNewPosition(async (position, trader) => {
         logger.info("New Position Added To DB");
         try{
+            // check if there is an already existing position with same pair and direction
+            let positionWithSameDirectionIsPresent = false;
+            let positionWithDifferentDirectionIsPresent = false;
+            const openPositionsListRes = await bybit.clients.bybit_RestClientV5.getOpenPositions({
+                category:"linear",
+                symbol: position.pair
+            });
+            if(Object.keys(openPositionsListRes.result).length>0){
+                for(const positionInBybit of openPositionsListRes.result.list){
+                    if(positionInBybit.side==="Buy" && position.direction==="LONG"){
+                        // same direction
+                        positionWithSameDirectionIsPresent = true;
+                    }else if(positionInBybit.side==="Sell" && position.direction==="SHORT"){
+                        positionWithSameDirectionIsPresent = true;
+                    }else if(positionInBybit.side==="Buy" && position.direction==="SHORT"){
+                        positionWithDifferentDirectionIsPresent = true;
+                    }else if(positionInBybit.side==="Sell" && position.direction==="LONG"){
+                        positionWithDifferentDirectionIsPresent = true;
+                    }else {
+                        console.log("");
+                    }
+                }
+            }
+
+            const positionWithSamePairExists = positionWithSameDirectionIsPresent || positionWithDifferentDirectionIsPresent;
+            if(positionWithSamePairExists){
+                logger.warn("positionWithSamePairExists: "+position.pair);
+                return;
+            }
+
+
             logger.info("Calculate percentageBased_DynamicPositionSizingAlgo");
             const {standardized_qty,trade_allocation_percentage} = await percentageBased_DynamicPositionSizingAlgo({
                 bybit,position,trader
@@ -79,7 +110,9 @@ module.exports.newPositionHandler = async function newPositionHandler({
 
         }catch(error){
             console.log({error});
-            logger.error(JSON.stringify(error.message));
+            let errorMsg = error && error.message?error.message:"";
+            errorMsg+=" ("+position.pair+")";
+            logger.error(JSON.stringify(errorMsg));
         }
     });
 

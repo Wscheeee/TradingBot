@@ -69,6 +69,26 @@ console.log(process.env);
             );
         });
 
+        positionsStateDetector.onPositionResize(async (originalPosition, position,trader) => {
+            console.log("Close position");
+            let roi = (position.roi * 100).toFixed(2);
+            bot.sendMessage("@AtomosTradingSignals",
+                `🛑 Partial Position Closed 🛑
+
+👨🏽‍💻 Trader : ${"Anonymous"}
+💰 Pair : ${position.pair}
+🔖 Type : ${position.direction}
+🌿 Leverage : ${position.leverage}
+💸 Position Size : ${originalPosition.size}
+💸 Closed Size : ${position.size}
+💸 Left Size : ${originalPosition.size-position.size}
+⌛ Entry Price : ${position.entry_price}
+⌛ Closed Price : ${position.mark_price}
+
+📈💶🚀 ROI : ${roi}% 🚀💶📈`
+            );
+        });
+        
         positionsStateDetector.onPositionClose(async (position, trader) => {
             console.log("Close position");
             let roi = (position.roi * 100).toFixed(2);

@@ -2,6 +2,11 @@
 
 module.exports.PositionsStateDetector = class PositionsStateDetector {
     /**
+     * @type {{[_id:string]:import("../collections/open_trades/types").OpenTrades_Collection_Document_Interface}}
+     */
+    #openTradesCollection_previousUpdatedDocs = {};
+
+    /**
    * @type {import("../MongoDatabase").MongoDatabase}
    */
     #mongoDatabase;
@@ -34,7 +39,7 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
   */
     /**
   * @type {OnResizePositionCb_Interface[]}
-  * */
+  * */ 
     #onResizePositionCallbacks = [];
     /**
   * @typedef {(
@@ -58,6 +63,7 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
         const watcher = this.#mongoDatabase.collection.openTradesCollection.watchCollection();
         watcher.addListener("change", async (change) => {
             if (change.operationType === "insert") {
+                console.log("(openTradesCollection):INSERT event");
                 const documentId = change.documentKey._id;
                 const fullDocument = await this.#mongoDatabase.collection.openTradesCollection.getDocumentById(documentId);
                 if (fullDocument.copied) {
@@ -66,15 +72,28 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
                         cb(fullDocument, trader);
                     });
                 }
+                this.#openTradesCollection_previousUpdatedDocs[documentId.toString("base64")] = fullDocument;
             } else if (change.operationType === "update") {
+                console.log("(openTradesCollection):UPDATE event");
                 const documentId = change.documentKey._id;
+                const previousDoc = this.#openTradesCollection_previousUpdatedDocs[documentId.toString("base64")];
                 const updatedFields = change.updateDescription.updatedFields;
-                const fullDocument = await this.#mongoDatabase.collection.openTradesCollection.getDocumentById(documentId);
+                // let fullDocument = change.fullDocumentBeforeChange;//await this.#mongoDatabase.collection.openTradesCollection.getDocumentById(documentId);
+                const fullDocument =  change.fullDocument;
+                console.log({
+                    fullDocument,
+                    updatedFields,
+                    previousDoc
+                });
+                if(!fullDocument || !previousDoc)return;
+                if(fullDocument.size===previousDoc.size) return;
                 const trader = await this.#mongoDatabase.collection.topTradersCollection.getDocumentByTraderUid(fullDocument.trader_uid);
                 //change.fullDocumentBeforeChange
+                console.log("Passed previousDoc :",previousDoc);
                 let hasRealChange = false;
                 for (const key in updatedFields) {
-                    if (fullDocument[key] !== updatedFields[key]) {
+                    if(key.toLowerCase().includes("datetime"))continue;
+                    if (previousDoc[key] !== updatedFields[key]) {
                         hasRealChange = true;
                         break;
                     }
@@ -88,6 +107,8 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
                 } else {
                     // console.log("OpenTrades Document has no real changes.");
                 }
+
+                this.#openTradesCollection_previousUpdatedDocs[documentId.toString("base64")] = fullDocument; 
             }
         });
     }
@@ -96,6 +117,7 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
         const watcher = this.#mongoDatabase.collection.oldTradesCollection.watchCollection();
         watcher.addListener("change", async (change) => {
             if (change.operationType === "insert") {
+                console.log("(oldTradesCollection):INSERT event");
                 const documentId = change.documentKey._id;
                 const fullDocument = await this.#mongoDatabase.collection.oldTradesCollection.getDocumentById(documentId);
                 if (fullDocument.copied) {
@@ -110,6 +132,10 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
                             cb(originalPosition, fullDocument, trader);
                         });
                     }
+                }
+                // delete the doc obj from mem
+                if(fullDocument.part===0){
+                    delete this.#openTradesCollection_previousUpdatedDocs[documentId.toString("base64")];
                 }
             }
         });

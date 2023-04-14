@@ -6,8 +6,10 @@
  *    position_id_in_openTradesCollection: import("mongodb").ObjectId,
  *    direction:"LONG"|"SHORT",
  *    pair: string,
- *    leverage: number
+ *    leverage: number,
+ *    actual_position_leverage: number,
  *    size: number,
+ *    actual_position_size: number,
  *    entry_price: number,
  *    close_price: number,
  *    status: "OPEN"|"CLOSED",

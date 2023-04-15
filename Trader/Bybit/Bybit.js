@@ -80,16 +80,6 @@ module.exports.Bybit = class Bybit {
     
 
 
-    // set_requestIsRunningLock(){
-    //     if(this.#requestIsRunningLock){
-    //         this.#requestIsRunningLock = false;
-    //     }else {
-    //         this.#requestIsRunningLock = true;
-    //     }
-    // }
-    // remove_requestIsRunningLock(){
-    //     this.#requestIsRunningLock = false;
-    // }
 
     /**
      * Calculates the maximum quantity that can be sold based on the minimum quantity and step size of a cryptocurrency symbol.
@@ -152,14 +142,15 @@ module.exports.Bybit = class Bybit {
         return roi;
     }
    
+    // * @param {import("bybit-api").AccountOrderV5} position 
     /**
-      * @param {import("bybit-api").AccountOrderV5} position 
+      * @param {import("bybit-api").ClosedPnLV5} closedPnLV5 
       * @returns {number}
       */
-    calculateClosedPositionROI(position) {
-        const currentValue = parseFloat(position.cumExecValue);
-        const positionSize = parseFloat(position.cumExecQty);
-        const averageEntryPrice = parseFloat(position.avgPrice);
+    calculateClosedPositionROI_fromclosedPnLV5(closedPnLV5) {
+        const currentValue = parseFloat(closedPnLV5.cumExitValue);
+        const positionSize = parseFloat(closedPnLV5.qty);
+        const averageEntryPrice = parseFloat(closedPnLV5.avgEntryPrice);
 
         const initialCost = positionSize * averageEntryPrice;
         const roi = (currentValue - initialCost) / initialCost;
@@ -217,7 +208,7 @@ module.exports.Bybit = class Bybit {
     * @param {import("bybit-api").PositionV5} position 
     * @param {"Spot"|"Linear"} category
     * @returns {number}
-    */
+    */ 
     getPositionClosePrice(position,category) {
         if(category==="Spot"){
             return parseFloat(position.markPrice);

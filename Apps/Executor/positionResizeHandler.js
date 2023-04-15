@@ -87,28 +87,38 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
                             category:"linear",
                             orderId: closePositionRes.result.orderId
                         });
-                        const closed_positionInExchange =  closedPartialPositionInfo.result.list[0];
+                        const closed_positionInExchange =  closedPartialPositionInfo.result.list.find((accountOrderV5)=>
+                            accountOrderV5.orderId=== closePositionRes.result.orderId
+                        );
+                        
                         const closedPartialPNL_res = await bybit.clients.bybit_RestClientV5.getClosedPositionPNL({
                             category:"linear",
-                            symbol:position.pair
+                            symbol:position.pair,
                         });
-                        if(!closedPartialPNL_res.result ||closedPartialPNL_res.result.list[0]){
-                            logger.error("Position partial expeccted to be closed , it's close PNL not found.");
-                        }
+ 
                         
-                        const closedPartialPNL  = closedPartialPNL_res.result.list[0].closedPnl;
+                        if(!closedPartialPNL_res.result ||closedPartialPNL_res.result.list[0]){
+                            logger.error("Position partial expected to be closed , it's close PNL not found.");
+                        }
+                        const closedPositionPNLObj = closedPartialPNL_res.result.list.find((closedPnlV5) => closedPnlV5.orderId===closePositionRes.result.orderId );
+                        // const closedPartialPNL  = closedPartialPNL_res.result.list[0].closedPnl;
+                        if(!closedPositionPNLObj) {
+                            throw new Error("closedPositionPNLObj not found for closed partial position:");
+                        }
+                        let closedPartialPNL  = parseFloat(closedPositionPNLObj.closedPnl);
+
                         const timestampNow = Date.now();
                         // Add the partial position to DB
                         await mongoDatabase.collection.tradedPositionsCollection.createNewDocument({
-                            close_price: parseFloat(closed_positionInExchange.avgExitPrice),
-                            closed_pnl: parseFloat(closedPartialPNL),
-                            closed_roi_percentage:  bybit.calculateClosedPositionROI(closed_positionInExchange),
-                            entry_price: bybit.getPositionEntryPrice(positionInExchange),
-                            leverage: bybit.getPositionLeverage(positionInExchange),
+                            close_price: parseFloat(closedPositionPNLObj.avgExitPrice),
+                            closed_pnl: closedPartialPNL,
+                            closed_roi_percentage: bybit.calculateClosedPositionROI_fromclosedPnLV5(closedPositionPNLObj),
+                            entry_price: closedPositionPNLObj.avgEntry,//Pricebybit.getPositionEntryPrice(positionInExchange),
+                            leverage: parseFloat(closedPositionPNLObj.leverage),
                             pair: position.pair,
                             position_id_in_oldTradesCollection: position._id,
                             position_id_in_openTradesCollection: tradedOpenPositionDocument.position_id_in_openTradesCollection,
-                            size: parseFloat(closed_positionInExchange.qty),//bybit_LinearClient.getPositionSize(positionInExchange),
+                            size: parseFloat(closedPositionPNLObj.qty),
                             status: "CLOSED",
                             trader_uid: trader.uid,
                             trader_username: trader.username,

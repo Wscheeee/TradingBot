@@ -74,7 +74,7 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
                 }
                 this.#openTradesCollection_previousUpdatedDocs[documentId.toString("base64")] = fullDocument;
             } else if (change.operationType === "update") {
-                console.log("(openTradesCollection):UPDATE event");
+                // console.log("(openTradesCollection):UPDATE event");
                 const documentId = change.documentKey._id;
                 const previousDoc = this.#openTradesCollection_previousUpdatedDocs[documentId.toString("base64")];
                 const updatedFields = change.updateDescription.updatedFields;

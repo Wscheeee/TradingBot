@@ -84,7 +84,7 @@ module.exports.percentageBased_DynamicPositionSizingAlgo = async function percen
              */
     // - Get the Averages of the trader
     const {average_concurrent_trades:traders_average_concurrent_trades,average_trade_count_value:traders_average_trade_value} = trader;
-    if(!traders_average_trade_value)throw new Error(`Cannot execute the trader's position:traders average_trade_count_value value if not available: (traders_average_trade_size: ${traders_average_trade_value}) (trader: ${trader.username})`);
+    if(!traders_average_trade_value)throw new Error(`Cannot execute the trader's position:traders average_trade_count_value value if not available: (average_trade_count_value: ${traders_average_trade_value}) (trader: ${trader.username})`);
     const average_concurrent_trades = traders_average_concurrent_trades||10;
     const average_trade_size = new DecimalMath(traders_average_trade_value).divide(position.mark_price).getResult();
     /**

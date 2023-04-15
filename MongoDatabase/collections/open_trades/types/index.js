@@ -10,6 +10,7 @@
  *      direction: "LONG"|"SHORT",
  *      leverage: number,
  *      size: number,
+ *      previous_size_before_partial_close: number,
  *      entry_price: number,
  *      mark_price: number,
  *      open_datetime: Date,

@@ -71,7 +71,8 @@ console.log(process.env);
 
         positionsStateDetector.onPositionResize(async (originalPosition, position,trader) => {
             console.log("Close position");
-            let roi = (position.roi * 100).toFixed(2);
+            console.log({originalPosition, position,trader});
+            let roi = (position.roi * 100).toFixed(2); 
             bot.sendMessage("@AtomosTradingSignals",
                 `🛑 Partial Position Closed 🛑
 
@@ -79,9 +80,9 @@ console.log(process.env);
 💰 Pair : ${position.pair}
 🔖 Type : ${position.direction}
 🌿 Leverage : ${position.leverage}
-💸 Position Size : ${originalPosition.size}
+💸 Position Size : ${position.previous_size_before_partial_close}
 💸 Closed Size : ${position.size}
-💸 Left Size : ${originalPosition.size-position.size}
+💸 Left Size : ${position.previous_size_before_partial_close-position.size}
 ⌛ Entry Price : ${position.entry_price}
 ⌛ Closed Price : ${position.mark_price}
 

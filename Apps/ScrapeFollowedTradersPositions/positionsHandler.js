@@ -50,9 +50,10 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                                 original_size: savedPosition_.original_size,
                                 pair:savedPosition_.pair,
                                 part: savedPosition_.total_parts,
-                                pnl: new DecimalMath(savedPosition_.pnl).subtract(position_.pnl).getResult(),
+                                pnl: new DecimalMath(Math.abs(savedPosition_.pnl)).subtract(Math.abs(position_.pnl)).getResult(),
                                 roi: new DecimalMath(Math.abs(savedPosition_.roi)).subtract(Math.abs(position_.roe)).getResult(),
-                                size: new DecimalMath(savedPosition_.size).subtract(position_.amount).getResult(),
+                                size: new DecimalMath(Math.abs(savedPosition_.size)).subtract(Math.abs(position_.amount)).getResult(),
+                                previous_size_before_partial_close: savedPosition_.size,
                                 status: "CLOSED",
                                 total_parts: currentPositionsTotalParts,
                                 trader_id: savedPosition_.trader_id,
@@ -65,6 +66,7 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                             // adjust the open position to partial closed
                             await mongoDatabase.collection.openTradesCollection.updateDocument(savedPosition_._id,{
                                 size: currentOpenPositionNewSize,
+                                previous_size_before_partial_close: savedPosition_.size,
                                 document_last_edited_at_datetime: new Date(),
                                 total_parts: currentPositionsTotalParts
                             });
@@ -92,6 +94,7 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                         pnl:position_.pnl,
                         roi: position_.roe,
                         size: position_.amount,
+                        previous_size_before_partial_close: (position_.amount!=savedPosition_.size?position_.amount:savedPosition_.previous_size_before_partial_close),
                         status: savedPosition_.status,
                         total_parts: currentPositionsTotalParts,
                         document_created_at_datetime: savedPosition_.document_created_at_datetime,
@@ -122,6 +125,7 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                     pnl:position_.pnl,
                     roi: position_.roe,
                     size: position_.amount,
+                    previous_size_before_partial_close: position_.amount,
                     status: "OPEN",
                     total_parts: 1,
                     document_created_at_datetime: datetimeNow,
@@ -157,6 +161,7 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
             }
             // loop through the closed positions and close them andd delete them from openPositions collection
             for(const positionToClose_ of positionsToClose){
+                const datetimeNow = new Date();
                 await mongoDatabase.collection.oldTradesCollection.createNewDocument({
                     original_position_id: positionToClose_._id,
                     close_datetime: new Date(),
@@ -173,10 +178,14 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                     pnl: positionToClose_.pnl,
                     roi: positionToClose_.roi,
                     size: positionToClose_.size,
+                    previous_size_before_partial_close: positionToClose_.previous_size_before_partial_close,
                     status: "CLOSED",
                     total_parts: positionToClose_.total_parts,
                     trader_id: positionToClose_.trader_id,
                     trader_uid: positionToClose_.trader_uid ,
+                    document_created_at_datetime: datetimeNow,
+                    document_last_edited_at_datetime: datetimeNow,
+                    server_timezone: process.env.TZ,
                     
                 });
                 // delete from openPositions collections

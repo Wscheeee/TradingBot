@@ -10,6 +10,7 @@
 *      pair: string,
 *      direction: "LONG"|"SHORT",
 *      leverage: number,
+*      previous_size_before_partial_close: number,
 *      size: number,
 *      entry_price: number,
 *      mark_price: number,

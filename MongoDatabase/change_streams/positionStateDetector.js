@@ -80,11 +80,11 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
                 const updatedFields = change.updateDescription.updatedFields;
                 // let fullDocument = change.fullDocumentBeforeChange;//await this.#mongoDatabase.collection.openTradesCollection.getDocumentById(documentId);
                 const fullDocument =  change.fullDocument;
-                console.log({
-                    fullDocument,
-                    updatedFields,
-                    previousDoc
-                });
+                // console.log({
+                //     fullDocument,
+                //     updatedFields,
+                //     previousDoc
+                // });
                 if(!fullDocument || !previousDoc)return;
                 if(fullDocument.size===previousDoc.size) return;
                 const trader = await this.#mongoDatabase.collection.topTradersCollection.getDocumentByTraderUid(fullDocument.trader_uid);

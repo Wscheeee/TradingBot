@@ -14,6 +14,7 @@
 *      size: number,
 *      entry_price: number,
 *      mark_price: number,
+*      close_price: number,
 *      open_datetime: Date,
 *      close_datetime: Date,
 *      pnl: number,

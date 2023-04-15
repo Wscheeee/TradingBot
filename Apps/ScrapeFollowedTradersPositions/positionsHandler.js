@@ -1,6 +1,6 @@
 const {DecimalMath} = require("../../DecimalMath/DecimalMath");
 
-
+const {calculateRoiFromPosition} = require("./calculateRoiFromPosition");
 /**
  * 
  * @param {{
@@ -37,11 +37,13 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                         if(savedPosition_.size > position_.amount){
                             currentPositionsTotalParts = savedPosition_.total_parts+1;
                             // means that a partial position was closed
+                            const partialPositionsSize = new DecimalMath(Math.abs(savedPosition_.size)).subtract(Math.abs(position_.amount)).getResult();
                             await mongoDatabase.collection.oldTradesCollection.createNewDocument({
                                 original_position_id: savedPosition_._id,
                                 close_datetime: new Date(),
                                 direction:savedPosition_.direction,
                                 entry_price: savedPosition_.entry_price,
+                                close_price: savedPosition_.mark_price,
                                 followed: savedPosition_.followed,
                                 copied: savedPosition_.copied,
                                 leverage: savedPosition_.leverage,
@@ -51,8 +53,12 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                                 pair:savedPosition_.pair,
                                 part: savedPosition_.total_parts,
                                 pnl: new DecimalMath(Math.abs(savedPosition_.pnl)).subtract(Math.abs(position_.pnl)).getResult(),
-                                roi: new DecimalMath(Math.abs(savedPosition_.roi)).subtract(Math.abs(position_.roe)).getResult(),
-                                size: new DecimalMath(Math.abs(savedPosition_.size)).subtract(Math.abs(position_.amount)).getResult(),
+                                roi: calculateRoiFromPosition({
+                                    close_price: savedPosition_.mark_price,
+                                    entry_price: savedPosition_.entry_price,
+                                    leverage: savedPosition_.leverage
+                                }),//new DecimalMath(Math.abs(savedPosition_.roi)).subtract(Math.abs(position_.roe)).getResult(),
+                                size: partialPositionsSize,
                                 previous_size_before_partial_close: savedPosition_.size,
                                 status: "CLOSED",
                                 total_parts: currentPositionsTotalParts,
@@ -167,6 +173,7 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                     close_datetime: new Date(),
                     direction:positionToClose_.direction,
                     entry_price: positionToClose_.entry_price,
+                    close_price: positionToClose_.mark_price,
                     followed: positionToClose_.followed,
                     copied: positionToClose_.copied,
                     leverage: positionToClose_.leverage,

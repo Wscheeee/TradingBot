@@ -151,6 +151,7 @@ module.exports.Bybit = class Bybit {
   
         return roi;
     }
+   
     /**
       * @param {import("bybit-api").AccountOrderV5} position 
       * @returns {number}

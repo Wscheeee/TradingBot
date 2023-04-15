@@ -59,14 +59,15 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
                             bybit,position,trader
                         });
                         // set user leverage
-                        const setUserLeverage_Resp = await bybit.clients.bybit_LinearClient.setUserLeverage({
+                        const setPositionLeverage_Resp = await bybit.clients.bybit_LinearClient.setPositionLeverage({
+                            is_isolated: true,
                             buy_leverage: position.leverage,
                             sell_leverage: position.leverage,
                             symbol: position.pair
                         });
-                        if(setUserLeverage_Resp.ret_code!==0){
+                        if(setPositionLeverage_Resp.ret_code!==0){
                             // an error
-                            logger.error("setUserLeverage_Resp: "+setUserLeverage_Resp.ret_msg);
+                            logger.error("setPositionLeverage_Resp: "+setPositionLeverage_Resp.ret_msg);
                         }
 
                         const closePositionRes = await bybit.clients.bybit_RestClientV5.closeAPosition({

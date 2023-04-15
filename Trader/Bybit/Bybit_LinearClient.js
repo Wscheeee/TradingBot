@@ -76,15 +76,15 @@ module.exports.Bybit_LinearClient = class Bybit_LinearClient {
         return symbolInfo;
     }
 
-
+ 
    
     /****
-     * @param {import("bybit-api").LinearSetUserLeverageRequest} linearSetUserLeverageRequest_params
+     * @param {import("bybit-api").LinearSetMarginSwitchRequest} linearSetMarginSwitchRequest
      */
-    async setUserLeverage(linearSetUserLeverageRequest_params){
+    async setPositionLeverage(linearSetMarginSwitchRequest){
         await this.#rateLimiter.addJob();
-        console.log("[method: setUserLeverage]");
-        return await this.#linearClient.setUserLeverage(linearSetUserLeverageRequest_params);
+        console.log("[method: setPositionLeverage]");
+        return await this.#linearClient.setMarginSwitch(linearSetMarginSwitchRequest);
     }
 
 

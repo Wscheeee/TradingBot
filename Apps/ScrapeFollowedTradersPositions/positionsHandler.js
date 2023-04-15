@@ -57,7 +57,12 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                                     close_price: savedPosition_.mark_price,
                                     entry_price: savedPosition_.entry_price,
                                     leverage: savedPosition_.leverage
-                                }),//new DecimalMath(Math.abs(savedPosition_.roi)).subtract(Math.abs(position_.roe)).getResult(),
+                                })/100,//new DecimalMath(Math.abs(savedPosition_.roi)).subtract(Math.abs(position_.roe)).getResult(),
+                                roi_percentage: calculateRoiFromPosition({
+                                    close_price: savedPosition_.mark_price,
+                                    entry_price: savedPosition_.entry_price,
+                                    leverage: savedPosition_.leverage
+                                }),
                                 size: partialPositionsSize,
                                 previous_size_before_partial_close: savedPosition_.size,
                                 status: "CLOSED",
@@ -99,6 +104,7 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                         part: savedPosition_.part,
                         pnl:position_.pnl,
                         roi: position_.roe,
+                        roi_percentage: position_.roe*100,
                         size: position_.amount,
                         previous_size_before_partial_close: (position_.amount!=savedPosition_.size?position_.amount:savedPosition_.previous_size_before_partial_close),
                         status: savedPosition_.status,
@@ -130,6 +136,7 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                     part:0,
                     pnl:position_.pnl,
                     roi: position_.roe,
+                    roi_percentage: position_.roe*100,
                     size: position_.amount,
                     previous_size_before_partial_close: position_.amount,
                     status: "OPEN",
@@ -184,6 +191,7 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                     part: positionToClose_.part,
                     pnl: positionToClose_.pnl,
                     roi: positionToClose_.roi,
+                    roi_percentage: positionToClose_.roi_percentage,
                     size: positionToClose_.size,
                     previous_size_before_partial_close: positionToClose_.previous_size_before_partial_close,
                     status: "CLOSED",

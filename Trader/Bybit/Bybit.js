@@ -157,6 +157,20 @@ module.exports.Bybit = class Bybit {
 
         return roi;
     }
+    /**
+      * @param {import("bybit-api").AccountOrderV5} accountOrderV5 
+      * @returns {number}
+      */
+    calculateAccountActiveOrderROI(accountOrderV5) {
+        const currentValue = parseFloat(accountOrderV5.cumExecValue);
+        const positionSize = parseFloat(accountOrderV5.qty);
+        const averageEntryPrice = parseFloat(accountOrderV5.avgPrice);
+
+        const initialCost = positionSize * averageEntryPrice;
+        const roi = (currentValue - initialCost) / initialCost;
+
+        return roi;
+    }
 
     /**
     * @param {import("bybit-api").PositionV5} position 
@@ -172,6 +186,24 @@ module.exports.Bybit = class Bybit {
   
         return pnl;
     }
+    
+    
+    // Active Order
+    /**
+    * @param {import("bybit-api").AccountOrderV5} accountOrderV5 
+    * @returns {number}
+    */
+    calculateAccountActiveOrderPNL(accountOrderV5) {
+        const currentValue = parseFloat(accountOrderV5.cumExecValue);
+        const averageEntryPrice = parseFloat(accountOrderV5.avgPrice);
+        const realizedPNL = 0;//parseFloat(accountOrderV5.cumRealisedPnl);
+  
+        const initialCost = accountOrderV5.size * averageEntryPrice;
+        const pnl = (currentValue - initialCost) + realizedPNL;
+  
+        return pnl;
+    }
+    
 
 
     /**
@@ -213,7 +245,7 @@ module.exports.Bybit = class Bybit {
         if(category==="Spot"){
             return parseFloat(position.markPrice);
         }else if(category=="Linear"){
-            return parseFloat(position.lastPrice);
+            return parseFloat(position.markPrice);
         }else {
             return parseFloat(position.lastPrice);
         }

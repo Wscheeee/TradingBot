@@ -84,13 +84,13 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
 
     /**
      * 
-     * @param {import("bybit-api").OrderParamsV5} orderParamsV5 
+     * @param {import("bybit-api").AmendOrderParamsV5} amendOrderParamsV5 
      */
-    async updateAPosition(orderParamsV5){
+    async updateAPosition(amendOrderParamsV5){
         await this.#rateLimiter.addJob();
         console.log("[method: updateAPosition]");        
-        console.log(orderParamsV5);
-        const res = await this.#restClientV5.submitOrder(orderParamsV5);        
+        console.log(amendOrderParamsV5);
+        const res = await this.#restClientV5.amendOrder(amendOrderParamsV5);        
         return res;
     }
 
@@ -106,6 +106,15 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
         console.log(positionInfoParamsV5);
         const res = await this.#restClientV5.getPositionInfo(positionInfoParamsV5);
         return res;
+    }
+
+    /**
+     * @param {import("bybit-api").GetAccountOrdersParams} getAccountOrdersParams
+     */
+    async getActiveOrders(getAccountOrdersParams){
+        await this.#rateLimiter.addJob();
+        console.log("[method: getActiveOrders]");
+        return await this.#restClientV5.getActiveOrders(getAccountOrdersParams);
     }
 
 

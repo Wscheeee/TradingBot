@@ -1,4 +1,4 @@
-const {percentageBased_DynamicPositionSizingAlgo} = require("./algos/qty");
+const {percentageBased_DynamicPositionSizingAlgo,percentageBased_StaticPositionSizingAlgo} = require("./algos/qty");
 
 /**
  * 
@@ -48,9 +48,12 @@ module.exports.newPositionHandler = async function newPositionHandler({
 
 
             logger.info("Calculate percentageBased_DynamicPositionSizingAlgo");
-            const {standardized_qty,trade_allocation_percentage} = await percentageBased_DynamicPositionSizingAlgo({
-                bybit,position,trader
+            const {standardized_qty,trade_allocation_percentage} = await percentageBased_StaticPositionSizingAlgo({
+                bybit,position,trader,percentage_of_total_available_balance_to_use_for_position:1
             });
+            // const {standardized_qty,trade_allocation_percentage} = await percentageBased_DynamicPositionSizingAlgo({
+            //     bybit,position,trader
+            // });
             // set user leverage
             const setPositionLeverage_Resp = await bybit.clients.bybit_LinearClient.setPositionLeverage({
                 is_isolated: true,
@@ -71,54 +74,54 @@ module.exports.newPositionHandler = async function newPositionHandler({
                 symbol: position.pair,
                 
             });
-            logger.info("Got response from openANewPosition Order from bybit_RestClientV5");
-            console.log({openPositionRes});
-            if(openPositionRes.result.orderId){
-                logger.info("The openANewPosition response has a orderId Meaning order was successfull");
-                logger.info("Getting a list of open positions from bybit_RestClientV5");
-                const getOpenPositions_Res = await bybit.clients.bybit_RestClientV5.getOpenPositions({
-                    category:"linear",
-                    symbol:position.pair
-                });
-                logger.info("Got a list of open positions from bybit_RestClientV5");
-                console.log({getOpenPositions_Res});
-                if(getOpenPositions_Res.result && getOpenPositions_Res.result.list && getOpenPositions_Res.result.list.length>0){
-                    const positionInExchange = getOpenPositions_Res.result.list[0]; // expecting the position to be one as
-                    console.log({positionInExchange});
-                    logger.info("Saving thee position to DB");
-                    // successfully placedd a position
-                    const timestampNow = Date.now();
-                    const datetimeNow = new Date(timestampNow);
-                    
-                    await mongoDatabase.collection.tradedPositionsCollection.createNewDocument({
-                        close_price: bybit.getPositionClosePrice(positionInExchange,"Linear"),
-                        closed_pnl: bybit.calculatePositionPNL(positionInExchange),
-                        closed_roi_percentage: bybit.calculatePositionROI(positionInExchange),
-                        entry_price: bybit.getPositionEntryPrice(positionInExchange),
-                        leverage: bybit.getPositionLeverage(positionInExchange),
-                        pair: position.pair,
-                        position_id_in_oldTradesCollection: null,
-                        position_id_in_openTradesCollection: position._id,
-                        size: bybit.getPositionSize(positionInExchange),
-                        status: "OPEN",
-                        trader_uid: trader.uid,
-                        trader_username: trader.username,
-                        entry_datetime: new Date(positionInExchange.createdTime),
-                        document_created_at_datetime: datetimeNow,
-                        document_last_edited_at_datetime: datetimeNow,
-                        direction: position.direction,
-                        close_datetime: datetimeNow,
-                        allocation_percentage: trade_allocation_percentage,
-                        server_timezone: process.env.TZ,
-                    });
-                    logger.info("Saved the position to DB");
-                }else {
-                    throw new Error(openPositionRes.retMsg);
-                }
-            }else {
+            if(!openPositionRes || !openPositionRes.result || Object.keys(openPositionRes.result).length==0){
                 throw new Error(openPositionRes.retMsg);
             }
-
+            logger.info("Got response from openANewPosition Order from bybit_RestClientV5");
+            console.log({openPositionRes});
+            logger.info("The openANewPosition response has a orderId Meaning order was successfull");
+            logger.info("Getting a list of open active orders from bybit_RestClientV5");
+            const getActiveOrders_Res = await bybit.clients.bybit_RestClientV5.getActiveOrders({
+                category:"linear",
+                symbol: position.pair,
+                orderId: openPositionRes.result.orderId,
+            });
+            if(!getActiveOrders_Res ||!getActiveOrders_Res.result ||Object.keys(getActiveOrders_Res.result).length==0){
+                throw new Error(getActiveOrders_Res.retMsg);
+            }
+            logger.info("Got a list of actiive orders from bybit_RestClientV5");
+            const orderInExchange = getActiveOrders_Res.result.list.find((accountOrderV5)=>accountOrderV5.orderId===openPositionRes.result.orderId);
+            console.log({orderInExchange});
+            if(!orderInExchange)throw new Error("Active order for opened order orderId: "+openPositionRes.result.orderId+" not found in active orders")
+            logger.info("Saving thee position to DB");
+            // successfully placedd a position
+            const timestampNow = Date.now();
+            const datetimeNow = new Date(timestampNow);
+            
+            await mongoDatabase.collection.tradedPositionsCollection.createNewDocument({
+                close_price: parseFloat(orderInExchange.avgPrice),
+                closed_pnl: bybit.calculateAccountActiveOrderPNL(orderInExchange),
+                closed_roi_percentage: bybit.calculateAccountActiveOrderROI(orderInExchange),
+                entry_price: bybit.getPositionEntryPrice(orderInExchange),
+                leverage: position.leverage,
+                pair: position.pair,
+                position_id_in_oldTradesCollection: null,
+                position_id_in_openTradesCollection: position._id,
+                size: parseFloat(orderInExchange.qty),
+                status: "OPEN",
+                trader_uid: trader.uid,
+                trader_username: trader.username,
+                entry_datetime: new Date(orderInExchange.createdTime),
+                document_created_at_datetime: datetimeNow,
+                document_last_edited_at_datetime: datetimeNow,
+                direction: position.direction,
+                close_datetime: datetimeNow,
+                allocation_percentage: trade_allocation_percentage,
+                server_timezone: process.env.TZ,
+                order_id: openPositionRes.result.orderId
+            });
+            logger.info("Saved the position to DB");
+            
         }catch(error){
             console.log({error});
             let errorMsg = error && error.message?error.message:"";

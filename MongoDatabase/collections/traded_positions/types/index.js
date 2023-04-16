@@ -1,5 +1,6 @@
 /**
  * @typedef  {{
+ *    order_id: string,
  *    trader_uid: import("mongodb").ObjectId,
  *    trader_username: string,
  *    position_id_in_oldTradesCollection: import("mongodb").ObjectId,

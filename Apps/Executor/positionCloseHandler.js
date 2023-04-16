@@ -1,4 +1,4 @@
-const {percentageBased_DynamicPositionSizingAlgo} = require("./algos/qty");
+const {percentageBased_DynamicPositionSizingAlgo,percentageBased_StaticPositionSizingAlgo} = require("./algos/qty");
 /**
  * 
  * @param {{
@@ -16,30 +16,44 @@ module.exports.positionCloseHandler = async function positionCloseHandler({
         logger.info("Position closed On DB");
         try{
             // calculate he position sizee to close
-            const {standardized_qty,trade_allocation_percentage} = await percentageBased_DynamicPositionSizingAlgo({
-                bybit,position,trader
+            const {standardized_qty,trade_allocation_percentage} = await percentageBased_StaticPositionSizingAlgo({
+                bybit,position,trader,percentage_of_total_available_balance_to_use_for_position:1
             });
+            // const {standardized_qty,trade_allocation_percentage} = await percentageBased_DynamicPositionSizingAlgo({
+            //     bybit,position,trader
+            // });
 
-            // get the open position 
-            logger.info("Getting a list of open positions from bybit_RestClientV5");
-            const openPositionsRes = await bybit.clients.bybit_RestClientV5.getOpenPositions({
+            /**
+             * Get the open tradersPositions in DB
+             */
+            const tradedPositionObj = await mongoDatabase.collection.tradedPositionsCollection.findOne({
+                status:"OPEN",
+                pair: position.pair,
+                direction: position.direction,
+                leverage: position.leverage,
+                trader_uid: trader.uid
+            });
+            if(!tradedPositionObj){
+                throw new Error("Position setting out to close was never trades/open");
+            }
+
+
+            // get the open active orders
+            const getOpenActiveOrders_Res = await bybit.clients.bybit_RestClientV5.getActiveOrders({
                 category:"linear",
-                symbol:position.pair
+                symbol: position.pair,
+                orderId: tradedPositionObj.order_id
             });
-            logger.info("Get a list of open positions from bybit_RestClientV5");
-            console.log({openPositionsRes});
-            if(!openPositionsRes ||!openPositionsRes.result || Object.keys(openPositionsRes.result).length==0){
-                throw new Error(openPositionsRes.retMsg);
-            }
-            // get the position to close;
-            const positionToClose = openPositionsRes.result.list.find((positionV5)=> 
-                positionV5.side===(position.direction==="LONG"?"Buy":"Sell")  && positionV5.leverage===position.leverage &&
-                positionV5.symbol===position.pair && parseFloat(positionV5.size)===standardized_qty
-            );
 
-            if(!positionToClose){
-                throw new Error("Position to close not found:");
+            if(!getOpenActiveOrders_Res ||!getOpenActiveOrders_Res.result ||Object.keys(getOpenActiveOrders_Res.result).length==0){
+                throw new Error(getOpenActiveOrders_Res.retMsg);
             }
+            logger.info("Got a list of actiive orders from bybit_RestClientV5");
+            const activeOrderInExchange = getOpenActiveOrders_Res.result.list.find((accountOrderV5)=>accountOrderV5.orderId===tradedPositionObj.order_id);
+            console.log({activeOrderInExchange});
+            if(!activeOrderInExchange)throw new Error("Active order for opened order orderId: "+tradedPositionObj.order_id+" not found in active orders");
+            
+            const activeOrderToClose = activeOrderInExchange;
 
             // set user leverage
             const setPositionLeverage_Resp = await bybit.clients.bybit_LinearClient.setPositionLeverage({
@@ -57,9 +71,9 @@ module.exports.positionCloseHandler = async function positionCloseHandler({
             const closePositionRes = await bybit.clients.bybit_RestClientV5.closeAPosition({
                 category:"linear",
                 orderType:"Market",
-                qty:positionToClose.size,//String(position.size),
+                qty:parseFloat(activeOrderToClose.qty),//String(position.size),// close whole position
                 side: position.direction==="LONG"?"Sell":"Buy",
-                symbol: position.pair
+                symbol: position.pair,
             });
             console.log({closePositionRes});
             logger.info("Posion closed on bybit_RestClientV5");

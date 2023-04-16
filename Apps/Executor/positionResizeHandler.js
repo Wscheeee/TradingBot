@@ -164,7 +164,9 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
 
         }catch(error){
             console.log({error});
-            logger.error(JSON.stringify(error.message));
+            let errorMsg = error && error.message?error.message:"";
+            errorMsg+=" ("+position.pair+")";
+            logger.error(JSON.stringify(errorMsg));
         }
     });
 

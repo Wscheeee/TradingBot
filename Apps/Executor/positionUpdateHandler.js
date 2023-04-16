@@ -105,7 +105,9 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
 
         }catch(error){
             console.log({error});
-            logger.error(JSON.stringify(error.message));
+            let errorMsg = error && error.message?error.message:"";
+            errorMsg+=" ("+position.pair+")";
+            logger.error(JSON.stringify(errorMsg));
         }
     });
 

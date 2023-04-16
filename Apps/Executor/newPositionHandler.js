@@ -89,10 +89,10 @@ module.exports.newPositionHandler = async function newPositionHandler({
             if(!getActiveOrders_Res ||!getActiveOrders_Res.result ||Object.keys(getActiveOrders_Res.result).length==0){
                 throw new Error(getActiveOrders_Res.retMsg);
             }
-            logger.info("Got a list of actiive orders from bybit_RestClientV5");
+            logger.info("Got a list of active orders from bybit_RestClientV5");
             const orderInExchange = getActiveOrders_Res.result.list.find((accountOrderV5)=>accountOrderV5.orderId===openPositionRes.result.orderId);
             console.log({orderInExchange});
-            if(!orderInExchange)throw new Error("Active order for opened order orderId: "+openPositionRes.result.orderId+" not found in active orders")
+            if(!orderInExchange)throw new Error("Active order for opened order orderId: "+openPositionRes.result.orderId+" not found in active orders");
             logger.info("Saving thee position to DB");
             // successfully placedd a position
             const timestampNow = Date.now();
@@ -124,7 +124,7 @@ module.exports.newPositionHandler = async function newPositionHandler({
             
         }catch(error){
             console.log({error});
-            let errorMsg = error && error.message?error.message:"";
+            let errorMsg = "(fn:newPositionHandler) "+ (error && error.message?error.message:"");
             errorMsg+=" ("+position.pair+")";
             logger.error(JSON.stringify(errorMsg));
         }

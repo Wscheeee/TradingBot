@@ -42,7 +42,7 @@ module.exports.positionCloseHandler = async function positionCloseHandler({
             const getOpenActiveOrders_Res = await bybit.clients.bybit_RestClientV5.getActiveOrders({
                 category:"linear",
                 symbol: position.pair,
-                orderId: tradedPositionObj.order_id
+                orderId: tradedPositionObj.order_id,
             });
 
             if(!getOpenActiveOrders_Res ||!getOpenActiveOrders_Res.result ||Object.keys(getOpenActiveOrders_Res.result).length==0){
@@ -137,7 +137,7 @@ module.exports.positionCloseHandler = async function positionCloseHandler({
 
         }catch(error){
             console.log({error});
-            let errorMsg = error && error.message?error.message:"";
+            let errorMsg = "(fn:positionCloseHandler) "+(error && error.message?error.message:"");
             errorMsg+=" ("+position.pair+")";
             logger.error(JSON.stringify(errorMsg));
         }

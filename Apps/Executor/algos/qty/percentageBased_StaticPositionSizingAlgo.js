@@ -74,7 +74,8 @@ module.exports.percentageBased_StaticPositionSizingAlgo = async function percent
     /**
      * Calculate the trade value (amount to spend/TradeValue) based on the percentage of total available balance to use for the position.
      */
-    const tradeValue = new DecimalMath(percentage_of_total_available_balance_to_use_for_position).divide(100).multiply(availableBalance).divide(position.leverage).getResult();
+    // const tradeValue = new DecimalMath(percentage_of_total_available_balance_to_use_for_position).divide(100).multiply(availableBalance).divide(position.leverage).getResult();
+    const tradeValue = new DecimalMath(percentage_of_total_available_balance_to_use_for_position).divide(100).multiply(totalUSDT_balance).divide(position.leverage).getResult();
     /**
      * Calculate the quantity (qty) based on the trade value and the mark price of the position.
     */

@@ -17,33 +17,22 @@ module.exports.newPositionHandler = async function newPositionHandler({
         logger.info("New Position Added To DB");
         try{
             // check if there is an already existing position with same pair and direction
-            let positionWithSameDirectionIsPresent = false;
-            let positionWithDifferentDirectionIsPresent = false;
-            const openPositionsListRes = await bybit.clients.bybit_RestClientV5.getOpenPositions({
+            const getOrderHistory_Res = await bybit.clients.bybit_RestClientV5.getOrderHistory({
                 category:"linear",
-                symbol: position.pair
+                symbol:position.pair,
             });
-            if(Object.keys(openPositionsListRes.result).length>0){
-                for(const positionInBybit of openPositionsListRes.result.list){
-                    if(positionInBybit.side==="Buy" && position.direction==="LONG"){
-                        // same direction
-                        positionWithSameDirectionIsPresent = true;
-                    }else if(positionInBybit.side==="Sell" && position.direction==="SHORT"){
-                        positionWithSameDirectionIsPresent = true;
-                    }else if(positionInBybit.side==="Buy" && position.direction==="SHORT"){
-                        positionWithDifferentDirectionIsPresent = true;
-                    }else if(positionInBybit.side==="Sell" && position.direction==="LONG"){
-                        positionWithDifferentDirectionIsPresent = true;
-                    }else {
-                        console.log("");
-                    }
-                }
-            }
+            if(Object.keys(getOrderHistory_Res.result).length===0)throw new Error(getOrderHistory_Res.retMsg);
 
-            const positionWithSamePairExists = positionWithSameDirectionIsPresent || positionWithDifferentDirectionIsPresent;
-            if(positionWithSamePairExists){
-                logger.warn("positionWithSamePairExists: "+position.pair);
-                throw new Error("positionWithSamePairExists: "+position.pair);
+            const orderInExchange_Obj = getOrderHistory_Res.result.list.find((accountOrderV5_)=>
+                accountOrderV5_.side===(position.direction==="LONG"?"Buy":"Sell") && 
+                accountOrderV5_.symbol===position.pair
+            );
+
+
+            const positionWithSamePairAndDirectionExists = !!orderInExchange_Obj; //|| positionWithDifferentDirectionIsPresent;
+            if(positionWithSamePairAndDirectionExists){
+                logger.warn("positionWithSamePairAndDirectionExists: "+position.pair);
+                throw new Error("positionWithSamePairAndDirectionExists: "+position.pair);
             }
 
 

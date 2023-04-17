@@ -61,6 +61,18 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
             // });
 
             /**
+             * Switch position mode
+             * */
+            const switchPositionMode_Res = await bybit.clients.bybit_LinearClient.switchPositionMode({
+                mode:"BothSide",// 3:Both Sides
+                symbol:position.pair,
+            });
+            if(switchPositionMode_Res.ext_code!==0){
+                // an error
+                logger.error("switchPositionMode_Res: "+""+switchPositionMode_Res.ret_msg);
+            }
+
+            /**
              * Set position leverage
              */
             // set user leverage
@@ -81,6 +93,7 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
                 qty:String(standardized_qty),
                 side: position.direction==="LONG"?"Sell":"Buy",
                 symbol: position.pair,
+                positionIdx: position.direction==="LONG"?1:2
             });
             console.log({closePositionRes});
             if(!closePositionRes ||!closePositionRes.result ||!closePositionRes.result.orderId){

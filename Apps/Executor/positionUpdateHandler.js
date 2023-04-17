@@ -57,6 +57,20 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
             // });
             if(standardized_qty==parseFloat(tradedPositionObj.size)) throw new Error("Not updating the position as qty not changed");
             logger.info("qy changed so uupdating the order");
+            /**
+             * Switch position mode
+             * */
+            const switchPositionMode_Res = await bybit.clients.bybit_LinearClient.switchPositionMode({
+                mode:"BothSide",// 3:Both Sides
+                symbol:position.pair,
+            });
+            if(switchPositionMode_Res.ext_code!==0){
+                // an error
+                logger.error("switchPositionMode_Res: "+""+switchPositionMode_Res.ret_msg);
+            }
+            /**
+             * Set position leveragge
+             * */
             const setPositionLeverage_Resp = await bybit.clients.bybit_LinearClient.setPositionLeverage({
                 is_isolated: true,
                 buy_leverage: position.leverage,
@@ -74,7 +88,6 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
                 orderId: tradedPositionObj.order_id,
                 symbol: position.pair,
                 qty: String(standardized_qty),
-
             });
             if(!updatePositionRes ||!updatePositionRes.result|| !updatePositionRes.result.orderId){
                 throw new Error(updatePositionRes.retMsg);

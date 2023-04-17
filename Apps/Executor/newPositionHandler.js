@@ -54,6 +54,16 @@ module.exports.newPositionHandler = async function newPositionHandler({
             // const {standardized_qty,trade_allocation_percentage} = await percentageBased_DynamicPositionSizingAlgo({
             //     bybit,position,trader
             // });
+            // Switch position mode
+            const switchPositionMode_Res = await bybit.clients.bybit_LinearClient.switchPositionMode({
+                mode:"BothSide",// 3:Both Sides
+                symbol:position.pair,
+            });
+            if(switchPositionMode_Res.ext_code!==0){
+                // an error
+                logger.error("switchPositionMode_Res: "+""+switchPositionMode_Res.ret_msg);
+            }
+
             // set user leverage
             const setPositionLeverage_Resp = await bybit.clients.bybit_LinearClient.setPositionLeverage({
                 is_isolated: true,
@@ -72,7 +82,7 @@ module.exports.newPositionHandler = async function newPositionHandler({
                 qty:String(standardized_qty),//String(symbolInfo.lot_size_filter.min_trading_qty),
                 side: position.direction==="LONG"?"Buy":"Sell",
                 symbol: position.pair,
-                
+                positionIdx:position.direction==="LONG"?1:2, //Used to identify positions in different position modes. Under hedge-mode, this param is required 0: one-way mode  1: hedge-mode Buy side 2: hedge-mode Sell side
             });
             if(!openPositionRes || !openPositionRes.result || Object.keys(openPositionRes.result).length==0){
                 throw new Error(openPositionRes.retMsg);

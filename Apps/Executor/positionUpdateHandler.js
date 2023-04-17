@@ -76,14 +76,11 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
             logger.info("Sending an order to update the position at bybit_RestClientV5");
             const updatePositionRes = await bybit.clients.bybit_RestClientV5.updateAPosition({
                 category:"linear",
-                orderId: tradedOpenPositionDocument.order_id,
+                
+                // orderId: tradedOpenPositionDocument.order_id,
                 symbol: position.pair,
                 qty: String(standardized_qty),
-                // category:"linear",
-                // orderType:"Market",
-                // qty:String(standardized_qty),
-                // side: position.direction==="LONG"?"Buy":"Sell",
-                // symbol: position.pair,
+
             });
             if(!updatePositionRes ||!updatePositionRes.result|| !updatePositionRes.result.orderId){
                 throw new Error(updatePositionRes.retMsg);
@@ -104,7 +101,7 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
             logger.info("Got a list of actiive orders from bybit_RestClientV5");
             const orderInExchange = getActiveOrders_Res.result.list.find((accountOrderV5)=>accountOrderV5.orderId===updatePositionRes.result.orderId);
             console.log({orderInExchange});
-            if(!orderInExchange)throw new Error("Active order for updated order orderId: "+updatePositionRes.result.orderId+" not found in active orders")
+            if(!orderInExchange)throw new Error("Active order for updated order orderId: "+updatePositionRes.result.orderId+" not found in active orders");
             
             // update the TradedTrades db document
             await mongoDatabase.collection.tradedPositionsCollection.

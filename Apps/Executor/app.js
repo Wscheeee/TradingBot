@@ -74,22 +74,8 @@ process.env.TZ = dotEnvObj.TZ;
         logger.info("Connect DB");
         const positionsStateDetector = new PositionsStateDetector({ mongoDatabase: mongoDatabase });
         logger.info("Create PositionsStateDetector and set listeners");
-        
 
-        // const getOpenActiveOrders_Res = await bybit.clients.bybit_RestClientV5.getActiveOrders({
-        //     category:"linear",
-        //     symbol: "BTCUSDT",
-        //     // orderId: "b5048702-eb17-476c-ae69-52a7bfcc6aa5",
-        // });
-        // console.log({getOpenActiveOrders_Res:getOpenActiveOrders_Res.result.list});
-        // const getOpenPositions_Res = await bybit.clients.bybit_RestClientV5.getOpenPositions({
-        //     category:"linear",
-        //     symbol: "BTCUSDT",
 
-        //     // orderId: "b5048702-eb17-476c-ae69-52a7bfcc6aa5",
-        // });
-        // console.log({getOpenPositions_Res:getOpenPositions_Res.result.list});
-        // return;
         await newPositionHandler({
             bybit,
             logger,

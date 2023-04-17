@@ -11,6 +11,7 @@
  *    actual_position_leverage: number,
  *    size: number,
  *    actual_position_size: number,
+ *    actual_position_original_size: number,
  *    entry_price: number,
  *    close_price: number,
  *    status: "OPEN"|"CLOSED",

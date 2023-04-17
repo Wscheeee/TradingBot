@@ -16,9 +16,9 @@ module.exports.positionCloseHandler = async function positionCloseHandler({
         logger.info("Position closed On DB");
         try{
             // calculate he position sizee to close
-            const {standardized_qty,trade_allocation_percentage} = await percentageBased_StaticPositionSizingAlgo({
-                bybit,position,trader,percentage_of_total_available_balance_to_use_for_position:1
-            });
+            // const {standardized_qty,trade_allocation_percentage} = await percentageBased_StaticPositionSizingAlgo({
+            //     bybit,position,trader,percentage_of_total_available_balance_to_use_for_position:1
+            // });
             // const {standardized_qty,trade_allocation_percentage} = await percentageBased_DynamicPositionSizingAlgo({
             //     bybit,position,trader
             // });
@@ -37,6 +37,17 @@ module.exports.positionCloseHandler = async function positionCloseHandler({
                 throw new Error("Position setting out to close was never trades/open");
             }
 
+            // set user leverage
+            const setPositionLeverage_Resp = await bybit.clients.bybit_LinearClient.setPositionLeverage({
+                is_isolated: true,
+                buy_leverage: position.leverage,
+                sell_leverage: position.leverage,
+                symbol: position.pair
+            });
+            if(setPositionLeverage_Resp.ret_code!==0){
+                // an error
+                logger.error("setPositionLeverage_Resp: "+setPositionLeverage_Resp.ret_msg);
+            }
 
             // get the open active orders
             const getOpenActiveOrders_Res = await bybit.clients.bybit_RestClientV5.getActiveOrders({
@@ -51,42 +62,51 @@ module.exports.positionCloseHandler = async function positionCloseHandler({
             logger.info("Got a list of actiive orders from bybit_RestClientV5");
             const activeOrderInExchange = getOpenActiveOrders_Res.result.list.find((accountOrderV5)=>accountOrderV5.orderId===tradedPositionObj.order_id);
             console.log({activeOrderInExchange});
-            if(!activeOrderInExchange)throw new Error("Active order for opened order orderId: "+tradedPositionObj.order_id+" not found in active orders");
-            
-            const activeOrderToClose = activeOrderInExchange;
-
-            // set user leverage
-            const setPositionLeverage_Resp = await bybit.clients.bybit_LinearClient.setPositionLeverage({
-                is_isolated: true,
-                buy_leverage: position.leverage,
-                sell_leverage: position.leverage,
+            if(!activeOrderInExchange)logger.error("Active order for opened order orderId: "+tradedPositionObj.order_id+" not found in active orders");
+            // get open position
+            const getOpenPositions_Res = await bybit.clients.bybit_RestClientV5.getOpenPositions({
+                category:"linear",
                 symbol: position.pair
             });
-
-
-            if(setPositionLeverage_Resp.ret_code!==0){
-                // an error
-                logger.error("setPositionLeverage_Resp: "+setPositionLeverage_Resp.ret_msg);
+            if(Object.keys(getOpenPositions_Res.result).length==0){
+                throw new Error(getOpenPositions_Res.retMsg);
             }
+            console.log({
+                "getOpenPositions_Res.result.list.length":getOpenPositions_Res.result.list.length
+            });
+            const openPosition = getOpenPositions_Res.result.list.find((positionV5_)=>{
+                console.log({positionV5_});
+                //console.log(positionV5_.createdTime===doc.created_time_string);
+                return positionV5_.leverage===position.leverage && positionV5_.symbol===position.pair ;//&& positionV5_.side===(position.direction==="LONG"?"Buy":"Sell");
+            });
+            if(!openPosition){
+                throw new Error("openPosition not found in open positions info list for: symbol:"+position.pair +" leverage:"+position.leverage);
+            }
+            console.log({
+                openPosition: openPosition
+            });
+                
+            logger.info("Closing position using openPositionInExchange");
+
             const closePositionRes = await bybit.clients.bybit_RestClientV5.closeAPosition({
                 category:"linear",
                 orderType:"Market",
-                qty:parseFloat(activeOrderToClose.qty),//String(position.size),// close whole position
+                qty:parseFloat(openPosition.qty),//String(position.size),// close whole position
                 side: position.direction==="LONG"?"Sell":"Buy",
                 symbol: position.pair,
             });
             console.log({closePositionRes});
             logger.info("Posion closed on bybit_RestClientV5");
-
+    
             // get the closed position pnl obj
             logger.info("Get closed partial position info");
-            
+                
             const closedPartialPNL_res = await bybit.clients.bybit_RestClientV5.getClosedPositionPNL({
                 category:"linear",
                 symbol:position.pair,
             });
-
-            
+    
+                
             if(!closedPartialPNL_res.result ||closedPartialPNL_res.result.list[0]){
                 logger.error("Position partial expected to be closed , it's close PNL not found.");
             }
@@ -96,7 +116,7 @@ module.exports.positionCloseHandler = async function positionCloseHandler({
                 throw new Error("closedPositionPNLObj not found for closed partial position:");
             }
             let closedPartialPNL  = parseFloat(closedPositionPNLObj.closedPnl);
-
+    
             // if close is successful // update the traded position db
             const tradedOpenPositionDocument = await mongoDatabase.
                 collection.
@@ -116,25 +136,15 @@ module.exports.positionCloseHandler = async function positionCloseHandler({
                         close_price: parseFloat(closedPositionPNLObj.avgExitPrice),
                         closed_pnl: closedPartialPNL,
                         closed_roi_percentage: bybit.calculateClosedPositionROI_fromclosedPnLV5(closedPositionPNLObj),
-                        //entry_price: bybit.getPositionEntryPrice(positionInExchange),
-                        leverage: parseFloat(closedPositionPNLObj.leverage),//bybit.getPositionLeverage(positionInExchange),
-                        // pair: position.pair,
+                        leverage: parseFloat(closedPositionPNLObj.leverage),
                         position_id_in_oldTradesCollection: position._id,
-                        // position_id_in_openTradesCollection: position._id,
-                        // server_timezone: process.env.TZ,
                         size: parseFloat(closedPositionPNLObj.qty),
                         status: "CLOSED",
                         close_datetime: new Date(closedPositionPNLObj.updatedTime),
                         document_last_edited_at_datetime: new Date(),
-                        
-                        // trader_uid: trader.uid,
-                        // trader_username: trader.username
                     });
                 logger.info("Closed position in tradedPositionCollection db");
             }
-
-
-
         }catch(error){
             console.log({error});
             let errorMsg = "(fn:positionCloseHandler) "+(error && error.message?error.message:"");

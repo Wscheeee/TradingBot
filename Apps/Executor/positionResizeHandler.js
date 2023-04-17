@@ -32,30 +32,37 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
                 });
             logger.info("Return from mongoDatabase.collection.tradedPositionsCollection.getOneOpenPositionBy");
                     
-            if(!tradedOpenPositionDocument) throw new Error("Position to resize nott in DB meaning itt was not traded");
+            if(!tradedOpenPositionDocument)throw new Error("Position to resize not in DB meaning it was not traded");
                 
             logger.info("Position found in db: Working on it");
 
             /**
-             * Get the active order
+             * Get open position info
              */
-            logger.info("Get the active ordeer of the position");
-            const getOpenActiveOrders_Res = await bybit.clients.bybit_RestClientV5.getActiveOrders({
+            // if(!activeOrderInExchange)logger.error("Active order for opened order orderId: "+tradedPositionObj.order_id+" not found in active orders");
+            // get open position
+            const getOpenPositions_Res = await bybit.clients.bybit_RestClientV5.getOpenPositions({
                 category:"linear",
-                symbol: position.pair,
-                orderId: tradedOpenPositionDocument.order_id
+                symbol: position.pair
             });
-
-            if(!getOpenActiveOrders_Res ||!getOpenActiveOrders_Res.result ||Object.keys(getOpenActiveOrders_Res.result).length==0){
-                throw new Error(getOpenActiveOrders_Res.retMsg);
+            if(Object.keys(getOpenPositions_Res.result).length==0){
+                throw new Error(getOpenPositions_Res.retMsg);
             }
-            logger.info("Got a list of actiive orders from bybit_RestClientV5");
-            const activeOrderInExchange = getOpenActiveOrders_Res.result.list.find((accountOrderV5)=>accountOrderV5.orderId===tradedOpenPositionDocument.order_id);
-            console.log({activeOrderInExchange});
-            if(!activeOrderInExchange)throw new Error("Active order for opened order orderId: "+tradedOpenPositionDocument.order_id+" not found in active orders");
+            console.log({
+                "getOpenPositions_Res.result.list.length":getOpenPositions_Res.result.list.length
+            });
+            const openPosition = getOpenPositions_Res.result.list.find((positionV5_)=>{
+                console.log({positionV5_});
+                //console.log(positionV5_.createdTime===doc.created_time_string);
+                return positionV5_.leverage===position.leverage && positionV5_.symbol===position.pair ;//&& positionV5_.side===(position.direction==="LONG"?"Buy":"Sell");
+            });
+            if(!openPosition){
+                throw new Error("openPosition not found in open positions info list for: symbol:"+position.pair +" leverage:"+position.leverage);
+            }
+            console.log({
+                openPosition: openPosition
+            });
             
-            const activeOrderToResize = activeOrderInExchange;
-            console.log({activeOrderToResize});
 
             /**
              * Get the qty of the partial to close
@@ -63,7 +70,7 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
              */
             const {standardized_qty,trade_allocation_percentage} = await percentageBased_StaticPositionSizingAlgo({
                 bybit,position,trader,
-                percentage_of_total_available_balance_to_use_for_position:(position.size*100)/originalPosition.original_size
+                percentage_of_total_available_balance_to_use_for_position:(position.size*1)/originalPosition.original_size
             });
             // const {standardized_qty,trade_allocation_percentage} = await percentageBased_DynamicPositionSizingAlgo({
             //     bybit,position,trader
@@ -111,8 +118,9 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
             });
 
                 
-            if(!closedPartialPNL_res.result ||closedPartialPNL_res.result.list[0]){
+            if(!closedPartialPNL_res.result ||!closedPartialPNL_res.result.list[0]){
                 logger.error("Position partial expected to be closed , it's close PNL not found.");
+                logger.error(closedPartialPNL_res.retMsg);
             }
             const closedPositionPNLObj = closedPartialPNL_res.result.list.find((closedPnlV5) => closedPnlV5.orderId===closePositionRes.result.orderId );
             // const closedPartialPNL  = closedPartialPNL_res.result.list[0].closedPnl;
@@ -133,6 +141,10 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
                 position_id_in_oldTradesCollection: position._id,
                 position_id_in_openTradesCollection: tradedOpenPositionDocument.position_id_in_openTradesCollection,
                 size: parseFloat(closedPositionPNLObj.qty),
+                order_id: tradedOpenPositionDocument.order_id,
+                actual_position_leverage: tradedOpenPositionDocument.actual_position_leverage,
+                actual_position_original_size: tradedOpenPositionDocument.actual_position_original_size,
+                actual_position_size: tradedOpenPositionDocument.actual_position_size,
                 status: "CLOSED",
                 trader_uid: trader.uid,
                 trader_username: trader.username,

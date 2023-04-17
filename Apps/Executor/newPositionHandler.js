@@ -43,7 +43,7 @@ module.exports.newPositionHandler = async function newPositionHandler({
             const positionWithSamePairExists = positionWithSameDirectionIsPresent || positionWithDifferentDirectionIsPresent;
             if(positionWithSamePairExists){
                 logger.warn("positionWithSamePairExists: "+position.pair);
-                return;
+                throw new Error("positionWithSamePairExists: "+position.pair);
             }
 
 
@@ -63,7 +63,7 @@ module.exports.newPositionHandler = async function newPositionHandler({
             });
             if(setPositionLeverage_Resp.ret_code!==0){
                 // an error
-                logger.error("setPositionLeverage_Resp: "+setPositionLeverage_Resp.ret_msg);
+                logger.error("setPositionLeverage_Resp: "+""+setPositionLeverage_Resp.ret_msg);
             }
             logger.info("Sending openANewPosition Order to bybit_RestClientV5");
             const openPositionRes = await bybit.clients.bybit_RestClientV5.openANewPosition({
@@ -111,7 +111,10 @@ module.exports.newPositionHandler = async function newPositionHandler({
                 status: "OPEN",
                 trader_uid: trader.uid,
                 trader_username: trader.username,
-                entry_datetime: new Date(orderInExchange.createdTime),
+                entry_datetime: new Date(parseFloat(orderInExchange.createdTime)),
+                actual_position_leverage: position.leverage,
+                actual_position_original_size: position.size,
+                actual_position_size: position.size,
                 document_created_at_datetime: datetimeNow,
                 document_last_edited_at_datetime: datetimeNow,
                 direction: position.direction,

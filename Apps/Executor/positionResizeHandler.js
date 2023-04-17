@@ -22,7 +22,7 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
              * Create a new tradedPosition document for the part, with status set to close
              */
             // Check that the position is in db
-            const tradedOpenPositionDocument = await mongoDatabase.
+            const tradedPositionObj = await mongoDatabase.
                 collection.
                 tradedPositionsCollection.
                 getOneOpenPositionBy({
@@ -32,37 +32,21 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
                 });
             logger.info("Return from mongoDatabase.collection.tradedPositionsCollection.getOneOpenPositionBy");
                     
-            if(!tradedOpenPositionDocument)throw new Error("Position to resize not in DB meaning it was not traded");
+            if(!tradedPositionObj)throw new Error("Position to resize not in DB meaning it was not traded");
                 
             logger.info("Position found in db: Working on it");
 
             /**
-             * Get open position info
+             * Get the order
              */
-            // if(!activeOrderInExchange)logger.error("Active order for opened order orderId: "+tradedPositionObj.order_id+" not found in active orders");
-            // get open position
-            const getOpenPositions_Res = await bybit.clients.bybit_RestClientV5.getOpenPositions({
+            const getOrderHistory_Res = await bybit.clients.bybit_RestClientV5.getOrderHistory({
                 category:"linear",
-                symbol: position.pair
+                orderId:tradedPositionObj.order_id
             });
-            if(Object.keys(getOpenPositions_Res.result).length==0){
-                throw new Error(getOpenPositions_Res.retMsg);
-            }
-            console.log({
-                "getOpenPositions_Res.result.list.length":getOpenPositions_Res.result.list.length
-            });
-            const openPosition = getOpenPositions_Res.result.list.find((positionV5_)=>{
-                console.log({positionV5_});
-                //console.log(positionV5_.createdTime===doc.created_time_string);
-                return positionV5_.leverage===position.leverage && positionV5_.symbol===position.pair ;//&& positionV5_.side===(position.direction==="LONG"?"Buy":"Sell");
-            });
-            if(!openPosition){
-                throw new Error("openPosition not found in open positions info list for: symbol:"+position.pair +" leverage:"+position.leverage);
-            }
-            console.log({
-                openPosition: openPosition
-            });
-            
+            if(Object.keys(getOrderHistory_Res.result).length===0)throw new Error(getOrderHistory_Res.retMsg);
+            const orderObject = getOrderHistory_Res.result.list.find((accountOrderV5_)=> accountOrderV5_.orderId===tradedPositionObj.order_id);
+            if(!orderObject)throw new Error("orderObject not found in order history");
+            console.log({orderObject});
 
             /**
              * Get the qty of the partial to close
@@ -123,10 +107,8 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
                 logger.error(closedPartialPNL_res.retMsg);
             }
             const closedPositionPNLObj = closedPartialPNL_res.result.list.find((closedPnlV5) => closedPnlV5.orderId===closePositionRes.result.orderId );
-            // const closedPartialPNL  = closedPartialPNL_res.result.list[0].closedPnl;
-            if(!closedPositionPNLObj) {
-                throw new Error("closedPositionPNLObj not found for closed partial position:");
-            }
+            if(!closedPositionPNLObj)throw new Error("closedPositionPNLObj not found for closed partial position:");
+            
             let closedPartialPNL  = parseFloat(closedPositionPNLObj.closedPnl);
 
             const timestampNow = Date.now();
@@ -139,20 +121,20 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
                 leverage: parseFloat(closedPositionPNLObj.leverage),
                 pair: position.pair,
                 position_id_in_oldTradesCollection: position._id,
-                position_id_in_openTradesCollection: tradedOpenPositionDocument.position_id_in_openTradesCollection,
+                position_id_in_openTradesCollection: orderObject.position_id_in_openTradesCollection,
                 size: parseFloat(closedPositionPNLObj.qty),
-                order_id: tradedOpenPositionDocument.order_id,
-                actual_position_leverage: tradedOpenPositionDocument.actual_position_leverage,
-                actual_position_original_size: tradedOpenPositionDocument.actual_position_original_size,
-                actual_position_size: tradedOpenPositionDocument.actual_position_size,
+                order_id: orderObject.order_id,
+                actual_position_leverage: orderObject.actual_position_leverage,
+                actual_position_original_size: orderObject.actual_position_original_size,
+                actual_position_size: orderObject.actual_position_size,
                 status: "CLOSED",
                 trader_uid: trader.uid,
                 trader_username: trader.username,
-                direction: tradedOpenPositionDocument.direction,
-                entry_datetime: tradedOpenPositionDocument.entry_datetime,
+                direction: orderObject.direction,
+                entry_datetime: orderObject.entry_datetime,
                 allocation_percentage: trade_allocation_percentage,
                 close_datetime: new Date(timestampNow),
-                document_created_at_datetime: tradedOpenPositionDocument.document_created_at_datetime,
+                document_created_at_datetime: orderObject.document_created_at_datetime,
                 document_last_edited_at_datetime: new Date(),
                 server_timezone: process.env.TZ,
             });
@@ -162,7 +144,7 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
 
             // Update the original traded position in DB
             await mongoDatabase.collection.tradedPositionsCollection.
-                updateDocument(tradedOpenPositionDocument._id,{
+                updateDocument(orderObject._id,{
                     // close_price: bybit.getPositionClosePrice(positionInExchange,"Linear"),
                     // closed_pnl: bybit.calculatePositionPNL(positionInExchange),
                     // closed_roi_percentage: bybit.calculatePositionROI(positionInExchange),
@@ -176,15 +158,10 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
                     status: "OPEN",
                     trader_uid: trader.uid,
                     trader_username: trader.username,
-                    allocation_percentage: tradedOpenPositionDocument.allocation_percentage - trade_allocation_percentage,
+                    allocation_percentage: orderObject.allocation_percentage - trade_allocation_percentage,
                     document_last_edited_at_datetime: new Date()
                 });
             logger.info("Updated position in tradedPositionCollection db");
-
-
-
-
-            
 
         }catch(error){
             console.log({error});

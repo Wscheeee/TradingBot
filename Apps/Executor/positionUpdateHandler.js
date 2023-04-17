@@ -19,7 +19,7 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
             /**
              * Check that the position is in db
              * */
-            const tradedOpenPositionDocument = await mongoDatabase.
+            const tradedPositionObj = await mongoDatabase.
                 collection.
                 tradedPositionsCollection.
                 getOneOpenPositionBy({
@@ -29,27 +29,22 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
                 });
             logger.info("Return from mongoDatabase.collection.tradedPositionsCollection.getOneOpenPositionBy");
                     
-            if(!tradedOpenPositionDocument) throw new Error("Position to update not in DB meaning itt was not traded");
+            if(!tradedPositionObj) throw new Error("Position to update not in DB meaning itt was not traded");
             logger.info("Position found in db: Working on it");
 
-
-            // get the open position 
-            logger.info("Getting a list of positions from bybit_RestClientV5");
-            const openPositionsRes = await bybit.clients.bybit_RestClientV5.getOpenPositions({
+            /**
+             * Get the order
+             */
+            const getOrderHistory_Res = await bybit.clients.bybit_RestClientV5.getOrderHistory({
                 category:"linear",
-                symbol:position.pair
+                orderId:tradedPositionObj.order_id
             });
-            logger.info("Got a list of positions from bybit_RestClientV5");
-            console.log({openPositionsRes});
-            if(!openPositionsRes ||!openPositionsRes.result || Object.keys(openPositionsRes.result).length===0)throw new Error(openPositionsRes.retMsg);
+            if(Object.keys(getOrderHistory_Res.result).length===0)throw new Error(getOrderHistory_Res.retMsg);
+            const orderObject = getOrderHistory_Res.result.list.find((accountOrderV5_)=> accountOrderV5_.orderId===tradedPositionObj.order_id);
+            if(!orderObject)throw new Error("orderObject not found in order history");
+            console.log({orderObject});
 
-            const positionInExchange = openPositionsRes.result.list.find((positionV5_)=> 
-                positionV5_.symbol===position.pair && positionV5_.side===(position.direction==="LONG"?"Buy":"Sell") 
-                && parseFloat(positionV5_.leverage)===position.leverage
-            );
-            console.log({positionInExchange});
-            if(!positionInExchange)throw new Error("fn(update position) The position of order id: "+tradedOpenPositionDocument.order_id+" not ffound in bybit exchange");
-            logger.info("Position found in exchange");
+
             /**
              * Calculate the updated qty
              */
@@ -60,7 +55,7 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
             // const {standardized_qty,trade_allocation_percentage} = await percentageBased_DynamicPositionSizingAlgo({
             //     bybit,position,trader
             // });
-            if(standardized_qty==parseFloat(tradedOpenPositionDocument.size)) throw new Error("Not updating the position as qty not changed");
+            if(standardized_qty==parseFloat(tradedPositionObj.size)) throw new Error("Not updating the position as qty not changed");
             logger.info("qy changed so uupdating the order");
             const setPositionLeverage_Resp = await bybit.clients.bybit_LinearClient.setPositionLeverage({
                 is_isolated: true,
@@ -76,8 +71,7 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
             logger.info("Sending an order to update the position at bybit_RestClientV5");
             const updatePositionRes = await bybit.clients.bybit_RestClientV5.updateAPosition({
                 category:"linear",
-                
-                // orderId: tradedOpenPositionDocument.order_id,
+                orderId: tradedPositionObj.order_id,
                 symbol: position.pair,
                 qty: String(standardized_qty),
 
@@ -88,34 +82,32 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
             logger.info("Updated the position at bybit_RestClientV5");
             console.log({updatePositionRes});
 
-            // get the new active order
-            logger.info("Getting a list of open active orders from bybit_RestClientV5");
-            const getActiveOrders_Res = await bybit.clients.bybit_RestClientV5.getActiveOrders({
+            /**
+             * Get the order again
+             */
+            const getOrderHistory_Res2 = await bybit.clients.bybit_RestClientV5.getOrderHistory({
                 category:"linear",
-                symbol: position.pair,
-                orderId: updatePositionRes.result.orderId,
+                orderId:updatePositionRes.result.orderId
             });
-            if(!getActiveOrders_Res ||!getActiveOrders_Res.result ||Object.keys(getActiveOrders_Res.result).length==0){
-                throw new Error(getActiveOrders_Res.retMsg);
-            }
-            logger.info("Got a list of actiive orders from bybit_RestClientV5");
-            const orderInExchange = getActiveOrders_Res.result.list.find((accountOrderV5)=>accountOrderV5.orderId===updatePositionRes.result.orderId);
-            console.log({orderInExchange});
-            if(!orderInExchange)throw new Error("Active order for updated order orderId: "+updatePositionRes.result.orderId+" not found in active orders");
-            
+            if(Object.keys(getOrderHistory_Res2.result).length===0)throw new Error(getOrderHistory_Res2.retMsg);
+            const orderObject2 = getOrderHistory_Res2.result.list.find((accountOrderV5_)=> accountOrderV5_.orderId===updatePositionRes.result.orderId);
+            if(!orderObject2)throw new Error("updated orderObject not found in order history");
+            console.log({orderObject2});
+
+        
             // update the TradedTrades db document
             await mongoDatabase.collection.tradedPositionsCollection.
-                updateDocument(tradedOpenPositionDocument._id,{
-                    close_price: bybit.getPositionClosePrice(positionInExchange,"Linear"),
-                    closed_pnl: bybit.calculatePositionPNL(positionInExchange),
-                    closed_roi_percentage: bybit.calculatePositionROI(positionInExchange),
-                    entry_price: tradedOpenPositionDocument.entry_price,
-                    leverage: parseFloat(tradedOpenPositionDocument.leverage),
+                updateDocument(tradedPositionObj._id,{
+                    close_price: parseFloat(orderObject2.price),
+                    closed_pnl: bybit.calculateAccountActiveOrderPNL(orderObject2),
+                    closed_roi_percentage: bybit.calculateAccountActiveOrderROI(orderObject2),
+                    entry_price: tradedPositionObj.entry_price,
+                    leverage: parseFloat(tradedPositionObj.leverage),
                     pair: position.pair,
                     position_id_in_oldTradesCollection: null,
                     position_id_in_openTradesCollection: position._id,
                     server_timezone: process.env.TZ,
-                    size: parseFloat(orderInExchange.qty),
+                    size: standardized_qty,//parseFloat(orderObject2.qty),
                     status: "OPEN",
                     trader_uid: trader.uid,
                     trader_username: trader.username,

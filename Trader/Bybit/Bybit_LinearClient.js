@@ -82,9 +82,9 @@ module.exports.Bybit_LinearClient = class Bybit_LinearClient {
     /****
      * @param {import("bybit-api").LinearSetMarginSwitchRequest} linearSetMarginSwitchRequest
      */
-    async setPositionLeverage(linearSetMarginSwitchRequest){
+    async switchMargin(linearSetMarginSwitchRequest){
         await this.#rateLimiter.addJob();
-        console.log("[method: setPositionLeverage]");
+        console.log("[method: switchMargin]");
         return await this.#linearClient.setMarginSwitch(linearSetMarginSwitchRequest);
     }
 
@@ -97,6 +97,14 @@ module.exports.Bybit_LinearClient = class Bybit_LinearClient {
         return await this.#linearClient.setPositionMode(linearSetPositionModeRequest);
     }
 
+    /** 
+     * @param {import("bybit-api").LinearSetUserLeverageRequest} linearSetUserLeverageRequest
+     */
+    async setUserLeverage(linearSetUserLeverageRequest){
+        await this.#rateLimiter.addJob();
+        console.log("[method: setUserLeverage]");
+        return await this.#linearClient.setUserLeverage(linearSetUserLeverageRequest);
+    }
 
 
     // FORMATTER

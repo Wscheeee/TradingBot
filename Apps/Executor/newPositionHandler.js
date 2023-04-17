@@ -16,26 +16,7 @@ module.exports.newPositionHandler = async function newPositionHandler({
     positionsStateDetector.onNewPosition(async (position, trader) => {
         logger.info("New Position Added To DB");
         try{
-            // check if there is an already existing position with same pair and direction
-            const getOrderHistory_Res = await bybit.clients.bybit_RestClientV5.getOrderHistory({
-                category:"linear",
-                symbol:position.pair,
-            });
-            if(Object.keys(getOrderHistory_Res.result).length===0)throw new Error(getOrderHistory_Res.retMsg);
-
-            const orderInExchange_Obj = getOrderHistory_Res.result.list.find((accountOrderV5_)=>
-                accountOrderV5_.side===(position.direction==="LONG"?"Buy":"Sell") && 
-                accountOrderV5_.symbol===position.pair
-            );
-
-
-            const positionWithSamePairAndDirectionExists = !!orderInExchange_Obj; //|| positionWithDifferentDirectionIsPresent;
-            if(positionWithSamePairAndDirectionExists){
-                logger.warn("positionWithSamePairAndDirectionExists: "+position.pair);
-                throw new Error("positionWithSamePairAndDirectionExists: "+position.pair);
-            }
-
-
+           
             logger.info("Calculate percentageBased_DynamicPositionSizingAlgo");
             const {standardized_qty,trade_allocation_percentage} = await percentageBased_StaticPositionSizingAlgo({
                 bybit,position,trader,percentage_of_total_available_balance_to_use_for_position:1
@@ -53,16 +34,30 @@ module.exports.newPositionHandler = async function newPositionHandler({
                 logger.error("switchPositionMode_Res: "+""+switchPositionMode_Res.ret_msg);
             }
 
-            // set user leverage
-            const setPositionLeverage_Resp = await bybit.clients.bybit_LinearClient.setPositionLeverage({
+            /**
+             * Switch Margin
+             */
+            const setPositionLeverage_Resp = await bybit.clients.bybit_LinearClient.switchMargin({
                 is_isolated: true,
-                buy_leverage: position.leverage,
-                sell_leverage: position.leverage,
+                buy_leverage:1,
+                sell_leverage:1,
                 symbol: position.pair,
             });
             if(setPositionLeverage_Resp.ret_code!==0){
                 // an error
-                logger.error("setPositionLeverage_Resp: "+""+setPositionLeverage_Resp.ret_msg);
+                logger.error("setPositionLeverage_Resp: "+""+setPositionLeverage_Resp.ret_msg+"("+position.pair+")");
+            }
+            /**
+             * Seet User Leverage
+             */
+            const setUserLeverage_Res = await bybit.clients.bybit_LinearClient.setUserLeverage({
+                buy_leverage: position.leverage,
+                sell_leverage: position.leverage,
+                symbol: position.pair
+            });
+            if(setUserLeverage_Res.ret_code!==0){
+                // an error
+                logger.error("setUserLeverage_Res: "+""+setUserLeverage_Res.ret_msg+"("+position.pair+")");
             }
             logger.info("Sending openANewPosition Order to bybit_RestClientV5");
             const openPositionRes = await bybit.clients.bybit_RestClientV5.openANewPosition({

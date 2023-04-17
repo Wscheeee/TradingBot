@@ -88,6 +88,15 @@ module.exports.Bybit_LinearClient = class Bybit_LinearClient {
         return await this.#linearClient.setMarginSwitch(linearSetMarginSwitchRequest);
     }
 
+    /**
+     * @param {import("bybit-api").LinearSetPositionModeRequest} linearSetPositionModeRequest
+     */
+    async switchPositionMode(linearSetPositionModeRequest){
+        await this.#rateLimiter.addJob();
+        console.log("[method: switchPositionMode]");
+        return await this.#linearClient.setPositionMode(linearSetPositionModeRequest);
+    }
+
 
 
     // FORMATTER

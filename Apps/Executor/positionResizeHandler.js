@@ -111,12 +111,15 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
             }
             logger.info("Position partially cclosed on bybit_RestClientV5");
             logger.info("Get closed partial position info");
-            const closedPartialPositionInfo = await bybit.clients.bybit_RestClientV5.getClosedPositionInfo({
+            const closedPartialPositionInfo_Res = await bybit.clients.bybit_RestClientV5.getClosedPositionInfo({
                 category:"linear",
-                orderId: closePositionRes.result.orderId
+                orderId: closePositionRes.result.orderId,
+                symbol: position.pair
             });
-            const closed_positionInExchange =  closedPartialPositionInfo.result.list.find((accountOrderV5)=>
-                accountOrderV5.orderId=== closePositionRes.result.orderId
+            if(Object.keys(closedPartialPositionInfo_Res.result).length===0)throw new Error(closedPartialPositionInfo_Res.retMsg);
+
+            const closed_positionInExchange_Obj =  closedPartialPositionInfo_Res.result.list.find((accountOrderV5_)=>
+                accountOrderV5_.orderId=== closePositionRes.result.orderId
             );
                 
             const closedPartialPNL_res = await bybit.clients.bybit_RestClientV5.getClosedPositionPNL({
@@ -160,6 +163,7 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
                 document_created_at_datetime: orderObject.document_created_at_datetime,
                 document_last_edited_at_datetime: new Date(),
                 server_timezone: process.env.TZ,
+                // part: position.part
             });
             logger.info("Saved the partial closed position to DB");
 
@@ -167,7 +171,7 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
 
             // Update the original traded position in DB
             await mongoDatabase.collection.tradedPositionsCollection.
-                updateDocument(orderObject._id,{
+                updateDocument(tradedPositionObj._id,{
                     // close_price: bybit.getPositionClosePrice(positionInExchange,"Linear"),
                     // closed_pnl: bybit.calculatePositionPNL(positionInExchange),
                     // closed_roi_percentage: bybit.calculatePositionROI(positionInExchange),
@@ -177,12 +181,12 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
                     position_id_in_oldTradesCollection: null,
                     position_id_in_openTradesCollection: position._id,
                     server_timezone: process.env.TZ,
-                    size: parseFloat(closed_positionInExchange.leavesQty),
+                    size: tradedPositionObj.size- parseFloat(closed_positionInExchange_Obj.qty),
                     status: "OPEN",
                     trader_uid: trader.uid,
                     trader_username: trader.username,
-                    allocation_percentage: orderObject.allocation_percentage - trade_allocation_percentage,
-                    document_last_edited_at_datetime: new Date()
+                    allocation_percentage: tradedPositionObj.allocation_percentage - trade_allocation_percentage,
+                    document_last_edited_at_datetime: new Date(),
                 });
             logger.info("Updated position in tradedPositionCollection db");
 

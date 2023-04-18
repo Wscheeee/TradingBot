@@ -7,7 +7,7 @@
  * : So it is important to cache the request and have a job runner taking the trades .
  */
 
-
+const {WebsocketClient} = require("bybit-api");
 const {Bybit_LinearClient} = require("./Bybit_LinearClient");
 const {Bybit_RestClientV5} = require("./Bybit_RestClientV5");
 const {Bybit_AccountAssetClientV3} = require("./Bybit_AccountAssetClientV3");
@@ -21,7 +21,8 @@ const {DecimalMath} = require("../../DecimalMath/DecimalMath");
  * @typedef {{
  *      bybit_LinearClient: Bybit_LinearClient,
  *      bybit_RestClientV5: Bybit_RestClientV5,
- *      bybit_AccountAssetClientV3: Bybit_AccountAssetClientV3
+ *      bybit_AccountAssetClientV3: Bybit_AccountAssetClientV3,
+ *      websocket_Client: WebsocketClient
  * }} BybitClients_Interface
  */
 
@@ -31,6 +32,7 @@ module.exports.Bybit = class Bybit {
      * @type {BybitClients_Interface}
      */
     #clients = {};
+
 
 
 
@@ -72,6 +74,13 @@ module.exports.Bybit = class Bybit {
             }),
             millisecondsToDelayBetweenRequests
         });
+        this.#clients.websocket_Client = new WebsocketClient({
+            market:"linear",
+            secret: privateKey,
+            key: publicKey,
+            testnet,  
+
+        });
       
     }
 
@@ -79,6 +88,35 @@ module.exports.Bybit = class Bybit {
     get clients(){ return this.#clients;}
     
 
+    // Websocket Listerners
+    async setUpWebsocketListeners(){
+        await this.#clients.websocket_Client.connectPrivate();
+        this.#clients.websocket_Client.subscribeV5(["position","order","execution"]);
+        // Listen to events coming from websockets. This is the primary data source
+        this.#clients.websocket_Client.on("update", (data) => {
+            console.log("update", data);
+        });
+  
+        // Optional: Listen to websocket connection open event (automatic after subscribing to one or more topics)
+        this.#clients.websocket_Client.on("open", ({ wsKey, event }) => {
+            console.log("connection open for websocket with ID: " + wsKey);
+        });
+  
+        // Optional: Listen to responses to websocket queries (e.g. the response after subscribing to a topic)
+        this.#clients.websocket_Client.on("response", (response) => {
+            console.log("response", response);
+        });
+  
+        // Optional: Listen to connection close event. Unexpected connection closes are automatically reconnected.
+        this.#clients.websocket_Client.on("close", () => {
+            console.log("connection closed");
+        });
+  
+        // Optional: Listen to raw error events. Recommended.
+        this.#clients.websocket_Client.on("error", (err) => {
+            console.error("error", err);
+        });
+    }
 
 
     /**

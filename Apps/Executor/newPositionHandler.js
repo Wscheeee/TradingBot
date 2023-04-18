@@ -115,7 +115,8 @@ module.exports.newPositionHandler = async function newPositionHandler({
                 close_datetime: datetimeNow,
                 allocation_percentage: trade_allocation_percentage,
                 server_timezone: process.env.TZ,
-                order_id: openPositionRes.result.orderId
+                order_id: openPositionRes.result.orderId,
+                // part: position.part
             });
             logger.info("Saved the position to DB");
             

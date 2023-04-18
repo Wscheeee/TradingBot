@@ -85,7 +85,7 @@ module.exports.positionCloseHandler = async function positionCloseHandler({
                 qty:parseFloat(orderObject.qty),//String(position.size),// close whole position
                 side: position.direction==="LONG"?"Sell":"Buy",
                 symbol: position.pair,
-                positionIdx: position.direction==="LONG"?1:2
+                positionIdx: position.direction==="LONG"?1:2,
             });
             console.log({closePositionRes});
             logger.info("Posion closed on bybit_RestClientV5");

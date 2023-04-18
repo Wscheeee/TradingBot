@@ -62,6 +62,7 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
     listenToOpenTradesCollection() {
         const watcher = this.#mongoDatabase.collection.openTradesCollection.watchCollection();
         watcher.addListener("change", async (change) => {
+            if(change.operationType==="drop")process.exit();//restart the app when the collection is dropped
             if (change.operationType === "insert") {
                 console.log("(openTradesCollection):INSERT event");
                 const documentId = change.documentKey._id;
@@ -116,6 +117,7 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
     listenToOldTradesCollection() {
         const watcher = this.#mongoDatabase.collection.oldTradesCollection.watchCollection();
         watcher.addListener("change", async (change) => {
+            if(change.operationType==="drop")process.exit();//restart the app when the collection is dropped
             if (change.operationType === "insert") {
                 console.log("(oldTradesCollection):INSERT event");
                 const documentId = change.documentKey._id;

@@ -1,3 +1,4 @@
+const {percentageBased_DynamicPositionSizingAlgo,percentageBased_StaticPositionSizingAlgo} = require("./algos/qty");
 /**
  * 
  * @param {{
@@ -28,6 +29,18 @@ module.exports.positionCloseHandler = async function positionCloseHandler({
             if(!tradedPositionObj){
                 throw new Error("Position setting out to close was never trades/open");
             }
+
+            /**
+             * Get the qty of the partial to close
+             * qty% = if the original size ==100% what about the current? (cs*100/ors)
+             */
+            const {standardized_qty,trade_allocation_percentage} = await percentageBased_StaticPositionSizingAlgo({
+                bybit,position,trader,
+                percentage_of_total_available_balance_to_use_for_position:(position.size*1)/tradedPositionObj.actual_position_original_size
+            });
+            // const {standardized_qty,trade_allocation_percentage} = await percentageBased_DynamicPositionSizingAlgo({
+            //     bybit,position,trader
+            // });
 
             /**
              * Switch position mode
@@ -82,7 +95,7 @@ module.exports.positionCloseHandler = async function positionCloseHandler({
             const closePositionRes = await bybit.clients.bybit_RestClientV5.closeAPosition({
                 category:"linear",
                 orderType:"Market",
-                qty:parseFloat(orderObject.qty),//String(position.size),// close whole position
+                qty:String(standardized_qty),//String(position.size),// close whole position
                 side: position.direction==="LONG"?"Sell":"Buy",
                 symbol: position.pair,
                 positionIdx: position.direction==="LONG"?1:2,

@@ -148,6 +148,7 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
      */
     async getClosedPositionInfo(getAccountOrdersParams){
         await this.#rateLimiter.addJob();
+        await this.#rateLimiter.addJob();
         console.log("[method: getClosedPositionInfo]");
         const res = await this.#restClientV5.getHistoricOrders(getAccountOrdersParams);
         return res;
@@ -159,6 +160,7 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
      * @param {import("bybit-api").GetClosedPnLParamsV5} getClosedPnLParamsV5 
      */
     async getClosedPositionPNL(getClosedPnLParamsV5){
+        await this.#rateLimiter.addJob();
         await this.#rateLimiter.addJob();
         console.log("[method: getClosedPositionInfo]");
         const res = await this.#restClientV5.getClosedPnL(getClosedPnLParamsV5);

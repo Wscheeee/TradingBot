@@ -76,24 +76,36 @@ process.env.TZ = dotEnvObj.TZ;
         const positionsStateDetector = new PositionsStateDetector({ mongoDatabase: mongoDatabase });
         logger.info("Create PositionsStateDetector and set listeners");
 
+        const symbol = "NEOUSDT";
+        const qty = "5";//44.27
 
-        const closePositionRes = await bybit.clients.bybit_RestClientV5.closeAPosition({
-            category: "linear",
-            orderType: "Market",
-            qty: "5.5",
-            side: "Sell",
-            symbol: "SNXUSDT",
-            positionIdx: 1
-        });
-        console.log({closePositionRes});
+        // const closePositionRes = await bybit.clients.bybit_RestClientV5.closeAPosition({
+        //     category: "linear",
+        //     orderType: "Market",
+        //     qty: qty,
+        //     side: "Sell",
+        //     symbol: symbol,
+        //     positionIdx: 1
+        // });
+        // console.log({closePositionRes});
 
+        // get the position info realtime
+        const getOpenPositions_Res = await bybit.clients.bybit_RestClientV5.getOpenPositions({
+            category:"linear",
+            symbol:symbol,
+        }); 
+        for(const positionInfo of getOpenPositions_Res.result.list){
+            console.log({positionInfo})
+        }
 
+        
+        return;
         logger.info("Get closed partial position info");
         // await sleepAsync(5000);
         const closedPartialPositionInfo_Res = await bybit.clients.bybit_RestClientV5.getClosedPositionInfo({
             category:"linear",
             orderId: closePositionRes.result.orderId,
-            symbol: "SNXUSDT"
+            symbol
         });
         if(Object.keys(closedPartialPositionInfo_Res.result).length==0)throw new Error(closedPartialPositionInfo_Res.retMsg);
         // for(const closedPositiionInfoObj of closedPartialPositionInfo_Res.result.list){

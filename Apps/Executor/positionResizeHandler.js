@@ -97,6 +97,9 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
                 logger.error("setUserLeverage_Res: "+setUserLeverage_Res.ret_msg+"("+position.pair+")");
             }
 
+            /**
+             * Close the partial 
+             */
             const closePositionRes = await bybit.clients.bybit_RestClientV5.closeAPosition({
                 category:"linear",
                 orderType:"Market",
@@ -121,7 +124,8 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
             const closed_positionInExchange_Obj =  closedPartialPositionInfo_Res.result.list.find((accountOrderV5_)=>
                 accountOrderV5_.orderId=== closePositionRes.result.orderId
             );
-                
+            if(!closed_positionInExchange_Obj)throw new Error("closed_positionInExchange_Obj not found");
+            console.log({closed_positionInExchange_Obj});
             const closedPartialPNL_res = await bybit.clients.bybit_RestClientV5.getClosedPositionPNL({
                 category:"linear",
                 symbol:position.pair,

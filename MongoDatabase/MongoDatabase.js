@@ -8,7 +8,8 @@ const {
     OpenTradesCollection,
     TopTradersCollection,
     TradedPositionsCollection,
-    PerformanceCollection
+    PerformanceCollection,
+    UsedAllocationsCollection
 } = require("./collections/");
 
 /**
@@ -19,6 +20,7 @@ const {
  *      topTradersCollection: TopTradersCollection,
  *      tradedPositionsCollection: TradedPositionsCollection,
  *      performanceCollection: PerformanceCollection,
+ *      usedAllocationsCollection: UsedAllocationsCollection
  * }} Collections_Interface
  */
 
@@ -50,7 +52,8 @@ module.exports.MongoDatabase =  class MongoDatabase{
         openTradesCollection: null,
         topTradersCollection:null,
         tradedPositionsCollection: null,
-        performanceCollection: null
+        performanceCollection: null,
+        usedAllocationsCollection: null
     };
     /**
      * @type {null|import("mongodb").ClientSession}
@@ -90,6 +93,7 @@ module.exports.MongoDatabase =  class MongoDatabase{
                     topTradersCollection: new TopTradersCollection(this.#database),
                     tradedPositionsCollection: new TradedPositionsCollection(this.#database),
                     performanceCollection: new PerformanceCollection(this.#database),
+                    usedAllocationsCollection: new UsedAllocationsCollection(this.#database),
                 };
                 console.log("Database connected...");
                 // Ping the DB every 30 min

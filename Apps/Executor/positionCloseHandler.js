@@ -1,4 +1,4 @@
-const {percentageBased_DynamicPositionSizingAlgo,percentageBased_StaticPositionSizingAlgo} = require("./algos/qty");
+const {newPositionSizingAlgorithm} = require("./algos/qty");
 /**
  * 
  * @param {{
@@ -32,15 +32,17 @@ module.exports.positionCloseHandler = async function positionCloseHandler({
 
             /**
              * Get the qty of the partial to close
-             * qty% = if the original size ==100% what about the current? (cs*100/ors)
-             */
-            const {standardized_qty,trade_allocation_percentage} = await percentageBased_StaticPositionSizingAlgo({
-                bybit,position,trader,
-                percentage_of_total_available_balance_to_use_for_position:(position.size*1)/tradedPositionObj.actual_position_original_size
+            **/
+            const userId = 0;
+            const {newLeverage,sizeToExecute} = await newPositionSizingAlgorithm({
+                bybit,
+                position,
+                trader,
+                mongoDatabase,
+                action:"trade_close",
+                userId:userId
             });
-            // const {standardized_qty,trade_allocation_percentage} = await percentageBased_DynamicPositionSizingAlgo({
-            //     bybit,position,trader
-            // });
+            const standardized_qty = sizeToExecute;
 
             /**
              * Switch position mode
@@ -67,8 +69,8 @@ module.exports.positionCloseHandler = async function positionCloseHandler({
             }
             // Set user leverage
             const setUserLeverage_Res = await bybit.clients.bybit_LinearClient.setUserLeverage({
-                buy_leverage: position.leverage,
-                sell_leverage: position.leverage,
+                buy_leverage: newLeverage,// position.leverage,
+                sell_leverage:newLeverage,// position.leverage,
                 symbol: position.pair
             });
             if(setUserLeverage_Res.ret_code!==0){
@@ -144,7 +146,7 @@ module.exports.positionCloseHandler = async function positionCloseHandler({
                         position_id_in_oldTradesCollection: position._id,
                         size: parseFloat(closedPositionPNLObj.qty),
                         status: "CLOSED",
-                        close_datetime: new Date(closedPositionPNLObj.updatedTime),
+                        close_datetime: new Date(parseFloat(closedPositionPNLObj.updatedTime)),
                         document_last_edited_at_datetime: new Date(),
                     });
                 logger.info("Closed position in tradedPositionCollection db");

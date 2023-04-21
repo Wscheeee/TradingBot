@@ -1,4 +1,4 @@
-const {percentageBased_DynamicPositionSizingAlgo,percentageBased_StaticPositionSizingAlgo} = require("./algos/qty");
+const {newPositionSizingAlgorithm} = require("./algos/qty");
 
 /**
  * 
@@ -49,12 +49,17 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
              * Calculate the updated qty
              */
             logger.info("Calculate percentageBased_DynamicPositionSizingAlgo");
-            const {standardized_qty,trade_allocation_percentage} = await percentageBased_StaticPositionSizingAlgo({
-                bybit,position,trader,percentage_of_total_available_balance_to_use_for_position:1
+            const userId = 0;
+            const {newLeverage,sizeToExecute} = await newPositionSizingAlgorithm({
+                bybit,
+                position,
+                trader,
+                mongoDatabase,
+                action:"update",
+                userId:userId
             });
-            // const {standardized_qty,trade_allocation_percentage} = await percentageBased_DynamicPositionSizingAlgo({
-            //     bybit,position,trader
-            // });
+            const standardized_qty = sizeToExecute;
+
             if(standardized_qty==parseFloat(tradedPositionObj.size)) throw new Error("Not updating the position as qty not changed");
             logger.info("qy changed so uupdating the order");
             /**
@@ -86,8 +91,8 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
              * Set position leverage
              * */
             const setUserLeverage_Res = await bybit.clients.bybit_LinearClient.setUserLeverage({
-                buy_leverage: position.leverage,
-                sell_leverage: position.leverage,
+                buy_leverage: newLeverage,//position.leverage,
+                sell_leverage: newLeverage,//position.leverage,
                 symbol: position.pair
             });
             if(setUserLeverage_Res.ret_code!==0){
@@ -137,7 +142,7 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
                     status: "OPEN",
                     trader_uid: trader.uid,
                     trader_username: trader.username,
-                    allocation_percentage: trade_allocation_percentage,
+                    // traded_value: traded_value,
                     document_last_edited_at_datetime: new Date(),
                     order_id: updatePositionRes.result.orderId
                 });

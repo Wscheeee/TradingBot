@@ -1,4 +1,4 @@
-const {percentageBased_DynamicPositionSizingAlgo,percentageBased_StaticPositionSizingAlgo} = require("./algos/qty");
+const {newPositionSizingAlgorithm} = require("./algos/qty");
 /**
  * 
  * @param {{
@@ -14,7 +14,7 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
     console.log("fn:positionResizeHandler");
     positionsStateDetector.onPositionResize(async (originalPosition,position,trader)=>{
         logger.info("Position Resize On DB");
-        try{
+        try{ 
             /**
              * Check that the position is actuall in DB
              * Check that the position is actually open in Bybit
@@ -50,15 +50,17 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
 
             /**
              * Get the qty of the partial to close
-             * qty% = if the original size ==100% what about the current? (cs*100/ors)
              */
-            const {standardized_qty,trade_allocation_percentage} = await percentageBased_StaticPositionSizingAlgo({
-                bybit,position,trader,
-                percentage_of_total_available_balance_to_use_for_position:(position.size*1)/originalPosition.original_size
+            const userId = 0;
+            const {newLeverage,sizeToExecute} = await newPositionSizingAlgorithm({
+                bybit,
+                position,
+                trader,
+                mongoDatabase,
+                action:"resize",
+                userId:userId
             });
-            // const {standardized_qty,trade_allocation_percentage} = await percentageBased_DynamicPositionSizingAlgo({
-            //     bybit,position,trader
-            // });
+            const standardized_qty = sizeToExecute;
 
             /**
              * Switch position mode
@@ -88,8 +90,8 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
             }
             // Set user leverage
             const setUserLeverage_Res = await bybit.clients.bybit_LinearClient.setUserLeverage({
-                buy_leverage: position.leverage,
-                sell_leverage: position.leverage,
+                buy_leverage: newLeverage,//position.leverage,
+                sell_leverage: newLeverage,//position.leverage,
                 symbol: position.pair
             });
             if(setUserLeverage_Res.ret_code!==0){
@@ -113,6 +115,10 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
                 throw new Error(closePositionRes.retMsg);
             }
             logger.info("Position partially cclosed on bybit_RestClientV5");
+
+            /**
+             * Get Closed partial Info
+             */
             logger.info("Get closed partial position info");
             const closedPartialPositionInfo_Res = await bybit.clients.bybit_RestClientV5.getClosedPositionInfo({
                 category:"linear",
@@ -126,6 +132,10 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
             );
             if(!closed_positionInExchange_Obj)throw new Error("closed_positionInExchange_Obj not found");
             console.log({closed_positionInExchange_Obj});
+
+            /**
+             * Get PNL of the partial close
+             */
             const closedPartialPNL_res = await bybit.clients.bybit_RestClientV5.getClosedPositionPNL({
                 category:"linear",
                 symbol:position.pair,
@@ -142,7 +152,9 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
             let closedPartialPNL  = parseFloat(closedPositionPNLObj.closedPnl);
 
             const timestampNow = Date.now();
-            // Add the partial position to DB
+            /**
+             * Add the partial position to DB
+             */
             await mongoDatabase.collection.tradedPositionsCollection.createNewDocument({
                 close_price: parseFloat(closedPositionPNLObj.avgExitPrice),
                 closed_pnl: closedPartialPNL,
@@ -156,13 +168,13 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
                 order_id: orderObject.order_id,
                 actual_position_leverage: orderObject.actual_position_leverage,
                 actual_position_original_size: orderObject.actual_position_original_size,
-                actual_position_size: orderObject.actual_position_size,
+                actual_position_size: orderObject.qty,
                 status: "CLOSED",
                 trader_uid: trader.uid,
                 trader_username: trader.username,
                 direction: orderObject.direction,
                 entry_datetime: orderObject.entry_datetime,
-                allocation_percentage: trade_allocation_percentage,
+                // allocation_percentage: trade_allocation_percentage,
                 close_datetime: new Date(timestampNow),
                 document_created_at_datetime: orderObject.document_created_at_datetime,
                 document_last_edited_at_datetime: new Date(),
@@ -173,15 +185,11 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
 
  
 
-            // Update the original traded position in DB
+            /**
+             * Update the original traded position in DB
+             */
             await mongoDatabase.collection.tradedPositionsCollection.
                 updateDocument(tradedPositionObj._id,{
-                    // close_price: bybit.getPositionClosePrice(positionInExchange,"Linear"),
-                    // closed_pnl: bybit.calculatePositionPNL(positionInExchange),
-                    // closed_roi_percentage: bybit.calculatePositionROI(positionInExchange),
-                    // entry_price: bybit.getPositionEntryPrice(positionInExchange),
-                    // leverage: bybit.getPositionLeverage(positionInExchange),
-                    // pair: position.pair,
                     position_id_in_oldTradesCollection: null,
                     position_id_in_openTradesCollection: position._id,
                     server_timezone: process.env.TZ,
@@ -189,7 +197,7 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
                     status: "OPEN",
                     trader_uid: trader.uid,
                     trader_username: trader.username,
-                    allocation_percentage: tradedPositionObj.allocation_percentage - trade_allocation_percentage,
+                    // allocation_percentage: tradedPositionObj.allocation_percentage - trade_allocation_percentage,
                     document_last_edited_at_datetime: new Date(),
                 });
             logger.info("Updated position in tradedPositionCollection db");

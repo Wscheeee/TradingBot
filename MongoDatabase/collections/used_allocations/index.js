@@ -2,17 +2,17 @@ const {  ObjectId } = require("mongodb");
 
 
 
-module.exports.TopTradersCollection =  class TopTradersCollection{
+module.exports.UsedAllocationsCollection =  class UsedAllocationsCollections{
     /**
      * @type {string}
      */
-    #COLLECTION_NAME = "Top_Traders";
+    #COLLECTION_NAME = "Used_Allocations";
     /**
      * @type {Db}
      */
     #database;
     /**
-     * @type {import("mongodb").Collection<import("./types").TopTraderDocument_Interface>}
+     * @type {import("mongodb").Collection<import("./types").Used_Allocation_Document_Interface>}
      */
     #collection;
     /**
@@ -31,7 +31,7 @@ module.exports.TopTradersCollection =  class TopTradersCollection{
     }
     
     async createIndexes(){
-        await this.#collection.createIndex(["uid"],{unique:true});
+        await this.#collection.createIndex(["id"],{unique:true});
         console.log("Indexes created");
     }
 
@@ -50,8 +50,8 @@ module.exports.TopTradersCollection =  class TopTradersCollection{
 
     /**
      * 
-     * @param {import("./types").TopTraderDocument_Interface} doc 
-     * @returns {import("./types").TopTraderCollection_Document_Interface}
+     * @param {import("./types").Used_Allocation_Document_Interface} doc 
+     * @returns {import("./types").Used_Allocation_Collection_Document_Interface}
      */
     async createNewDocument(doc){
         if(!doc){
@@ -71,8 +71,7 @@ module.exports.TopTradersCollection =  class TopTradersCollection{
 
     /**
      * @param {import("mongodb").ObjectId} documentId
-     * @param {import("./types").TopTraderDocument_Interface} doc 
-     * @returns {import("./types").TopTraderCollection_Document_Interface}
+     * @param {import("./types").Used_Allocation_Document_Interface} doc 
      */
     async updateDocument(documentId,doc){
         console.log(doc);
@@ -107,7 +106,6 @@ module.exports.TopTradersCollection =  class TopTradersCollection{
     /**
      * 
      * @param {string|import("mongodb").ObjectId} id 
-     * @returns {Promise<import("mongodb").WithId<import("./types").TopTraderDocument_Interface> | null> }
      */
     async getDocumentById(id){
         return await this.#collection.findOne({
@@ -125,7 +123,6 @@ module.exports.TopTradersCollection =  class TopTradersCollection{
     /**
      * 
      * @param {string} uid 
-     * @returns {Promise<import("./types").TopTraderCollection_Document_Interface|null>}
      */
     async getDocumentByTraderUid(uid){
         return await this.#collection.findOne({
@@ -148,14 +145,14 @@ module.exports.TopTradersCollection =  class TopTradersCollection{
         }
     }
     /**
-     * @param {import("./types").TopTraderDocument_Interface} filter
+     * @param {import("mongodb").Filter<import("./types").Used_Allocation_Document_Interface>} filter
      */
     async findOne(filter){
         return await this.#collection.findOne(filter);
     }
 
     /**
-     * @param {import("./types").TopTraderCollection_Document_Interface} by
+     * @param {import("mongodb").Filter<import("./types").Used_Allocation_Document_Interface>} by
      * @param {boolean} sort 
      * @returns 
      */

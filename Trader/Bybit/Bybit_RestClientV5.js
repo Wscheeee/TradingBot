@@ -100,9 +100,9 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
      * @param {import("bybit-api").PositionInfoParamsV5} positionInfoParamsV5 
     */
     // * @returns {Promise<import("bybit-api").APIResponseV3WithTime<import("bybit-api").CategoryCursorListV5<import("bybit-api").PositionV5[], import("bybit-api").CategoryV5>>>}
-    async getOpenPositions(positionInfoParamsV5){
+    async getPositionInfo_Realtime(positionInfoParamsV5){
         await this.#rateLimiter.addJob();
-        console.log("[method: getOpenPosition]");        
+        console.log("[method: getPositionInfo_Realtime]");        
         console.log(positionInfoParamsV5);
         const res = await this.#restClientV5.getPositionInfo(positionInfoParamsV5);
         return res;
@@ -114,6 +114,7 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
     async getActiveOrders(getAccountOrdersParams){
         await this.#rateLimiter.addJob();
         console.log("[method: getActiveOrders]");
+        console.log(getAccountOrdersParams);
         return await this.#restClientV5.getActiveOrders(getAccountOrdersParams);
     }
 

@@ -1,6 +1,6 @@
 const {DecimalMath} = require("../../../../DecimalMath");
 
-
+const POSITION_BASE_PERCENTAGE_ALLOCATION_PERCENTAGE_DECIMAL = 0.01;
 /**
  * @description Returns qty worth a defined percentage of the total balance
  * @param {{
@@ -14,6 +14,7 @@ module.exports.percentageBased_StaticPositionSizingAlgo = async function percent
     bybit,position,trader,percentage_of_total_available_balance_to_use_for_position
 }){
     console.log("fn:percentageBased_StaticPositionSizingAlgo");
+    const traderAverageTradeValue = trader.average_trade_count_value; ///=== POSITION_BASE_PERCENTAGE_ALLOCATION_PERCENTAGE_DECIMAL
     /**
      * Get the account balance (total USDT balance) using the Bybit API's getDerivativesCoinBalance method.
      */

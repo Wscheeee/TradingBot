@@ -6,6 +6,7 @@
  *      average_concurrent_trades: number, 
  *      average_trade_count_value: number,
  *      averages_last_uptade_datetime: Date,
+ *      trader_base_allocation: number,
  *      daily_pnl: number,
  *      daily_roi: number,
  *      weekly_pnl: number,
@@ -33,11 +34,11 @@
  *      server_timezone:string ,
  *      document_created_at_datetime:Date,
  *      document_last_edited_at_datetime:Date,
- * }} TopTrader_Interface
+ * }} TopTraderDocument_Interface
  */
 
 /**
- * @typedef {import("mongodb").WithId<TopTrader_Interface>} TopTraderCollection_Document_Interface 
+ * @typedef {import("mongodb").WithId<TopTraderDocument_Interface>} TopTraderCollection_Document_Interface 
  */
 
 

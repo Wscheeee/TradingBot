@@ -1,4 +1,5 @@
-const {percentageBased_DynamicPositionSizingAlgo,percentageBased_StaticPositionSizingAlgo} = require("./algos/qty");
+const {newPositionSizingAlgorithm} = require("./algos/qty");
+const {calculateUsedAllocationAndSave} = require("./calculateUsedAllocationAndSave");
 
 /**
  * 
@@ -11,19 +12,23 @@ const {percentageBased_DynamicPositionSizingAlgo,percentageBased_StaticPositionS
  */
 module.exports.newPositionHandler = async function newPositionHandler({
     bybit,logger,mongoDatabase,positionsStateDetector
-}){
+}){ 
     console.log("fn:newPositionHandler");
     positionsStateDetector.onNewPosition(async (position, trader) => {
         logger.info("New Position Added To DB");
         try{
-           
             logger.info("Calculate percentageBased_DynamicPositionSizingAlgo");
-            const {standardized_qty,trade_allocation_percentage} = await percentageBased_StaticPositionSizingAlgo({
-                bybit,position,trader,percentage_of_total_available_balance_to_use_for_position:1
+            const userId = 0;
+            const {newLeverage,sizeToExecute} = await newPositionSizingAlgorithm({
+                bybit,
+                position,
+                trader,
+                mongoDatabase,
+                action:"new_trade",
+                userId:userId
             });
-            // const {standardized_qty,trade_allocation_percentage} = await percentageBased_DynamicPositionSizingAlgo({
-            //     bybit,position,trader
-            // });
+            const standardized_qty = sizeToExecute;
+            
             // Switch position mode
             const switchPositionMode_Res = await bybit.clients.bybit_LinearClient.switchPositionMode({
                 mode:"BothSide",// 3:Both Sides
@@ -51,8 +56,8 @@ module.exports.newPositionHandler = async function newPositionHandler({
              * Seet User Leverage
              */
             const setUserLeverage_Res = await bybit.clients.bybit_LinearClient.setUserLeverage({
-                buy_leverage: position.leverage,
-                sell_leverage: position.leverage,
+                buy_leverage: newLeverage,//position.leverage,
+                sell_leverage: newLeverage,//position.leverage,
                 symbol: position.pair
             });
             if(setUserLeverage_Res.ret_code!==0){
@@ -91,8 +96,18 @@ module.exports.newPositionHandler = async function newPositionHandler({
             // successfully placedd a position
             const timestampNow = Date.now();
             const datetimeNow = new Date(timestampNow);
+
+            // Find the trade related to the user
+            const userTrade_Cursor = await mongoDatabase.collection["tradedPositionsCollection"].findOne({
+                status: "OPEN",
+                pair: position.pair,
+                direction: position.direction,
+                trader_uid: position.trader_uid,
+                user_id: userId
+            });
+            if(!userTrade_Cursor) throw new Error("userTrade_Cursor not found");
             
-            await mongoDatabase.collection.tradedPositionsCollection.createNewDocument({
+            const tradedPositionDocument = await mongoDatabase.collection.tradedPositionsCollection.updateDocument(userTrade_Cursor._id,{
                 close_price: parseFloat(orderInExchange.avgPrice),
                 closed_pnl: bybit.calculateAccountActiveOrderPNL(orderInExchange),
                 closed_roi_percentage: bybit.calculateAccountActiveOrderROI(orderInExchange),
@@ -113,12 +128,21 @@ module.exports.newPositionHandler = async function newPositionHandler({
                 document_last_edited_at_datetime: datetimeNow,
                 direction: position.direction,
                 close_datetime: datetimeNow,
-                allocation_percentage: trade_allocation_percentage,
+                // traded_value: traded_value,
                 server_timezone: process.env.TZ,
                 order_id: openPositionRes.result.orderId,
                 // part: position.part
             });
             logger.info("Saved the position to DB");
+
+
+            // calculateUsedAllocationAndSave
+            await calculateUsedAllocationAndSave({
+                mongoDatabase,
+                tradedPosition: await mongoDatabase.collection.tradedPositionsCollection.getDocumentById(userTrade_Cursor._id),
+                trader,
+                // trader_allocated_balance_value:trader_allocated_balance
+            });
             
         }catch(error){
             console.log({error});

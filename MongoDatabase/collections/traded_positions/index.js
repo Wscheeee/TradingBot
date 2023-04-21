@@ -10,7 +10,7 @@ module.exports.TradedPositionsCollection =  class TradedPositionsCollection{
      */
     #database;
     /**
-     * @type {import("mongodb").Collection<import("./types").TradedPositions_Interface>}
+     * @type {import("mongodb").Collection<import("./types").TradedPosition_Document_Interface>}
      */
     #collection;
     /**
@@ -51,8 +51,7 @@ module.exports.TradedPositionsCollection =  class TradedPositionsCollection{
 
     /**
      * 
-     * @param {import("./types/index").TradedPositions_Interface} doc 
-     * @returns {import("./types/index").TradedPosition_Collection_Document_Interface}
+     * @param {import("./types/index").TradedPosition_Document_Interface} doc 
      */
     async createNewDocument(doc){
         console.log(doc);
@@ -105,7 +104,7 @@ module.exports.TradedPositionsCollection =  class TradedPositionsCollection{
 
     /**
      * @param {import("mongodb").ObjectId} documentId
-     * @param {import("./types").TradedPositions_Interface} doc 
+     * @param {import("./types").TradedPosition_Document_Interface} doc 
      * @returns {import("./types").TradedPosition_Collection_Document_Interface}
      */
     async updateDocument(documentId,doc){
@@ -136,9 +135,8 @@ module.exports.TradedPositionsCollection =  class TradedPositionsCollection{
     }
   
     /**
-     * @param {import("mongodb").Filter<import("./types").TradedPositions_Interface>} by 
+     * @param {import("mongodb").Filter<import("./types").TradedPosition_Document_Interface>} by 
      * @param {boolean?} sort 
-     * @returns 
      */
     async getAllDocumentsBy(by={},sort=true){
         console.log({by});
@@ -150,7 +148,7 @@ module.exports.TradedPositionsCollection =  class TradedPositionsCollection{
     }
 
     /**
-     * @param {import("./types").TradedPositions_Interface} filter
+     * @param {import("./types").TradedPosition_Document_Interface} filter
      */
     async findOne(filter){
         return await this.#collection.findOne(filter);

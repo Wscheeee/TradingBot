@@ -81,7 +81,7 @@ console.log(IS_LIVE);
                         uid: savedTrader.uid,
                         copied: savedTrader.copied,
                         followed: savedTrader.followed,
-                        weight:0,
+                        // weight:0,
                         document_last_edited_at_datetime: new Date(),
                         performances_last_uptade_datetime: new Date(),
                         all_pnl: 

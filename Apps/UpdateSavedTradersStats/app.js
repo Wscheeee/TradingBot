@@ -22,7 +22,7 @@ process.env.DATABASE_NAME = dotEnvObj.DATABASE_NAME;
 console.log(process.env);
 console.log(IS_LIVE);
 (async ()=>{
-    /**
+    /** 
      * @type {number}
      */
     let lastScrapedDayNumber = -1;

@@ -10,39 +10,33 @@ const {DecimalMath}  = require("../../DecimalMath");
  * @param {{
  *      mongoDatabase:import("../../MongoDatabase").MongoDatabase,
  *      trader: import("../../MongoDatabase/collections/top_traders/types").TopTraderCollection_Document_Interface,
- *      tradedPosition: import("../../MongoDatabase/collections/traded_positions/types").TradedPosition_Collection_Document_Interface,
+ *      tradedPosition: import("../../MongoDatabase/collections/traded_positions/types").               
+ *      TradedPosition_Collection_Document_Interface,
  *      bybit: import("../../Trader").Bybit,
- *      trader_allocated_balance_value: number
  * }} param0 
  */
-module.exports.calculateUsedAllocationAndSave = async function calculateUsedAllocation({mongoDatabase,tradedPosition,trader,bybit,trader_allocated_balance_value}){
+module.exports.calculateUsedAllocationAndSave = async function calculateUsedAllocation({mongoDatabase,tradedPosition,trader,bybit}){
     /**
-         * // total_used_balance : find in traded_positions collection, all open positions from this trader and make a sum of their traded_value
+         * // total_used_balance : find in traded_positions collection, all open positions from all traders and make a sum of their traded_value
          * @param {string} trader_uid 
          */
     const getTheTotalValueOfOpenPositions = async ()=>{
-        /**
-                     * - (METHOD: Get Positions Info) check the total value of 
-                     * the open positions at the time it was opened (Open Balance)
-                     */
-        const openPositions_Resp = await bybit.clients.bybit_RestClientV5.getPositionInfo_Realtime({
-            category: "linear",//@todo maybe add more checks
-            settleCoin: "USDT"
+        
+        const openPositions_Cursor = await mongoDatabase.collection.tradedPositionsCollection.getAllDocuments({
+            status: "OPEN",
+            user_id:"5546050788"
         });
-        if (!openPositions_Resp.result || Object.keys(openPositions_Resp.result).length === 0) {
-            console.log({ openPositions_Resp });
-            throw new Error(openPositions_Resp.retMsg);
-        }
+        const openPositions = await  openPositions_Cursor.toArray();        
         let totalValueOfTheOpenPositions = 0;
-        openPositions_Resp.result.list.forEach((position_) => {
-            totalValueOfTheOpenPositions += new DecimalMath(parseFloat(position_.positionValue)).divide(position_.leverage).getResult();
-        });
-        console.log({ totalValueOfTheOpenPositions });
+        for (const position of openPositions){
+            totalValueOfTheOpenPositions += position.traded_value;
+        }
 
         return totalValueOfTheOpenPositions;
             
     };
 
+    //needs to use user_id:'5546050788' to get api keys and check balance
     const getTotalAccountBalance = async()=>{
         const COIN = "USDT";//position.pair.toLowerCase().replace("usdt","").toUpperCase();
         const accountBalance_Resp = await bybit.clients.bybit_AccountAssetClientV3.getDerivativesCoinBalance({
@@ -56,9 +50,6 @@ module.exports.calculateUsedAllocationAndSave = async function calculateUsedAllo
         const totalUSDT_balance = parseFloat(accountBalance_Resp.result.balance.walletBalance);
         return totalUSDT_balance;
     };
-
-
-
     if(!tradedPosition)throw new Error("(tradedPositionsStateDetector.onNewPosition) tradedPosition is null");
     if(!trader)throw new Error("(tradedPositionsStateDetector.onNewPosition) trader is null");
 
@@ -67,15 +58,51 @@ module.exports.calculateUsedAllocationAndSave = async function calculateUsedAllo
     //total_positions_value / total_balance
     const used_balance_percentage_decimal = totalPositionsValue / totalBalance;
 
-    // return used_allocation;
+    //////////////////////////////////////////////////////////////////
+    // return trader_used_allocation
+    // calculate trader_allocated_balance_value
+    const traderWeight = trader.weight;
+    const traderAllocatedPercentageBalance = new DecimalMath(traderWeight).multiply(0.5).getResult();
+    const trader_allocated_balance_value_decimal = new DecimalMath(traderAllocatedPercentageBalance).multiply(totalBalance).getResult();
+
+    // calculate trader_used_allocation
+
+    const getTheTotalValueOfTraderPositions = async ()=>{
+        
+        const openPositions_Cursor = await mongoDatabase.collection.tradedPositionsCollection.getAllDocuments({
+            trader_uid:trader.uid,
+            status: "OPEN",
+            user_id:"5546050788"
+        });
+        const openPositions = await openPositions_Cursor.toArray();        
+
+        let totalValueOfTheOpenPositions = 0;
+        for (const position of openPositions){
+            totalValueOfTheOpenPositions += position.traded_value;
+        }
+        return totalValueOfTheOpenPositions;
+            
+    };
+    const trader_used_allocation = await getTheTotalValueOfTraderPositions();
+
+    const trader_used_allocation_percentage = trader_used_allocation / trader_allocated_balance_value_decimal;
+
+    //////////////////////////////////////////////////////////////////
+
     const datetime_Now = new Date();
+
+    //save total used balance percentage on the max 80% allocated
     await mongoDatabase.collection.usedAllocationsCollection.createNewDocument({
         document_created_at_datetime: datetime_Now,
-        document_last_edited_at_datetime: datetime_Now,
-        trader_uid: trader.uid,
-        trader_username: trader.username,
         used_balance_percentage_decimal: used_balance_percentage_decimal
     });
 
+    //save trader used allocation percentage on the trader allocation
+    await mongoDatabase.collection.usedAllocationsCollection.createNewDocument({
+        document_created_at_datetime: datetime_Now,
+        trader_uid: trader.uid,
+        trader_username: trader.username,
+        trader_used_allocation: trader_used_allocation_percentage
+    });
 
 };

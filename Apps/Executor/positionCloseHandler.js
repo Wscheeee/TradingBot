@@ -1,4 +1,6 @@
 const {newPositionSizingAlgorithm} = require("./algos/qty");
+const {calculateUsedAllocationAndSave} = require("./calculateUsedAllocationAndSave");
+
 /**
  * 
  * @param {{
@@ -151,6 +153,14 @@ module.exports.positionCloseHandler = async function positionCloseHandler({
                     });
                 logger.info("Closed position in tradedPositionCollection db");
             }
+            // calculateUsedAllocationAndSave
+            await calculateUsedAllocationAndSave({
+                mongoDatabase,
+                tradedPosition: tradedPositionObj,
+                trader,
+                bybit,
+            });
+
         }catch(error){
             console.log({error});
             let errorMsg = "(fn:positionCloseHandler) "+(error && error.message?error.message:"");

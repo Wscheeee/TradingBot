@@ -1,4 +1,6 @@
-const {newPositionSizingAlgorithm} = require("./algos/qty");
+const { newPositionSizingAlgorithm } = require("./algos/qty");
+const {calculateUsedAllocationAndSave} = require("./calculateUsedAllocationAndSave");
+
 
 /**
  * 
@@ -10,8 +12,8 @@ const {newPositionSizingAlgorithm} = require("./algos/qty");
 * }} param0 
 */
 module.exports.positionUpdateHandler = async function positionUpdateHandler({
-    bybit,logger,mongoDatabase,positionsStateDetector
-}){
+    bybit, logger, mongoDatabase, positionsStateDetector
+}) {
     console.log("fn:positionUpdateHandler");
     positionsStateDetector.onUpdatePosition(async (position, trader) => {
         logger.info("Position updated On DB");
@@ -23,26 +25,26 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
                 collection.
                 tradedPositionsCollection.
                 getOneOpenPositionBy({
-                    direction:position.direction,
+                    direction: position.direction,
                     pair: position.pair,
                     trader_uid: trader.uid
                 });
             logger.info("Return from mongoDatabase.collection.tradedPositionsCollection.getOneOpenPositionBy");
-                    
-            if(!tradedPositionObj) throw new Error("Position to update not in DB meaning itt was not traded");
+
+            if (!tradedPositionObj) throw new Error("Position to update not in DB meaning itt was not traded");
             logger.info("Position found in db: Working on it");
 
             /**
              * Get the order
              */
             const getOrderHistory_Res = await bybit.clients.bybit_RestClientV5.getOrderHistory({
-                category:"linear",
-                orderId:tradedPositionObj.order_id
+                category: "linear",
+                orderId: tradedPositionObj.order_id
             });
-            if(Object.keys(getOrderHistory_Res.result).length===0)throw new Error(getOrderHistory_Res.retMsg);
-            const orderObject = getOrderHistory_Res.result.list.find((accountOrderV5_)=> accountOrderV5_.orderId===tradedPositionObj.order_id);
-            if(!orderObject)throw new Error("orderObject not found in order history");
-            console.log({orderObject});
+            if (Object.keys(getOrderHistory_Res.result).length === 0) throw new Error(getOrderHistory_Res.retMsg);
+            const orderObject = getOrderHistory_Res.result.list.find((accountOrderV5_) => accountOrderV5_.orderId === tradedPositionObj.order_id);
+            if (!orderObject) throw new Error("orderObject not found in order history");
+            console.log({ orderObject });
 
 
             /**
@@ -50,28 +52,28 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
              */
             logger.info("Calculate percentageBased_DynamicPositionSizingAlgo");
             const userId = 0;
-            const {newLeverage,sizeToExecute} = await newPositionSizingAlgorithm({
+            const { newLeverage, sizeToExecute } = await newPositionSizingAlgorithm({
                 bybit,
                 position,
                 trader,
                 mongoDatabase,
-                action:"update",
-                userId:userId
+                action: "update",
+                userId: userId
             });
             const standardized_qty = sizeToExecute;
 
-            if(standardized_qty==parseFloat(tradedPositionObj.size)) throw new Error("Not updating the position as qty not changed");
-            logger.info("qy changed so uupdating the order");
+            if (standardized_qty == parseFloat(tradedPositionObj.size)) throw new Error("Not updating the position as qty not changed");
+            logger.info("qy changed so updating the order");
             /**
              * Switch position mode
              * */
             const switchPositionMode_Res = await bybit.clients.bybit_LinearClient.switchPositionMode({
-                mode:"BothSide",// 3:Both Sides
-                symbol:position.pair,
+                mode: "BothSide",// 3:Both Sides
+                symbol: position.pair,
             });
-            if(switchPositionMode_Res.ext_code!==0){
+            if (switchPositionMode_Res.ext_code !== 0) {
                 // an error
-                logger.error("switchPositionMode_Res: "+""+switchPositionMode_Res.ret_msg);
+                logger.error("switchPositionMode_Res: " + "" + switchPositionMode_Res.ret_msg);
             }
             /**
              * Switch margin
@@ -82,9 +84,9 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
                 sell_leverage: 1,
                 symbol: position.pair
             });
-            if(setPositionLeverage_Resp.ret_code!==0){
+            if (setPositionLeverage_Resp.ret_code !== 0) {
                 // an error
-                logger.error("setPositionLeverage_Resp: "+setPositionLeverage_Resp.ret_msg+"("+position.pair+")");
+                logger.error("setPositionLeverage_Resp: " + setPositionLeverage_Resp.ret_msg + "(" + position.pair + ")");
             }
 
             /**
@@ -95,40 +97,40 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
                 sell_leverage: newLeverage,//position.leverage,
                 symbol: position.pair
             });
-            if(setUserLeverage_Res.ret_code!==0){
+            if (setUserLeverage_Res.ret_code !== 0) {
                 // an error
-                logger.error("setUserLeverage_Res: "+setUserLeverage_Res.ret_msg+"("+position.pair+")");
+                logger.error("setUserLeverage_Res: " + setUserLeverage_Res.ret_msg + "(" + position.pair + ")");
             }
 
             logger.info("Sending an order to update the position at bybit_RestClientV5");
             const updatePositionRes = await bybit.clients.bybit_RestClientV5.updateAPosition({
-                category:"linear",
+                category: "linear",
                 orderId: tradedPositionObj.order_id,
                 symbol: position.pair,
                 qty: String(standardized_qty),
             });
-            if(!updatePositionRes ||!updatePositionRes.result|| !updatePositionRes.result.orderId){
+            if (!updatePositionRes || !updatePositionRes.result || !updatePositionRes.result.orderId) {
                 throw new Error(updatePositionRes.retMsg);
             }
             logger.info("Updated the position at bybit_RestClientV5");
-            console.log({updatePositionRes});
+            console.log({ updatePositionRes });
 
             /**
              * Get the order again
              */
             const getOrderHistory_Res2 = await bybit.clients.bybit_RestClientV5.getOrderHistory({
-                category:"linear",
-                orderId:updatePositionRes.result.orderId
+                category: "linear",
+                orderId: updatePositionRes.result.orderId
             });
-            if(Object.keys(getOrderHistory_Res2.result).length===0)throw new Error(getOrderHistory_Res2.retMsg);
-            const orderObject2 = getOrderHistory_Res2.result.list.find((accountOrderV5_)=> accountOrderV5_.orderId===updatePositionRes.result.orderId);
-            if(!orderObject2)throw new Error("updated orderObject not found in order history");
-            console.log({orderObject2});
+            if (Object.keys(getOrderHistory_Res2.result).length === 0) throw new Error(getOrderHistory_Res2.retMsg);
+            const orderObject2 = getOrderHistory_Res2.result.list.find((accountOrderV5_) => accountOrderV5_.orderId === updatePositionRes.result.orderId);
+            if (!orderObject2) throw new Error("updated orderObject not found in order history");
+            console.log({ orderObject2 });
 
-        
+
             // update the TradedTrades db document
             await mongoDatabase.collection.tradedPositionsCollection.
-                updateDocument(tradedPositionObj._id,{
+                updateDocument(tradedPositionObj._id, {
                     close_price: parseFloat(orderObject2.price),
                     closed_pnl: bybit.calculateAccountActiveOrderPNL(orderObject2),
                     closed_roi_percentage: bybit.calculateAccountActiveOrderROI(orderObject2),
@@ -142,17 +144,24 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
                     status: "OPEN",
                     trader_uid: trader.uid,
                     trader_username: trader.username,
-                    // traded_value: traded_value,
+                    traded_value: tradedPositionObj.traded_value + updatePositionRes.cumExecValue,
                     document_last_edited_at_datetime: new Date(),
                     order_id: updatePositionRes.result.orderId
                 });
             logger.info("Updated position in tradedPositionCollection db");
 
+            // calculateUsedAllocationAndSave
+            await calculateUsedAllocationAndSave({
+                mongoDatabase,
+                tradedPosition: tradedPositionObj,
+                trader,
+                bybit,
+            });
 
-        }catch(error){
-            console.log({error});
-            let errorMsg = "(fn:positionUpdateHandler) "+ (error && error.message?error.message:"");
-            errorMsg+=" ("+position.pair+")";
+        } catch (error) {
+            console.log({ error });
+            let errorMsg = "(fn:positionUpdateHandler) " + (error && error.message ? error.message : "");
+            errorMsg += " (" + position.pair + ")";
             logger.error(JSON.stringify(errorMsg));
         }
     });

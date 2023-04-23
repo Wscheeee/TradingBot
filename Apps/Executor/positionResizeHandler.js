@@ -1,4 +1,6 @@
 const {newPositionSizingAlgorithm} = require("./algos/qty");
+const {calculateUsedAllocationAndSave} = require("./calculateUsedAllocationAndSave");
+
 /**
  * 
  * @param {{
@@ -166,24 +168,16 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
                 position_id_in_openTradesCollection: orderObject.position_id_in_openTradesCollection,
                 size: parseFloat(closedPositionPNLObj.qty),
                 order_id: orderObject.order_id,
-                actual_position_leverage: orderObject.actual_position_leverage,
-                actual_position_original_size: orderObject.actual_position_original_size,
                 actual_position_size: orderObject.qty,
                 status: "CLOSED",
                 trader_uid: trader.uid,
                 trader_username: trader.username,
                 direction: orderObject.direction,
                 entry_datetime: orderObject.entry_datetime,
-                // allocation_percentage: trade_allocation_percentage,
                 close_datetime: new Date(timestampNow),
-                document_created_at_datetime: orderObject.document_created_at_datetime,
-                document_last_edited_at_datetime: new Date(),
-                server_timezone: process.env.TZ,
-                // part: position.part
             });
             logger.info("Saved the partial closed position to DB");
 
- 
 
             /**
              * Update the original traded position in DB
@@ -192,15 +186,21 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
                 updateDocument(tradedPositionObj._id,{
                     position_id_in_oldTradesCollection: null,
                     position_id_in_openTradesCollection: position._id,
-                    server_timezone: process.env.TZ,
-                    size: tradedPositionObj.size- parseFloat(closed_positionInExchange_Obj.qty),
+                    size: tradedPositionObj.size - parseFloat(closed_positionInExchange_Obj.qty),
+                    traded_value: tradedPositionObj - closedPartialPositionInfo_Res.cumExecValue,
                     status: "OPEN",
                     trader_uid: trader.uid,
                     trader_username: trader.username,
-                    // allocation_percentage: tradedPositionObj.allocation_percentage - trade_allocation_percentage,
-                    document_last_edited_at_datetime: new Date(),
                 });
             logger.info("Updated position in tradedPositionCollection db");
+
+            // calculateUsedAllocationAndSave
+            await calculateUsedAllocationAndSave({
+                mongoDatabase,
+                tradedPosition: tradedPositionObj,
+                trader,
+                bybit,
+            });
 
         }catch(error){
             console.log({error});

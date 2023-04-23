@@ -142,6 +142,7 @@ module.exports.Bybit = class Bybit {
      */
     async standardizeQuantity({quantity,symbol}){
         console.log("[method: standardizeQuantity]");
+        console.log({quantity,symbol});
         const symbolInfo = await this.#clients.bybit_LinearClient.getSymbolInfo(symbol);
         console.log({symbolInfo});
         if(!symbolInfo || !symbolInfo.name){

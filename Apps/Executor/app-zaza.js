@@ -16,7 +16,7 @@
  */
 
 const { MongoDatabase , PositionsStateDetector} = require("../../MongoDatabase");
-const {Bybit} = require("../../Trader");
+// const {Bybit} = require("../../Trader");
 
 const {sleepAsync} = require("../../Utils/sleepAsync");
 const { readAndConfigureDotEnv } = require("../../Utils/readAndConfigureDotEnv");
@@ -55,15 +55,7 @@ process.env.TZ = dotEnvObj.TZ;
             logger.info("Send error message to telegram error channel");
         });
 
-        /**
-		 * Connect to bybit.
-		 */
-        const bybit = new Bybit({
-            millisecondsToDelayBetweenRequests: 5000,
-            privateKey: dotEnvObj.BYBIT_PRIVATE_KEY,
-            publicKey: dotEnvObj.BYBIT_PUBLIC_KEY,
-            testnet: !dotEnvObj.BYBIT_ACCOUNT_IS_LIVE
-        });
+
 
         logger.info("Create Bybit Client");
       
@@ -75,27 +67,34 @@ process.env.TZ = dotEnvObj.TZ;
         const positionsStateDetector = new PositionsStateDetector({ mongoDatabase: mongoDatabase });
         logger.info("Create PositionsStateDetector and set listeners");
 
+        // const userTrades_Cursor = await mongoDatabase.collection["tradedPositionsCollection"].getAllDocumentsBy({
+        // const userTrades_Cursor = await mongoDatabase.collection.tradedPositionsCollection.getAllDocumentsBy({
+        //     status: "OPEN",
+        //     pair: "BCHUSDT",
+        //     direction: "LONG",
+        //     tg_user_id: 5546050788
+        // });
+        // const userTrades_array = await userTrades_Cursor.toArray();
+        // console.log("userTrades_array");
+        // console.log(userTrades_array);
+        // return; 
 
         await newPositionHandler({
-            bybit,
             logger,
             mongoDatabase,
             positionsStateDetector
         });
         await positionUpdateHandler({
-            bybit,
             logger,
             mongoDatabase,
             positionsStateDetector
         });
         await positionResizeHandler({
-            bybit,
             logger,
             mongoDatabase,
             positionsStateDetector
         });
         await positionCloseHandler({
-            bybit,
             logger,
             mongoDatabase,
             positionsStateDetector,

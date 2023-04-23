@@ -3,7 +3,7 @@ const { DecimalMath } = require("../../../../DecimalMath");
 /**
  * @description New position sizing algorithm
  * @param {{
- *      userId: string,
+ *      user: import("../../../../MongoDatabase/collections/users/types").Users_Collection_Document_Interface,
  *      action: "new_trade"|"resize"|"update"|"trade_close",
  *      bybit: import("../../../../Trader").Bybit,
  *      trader: import("../../../../MongoDatabase/collections/top_traders/types").TopTraderCollection_Document_Interface,
@@ -12,7 +12,7 @@ const { DecimalMath } = require("../../../../DecimalMath");
  * }} param0
  */
 module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgorithm({
-    userId,
+    user,
     action,
     position,
     trader,
@@ -158,7 +158,7 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
             traded_value: trade_allocation_value,
             leverage: position.leverage,
             trader_uid: trader.uid,
-            user_id: userId
+            tg_user_id: user.tg_user_id
         };
         // Create the user's trade and save it in the database
         await mongoDatabase.collection["tradedPositionsCollection"].createNewDocument(trade);
@@ -168,7 +168,7 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
             status: "OPEN",
             pair: position.pair,
             direction: position.direction,
-            user_id: userId
+            tg_user_id: user.tg_user_id
         });
         const userTrades_array = await userTrades_Cursor.toArray();
         let totalLeverage = 0;
@@ -195,7 +195,7 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
             pair: position.pair,
             direction: position.direction,
             trader_uid: position.trader_uid,
-            user_id: userId
+            tg_user_id: user.tg_user_id
         });
 
         // Calculate the amount to cut for the user's trade
@@ -217,7 +217,7 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
             status: "OPEN",
             pair: position.pair,
             direction: position.direction,
-            user_id: userId
+            tg_user_id: user.tg_user_id
         });
         const userTrades_array = await userTrades_Cursor.toArray();
         let totalLeverage = 0;
@@ -244,7 +244,7 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
             pair: position.pair,
             direction: position.direction,
             trader_uid: position.trader_uid,
-            user_id: userId
+            tg_user_id: user.tg_user_id
         });
 
         // Calculate the amount to add for the user's trade
@@ -268,7 +268,7 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
             status: "OPEN",
             pair: position.pair,
             direction: position.direction,
-            user_id: userId
+            tg_user_id: user.tg_user_id
         });
         const userTrades_array = await userTrades_Cursor.toArray();
         let totalLeverage = 0;
@@ -288,35 +288,36 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
     }
     case "trade_close":{
+        console.log("ACTION:trade_close");
         // Find the trade related to the user
-        const userTrade_Cursor = await mongoDatabase.collection["tradedPositionsCollection"].findOne({
+        const userTrade = await mongoDatabase.collection["tradedPositionsCollection"].findOne({
             status: "OPEN",
             pair: position.pair,
             direction: position.direction,
             trader_uid: position.trader_uid,
-            user_id: userId
+            tg_user_id: user.tg_user_id
         });
+        console.log({userTrade});
 
         // Calculate the amount to cut for the user's trade
-        const qty = userTrade_Cursor.traded_value / position.entry_price;
+        const qty = userTrade.size;//userTrade_Cursor.traded_value / position.entry_price;
         const qtyToByWith = qty;
         // standardize the qty
         const standardizedQTY = await bybit.standardizeQuantity({ quantity: qtyToByWith, symbol: position.pair });
         console.log({ standardizedQTY });
         sizeToExecute = standardizedQTY;
-        // Set the status of the trade to 'CLOSED'
-        await mongoDatabase.collection["tradedPositionsCollection"].updateDocument(userTrade_Cursor._id,{
-            status:"CLOSED"
-        });
+        
                     
         // Calculate the new average leverage
         const userTrades_Cursor = await mongoDatabase.collection["tradedPositionsCollection"].getAllDocumentsBy({
             status: "OPEN",
             pair: position.pair,
             direction: position.direction,
-            user_id: userId
+            tg_user_id: user.tg_user_id
         });
         const userTrades_array = await userTrades_Cursor.toArray();
+        console.log("userTrades_array");
+        console.log(userTrades_array);
         let totalLeverage = 0;
         let totalTradedValue = 0;
         let totalWeight = 0;
@@ -329,6 +330,11 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
         }
         newLeverage = totalWeight;
 
+
+        // Set the status of the trade to 'CLOSED'
+        await mongoDatabase.collection["tradedPositionsCollection"].updateDocument(userTrade._id,{
+            status:"CLOSED"
+        });
         break;
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////

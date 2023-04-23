@@ -103,6 +103,7 @@ module.exports.Bybit_LinearClient = class Bybit_LinearClient {
     async setUserLeverage(linearSetUserLeverageRequest){
         await this.#rateLimiter.addJob();
         console.log("[method: setUserLeverage]");
+        console.log({linearSetUserLeverageRequest});
         return await this.#linearClient.setUserLeverage(linearSetUserLeverageRequest);
     }
 

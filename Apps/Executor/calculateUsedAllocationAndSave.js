@@ -10,12 +10,15 @@ const {DecimalMath}  = require("../../DecimalMath");
  * @param {{
  *      mongoDatabase:import("../../MongoDatabase").MongoDatabase,
  *      trader: import("../../MongoDatabase/collections/top_traders/types").TopTraderCollection_Document_Interface,
- *      tradedPosition: import("../../MongoDatabase/collections/traded_positions/types").               
+ *      tradedPosition: import("../../MongoDatabase/collections/traded_positions/types"),    
  *      TradedPosition_Collection_Document_Interface,
  *      bybit: import("../../Trader").Bybit,
- * }} param0 
+ *      user: import("../../MongoDatabase/collections/users/types").Users_Collection_Document_Interface,
+ * }} 
  */
-module.exports.calculateUsedAllocationAndSave = async function calculateUsedAllocation({mongoDatabase,tradedPosition,trader,bybit}){
+module.exports.calculateUsedAllocationAndSave = async function calculateUsedAllocation({mongoDatabase,tradedPosition,trader,bybit,user}){
+    const tg_user_id = user.tg_user_id;
+    if(user.username!=="ZazaFr")return;
     /**
          * // total_used_balance : find in traded_positions collection, all open positions from all traders and make a sum of their traded_value
          * @param {string} trader_uid 
@@ -24,7 +27,8 @@ module.exports.calculateUsedAllocationAndSave = async function calculateUsedAllo
         
         const openPositions_Cursor = await mongoDatabase.collection.tradedPositionsCollection.getAllDocuments({
             status: "OPEN",
-            user_id:"5546050788"
+            tg_user_id: tg_user_id
+
         });
         const openPositions = await  openPositions_Cursor.toArray();        
         let totalValueOfTheOpenPositions = 0;
@@ -72,7 +76,7 @@ module.exports.calculateUsedAllocationAndSave = async function calculateUsedAllo
         const openPositions_Cursor = await mongoDatabase.collection.tradedPositionsCollection.getAllDocuments({
             trader_uid:trader.uid,
             status: "OPEN",
-            user_id:"5546050788"
+            tg_user_id: tg_user_id
         });
         const openPositions = await openPositions_Cursor.toArray();        
 

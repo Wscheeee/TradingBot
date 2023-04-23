@@ -16,7 +16,7 @@
  */
 
 const { MongoDatabase , PositionsStateDetector} = require("../../MongoDatabase");
-const {Bybit} = require("../../Trader");
+// const {Bybit} = require("../../Trader");
 
 const {sleepAsync} = require("../../Utils/sleepAsync");
 const { readAndConfigureDotEnv } = require("../../Utils/readAndConfigureDotEnv");
@@ -55,15 +55,7 @@ process.env.TZ = dotEnvObj.TZ;
             logger.info("Send error message to telegram error channel");
         });
 
-        /**
-		 * Connect to bybit.
-		 */
-        const bybit = new Bybit({
-            millisecondsToDelayBetweenRequests: 5000,
-            privateKey: dotEnvObj.BYBIT_PRIVATE_KEY,
-            publicKey: dotEnvObj.BYBIT_PUBLIC_KEY,
-            testnet: !dotEnvObj.BYBIT_ACCOUNT_IS_LIVE
-        });
+
 
         logger.info("Create Bybit Client");
       
@@ -77,25 +69,21 @@ process.env.TZ = dotEnvObj.TZ;
 
 
         await newPositionHandler({
-            bybit,
             logger,
             mongoDatabase,
             positionsStateDetector
         });
         await positionUpdateHandler({
-            bybit,
             logger,
             mongoDatabase,
             positionsStateDetector
         });
         await positionResizeHandler({
-            bybit,
             logger,
             mongoDatabase,
             positionsStateDetector
         });
         await positionCloseHandler({
-            bybit,
             logger,
             mongoDatabase,
             positionsStateDetector,

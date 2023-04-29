@@ -16,6 +16,7 @@
 *   totalRoi: number,
 *   publicKey: string,
 *   privateKey: string,
+*   atomos: true
 * }} User_Interface 
 */
 

@@ -2,6 +2,7 @@ const {Bybit} = require("../../Trader");
 
 const {newPositionSizingAlgorithm} = require("./algos/qty");
 const {calculateUsedAllocationAndSave} = require("./calculateUsedAllocationAndSave");
+const {createSubAccountsForUserIfNotCreated} = require("./createSubAccountsForUserIfNotCreated");
 
 /**
  * 
@@ -36,9 +37,28 @@ module.exports.newPositionHandler = async function newPositionHandler({
                     publicKey: user.publicKey,
                     testnet: user.testnet===false?false:true
                 });
+
+                // 
+                await createSubAccountsForUserIfNotCreated({
+                    bybit,mongoDatabase,trader,user
+                });
+
+                // Login to user's sub account of this trader
+                const subAccountDocument = await mongoDatabase.collection.subAccountsCollection.findOne({
+                    tg_user_id: user.tg_user_id,
+                    trader_uid: trader.uid,
+                });
+                if(!subAccountDocument) throw new Error(`No SubAccount found in subAccountDocument for trader :${trader.username}) and user :(${user.usernames}) `);
+                const bybitSubAccount = new Bybit({
+                    millisecondsToDelayBetweenRequests: 5000,
+                    privateKey: subAccountDocument.private_api,
+                    publicKey: subAccountDocument.puplic_api,
+                    testnet: subAccountDocument.testnet===false?false:true
+                });
         
                 promises.push(handler({
-                    bybit,logger,mongoDatabase,position,trader,user
+                    bybit:bybitSubAccount,
+                    logger,mongoDatabase,position,trader,user
                 }));
             }
             await Promise.all(promises);

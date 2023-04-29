@@ -1,7 +1,7 @@
 /**
  * Instatiate the database and hande db commands
  */
-const {  MongoClient} = require("mongodb");
+const {  MongoClient, ObjectId} = require("mongodb");
 const {
     UsersCollection,
     OldTradesCollection,
@@ -9,7 +9,9 @@ const {
     TopTradersCollection,
     TradedPositionsCollection,
     PerformanceCollection,
-    UsedAllocationsCollection
+    UsedAllocationsCollection,
+    SubAccountsCollection,
+    SubAccountsConfigCollection
 } = require("./collections/");
 
 /**
@@ -20,12 +22,15 @@ const {
  *      topTradersCollection: TopTradersCollection,
  *      tradedPositionsCollection: TradedPositionsCollection,
  *      performanceCollection: PerformanceCollection,
- *      usedAllocationsCollection: UsedAllocationsCollection
+ *      usedAllocationsCollection: UsedAllocationsCollection,
+ *      subAccountsCollection: SubAccountsCollection,
+ *      subAccountsConfigCollection: SubAccountsConfigCollection
  * }} Collections_Interface
  */
 
 // import {utils} from './utils'
 module.exports.MongoDatabase =  class MongoDatabase{
+    static generateUIDString(){return new ObjectId().toString("base64");}
     /**
      * @type {string}
      */
@@ -53,7 +58,9 @@ module.exports.MongoDatabase =  class MongoDatabase{
         topTradersCollection:null,
         tradedPositionsCollection: null,
         performanceCollection: null,
-        usedAllocationsCollection: null
+        usedAllocationsCollection: null,
+        subAccountsCollection: null,
+        subAccountsConfigCollection: null
     };
     /**
      * @type {null|import("mongodb").ClientSession}
@@ -94,6 +101,8 @@ module.exports.MongoDatabase =  class MongoDatabase{
                     tradedPositionsCollection: new TradedPositionsCollection(this.#database),
                     performanceCollection: new PerformanceCollection(this.#database),
                     usedAllocationsCollection: new UsedAllocationsCollection(this.#database),
+                    subAccountsCollection: new SubAccountsCollection(this.#database),
+                    subAccountsConfigCollection: new SubAccountsConfigCollection(this.#database)
                 };
                 console.log("Database connected...");
                 // Ping the DB every 30 min

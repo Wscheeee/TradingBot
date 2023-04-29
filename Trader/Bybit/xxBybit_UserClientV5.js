@@ -1,6 +1,9 @@
+
+`Invalid code`
+
 "use-strict";
 
-const { AccountAssetClientV3,  } = require("bybit-api");
+const { AccountAssetClient, } = require("bybit-api");
 const {RateLimiter} = require("../utils/RateLimiter");
 
 
@@ -8,14 +11,17 @@ module.exports.Bybit_AccountAssetClientV3 = class Bybit_AccountAssetClientV3 {
     // STATIC
     /**
      * @param {{publicKey:string,privateKey:string,testnet:boolean}}
-     * @returns {AccountAssetClientV3}
+     * @returns {AccountAssetClient}
      */
     static  createAccountAssetClientV3({privateKey,publicKey,testnet}){
-        const accountAssetClientV3 =  new AccountAssetClientV3({
+        const accountAssetClientV3 =  new AccountAssetClient({
             key: publicKey,
             secret: privateKey,
             testnet:testnet
         });
+        accountAssetClientV3.createSubAccountTransfer({
+
+        })
         return accountAssetClientV3;
 		
     }
@@ -111,20 +117,17 @@ module.exports.Bybit_AccountAssetClientV3 = class Bybit_AccountAssetClientV3 {
 
     /**
      * 
-     * @param {{{
-     *   transferId: string;
-     *   coin: string;
-     *   amount: string;
-     *   subMemberId: number;
-     *   type: 'IN' | 'OUT';
-     * }}} createSubAccountTransferRequestV3
+     * @param {import("bybit-api").ModifyAPIKeyRequestV3} modifyAPIKeyRequestV3
      */
-    async createSubAccountTransfer(createSubAccountTransferRequestV3){
+    async modifySubAccountAPIKey(modifyAPIKeyRequestV3){
         await this.#rateLimiter.addJob();
-        const res = await this.#accountAssetClientV3.createSubAccountTransfer(createSubAccountTransferRequestV3);
+        const res = await this.#accountAssetClientV3.createInternalTransfer({
+            amount:0,
+            fromAccountType:
+        });
         return res;
     }
 
 
-  
+
 };

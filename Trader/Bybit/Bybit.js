@@ -48,6 +48,30 @@ module.exports.Bybit = class Bybit {
     utils = {
     };
 
+    // CONSTS/ENUMS
+    // SUB_ACCOUNTS_STATUS = {
+    //     1: "normal",
+    //     2: "login banned",
+    //     4: "frozen"
+    // };
+    SUB_ACCOUNTS_STATUS = {
+        "NORMAL": 1,
+        "LOGIN_BANNED": 2,
+        "FROZEN": 4
+    };
+    SUB_ACCOUNTS_MEMBER_TYPES = {
+        "NORMAL_SUB_ACCOUNT":1,
+        "CUSTODIAL_SUB_ACCOUNT":6
+    };
+    SUB_ACCOUNT_SWITCH = {
+        "TURN_OFF_QUICK_LOGIN_default": 0,
+        "TURN_ON_QUICK_LOGIN": 1
+    };
+    API_KEYS_READ_ONLY_MODES = {
+        "READ_AND_WRITE":0,
+        "READ_ONLY":1
+    };
+
 
     /**
      * @constructor

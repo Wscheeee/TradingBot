@@ -48,6 +48,16 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
         return client;
     }
 
+    /**
+     * Query the margin mode and the upgraded status of account
+     */
+    async getAccountInfo(){
+        await this.#rateLimiter.addJob();
+        console.log("[method: getAccountInfo]");
+        const res = await this.#restClientV5.getAccountInfo();
+        return res;
+    }
+
     // public
     /**
      * 
@@ -167,9 +177,65 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
         const res = await this.#restClientV5.getClosedPnL(getClosedPnLParamsV5);
         return res;
     }
+
+    /**
+     * 
+     * @param {import("bybit-api").CreateSubMemberParamsV5} createSubMemberParamsV5
+     */
+    async createSubAccount(createSubMemberParamsV5){
+        await this.#rateLimiter.addJob();
+        console.log("[method: createSubAccount]");
+        const res = await this.#restClientV5.createSubMember(createSubMemberParamsV5);
+        return res;
+    }
     
 
+    /**
+     * This endpoint allows you to get a list of all sub UID of master account
+     */
+    async getSubUIDList(){
+        await this.#rateLimiter.addJob();
+        console.log("[method: getSubUIDList]");
+        const res = await this.#restClientV5.getSubUIDList();
+        return res;
+    }
 
+
+    /***
+     * @param {import("bybit-api").CreateSubApiKeyParamsV5} createSubApiKeyParamsV5
+     */
+    async createSubAccountUIDAPIKey(createSubApiKeyParamsV5){
+        await this.#rateLimiter.addJob();
+        console.log("[method: createSubAccountAPIKKey]");
+        const res = await this.#restClientV5.createSubUIDAPIKey(createSubApiKeyParamsV5);
+        return res;
+    }
+
+    /**
+     * It is a one-time switch which, once thrown, enables a subaccount permanently. If not set, your subaccount cannot use universal transfers.
+     * @param {string[]} subMemberIds
+     */
+    async enableUniversalTransferForSubAccountsWithUIDs(subMemberIds){
+        await this.#rateLimiter.addJob();
+        console.log("[method: enableUniversalTransferForUID]");
+        const res = await this.#restClientV5.enableUniversalTransferForSubUIDs(subMemberIds);
+        return res;
+    }
+    /**
+     * 
+     * @param {import("bybit-api").UniversalTransferParamsV5} universalTransferParamsV5
+     */
+    async createUniversalTransfer(universalTransferParamsV5){
+        await this.#rateLimiter.addJob();
+        console.log("[method: createUniversalTransfer]");
+        const res = await this.#restClientV5.createUniversalTransfer(universalTransferParamsV5);
+        return res;
+    }
+   
+
+
+
+    
    
 
 

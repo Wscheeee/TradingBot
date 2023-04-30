@@ -145,9 +145,9 @@ process.env.TZ = dotEnvObj.TZ;
         //   remark: 'Test Suubaccount creation'
 
         // Enale SubUID universal Transer
-        const enableUniversalTransfer_Res = await bybit.clients.bybit_RestClientV5.enableUniversalTransferForSubAccountsWithUIDs(["1469946",MASTER_UID.toString()]);
-        console.log("enableUniversalTransfer_Res");
-        console.log({enableUniversalTransfer_Res});
+        // const enableUniversalTransfer_Res = await bybit.clients.bybit_RestClientV5.enableUniversalTransferForSubAccountsWithUIDs(["1469946",MASTER_UID.toString()]);
+        // console.log("enableUniversalTransfer_Res");
+        // console.log({enableUniversalTransfer_Res});
         // Transfer money from Main account
         // const createUniversalTransfer_Res = await bybit.clients.bybit_RestClientV5.createUniversalTransfer({
         //     amount: "1000",

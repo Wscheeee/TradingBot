@@ -73,9 +73,11 @@ module.exports.MongoDatabase =  class MongoDatabase{
      */
     constructor(uri_){
         this.uri = uri_;
-        this.#client = new MongoClient(this.uri);
+        this.#client = new MongoClient(this.uri,{
+            
+        });
     }
-
+ 
     /**
      * 
      * @param {string} databaseName 
@@ -90,7 +92,7 @@ module.exports.MongoDatabase =  class MongoDatabase{
                 if(this.#dbIsConnected && this.#database)return true;
                 await this.#client.connect();
                 console.log("Client connected");
-                this.#session = this.#client.startSession();// what is this ?
+                // this.#session = this.#client.startSession();// what is this ?
                 this.#dbIsConnected = true;
                 this.#database = this.#client.db(databaseName);
                 this.collection = {
@@ -113,8 +115,16 @@ module.exports.MongoDatabase =  class MongoDatabase{
                     this.collection.usersCollection.findOne({}); // Replace with your specific query or operation
                     console.log("Ping database");
                 }, 1800000);
-                return true;
             }
+
+
+            // Close the MongoDB connection pool when the app shuts down
+            process.on("SIGINT", () => {
+                this.#database.close(() => {
+                    console.log("MongoDB connection pool closed");
+                    process.exit(0);
+                });
+            });
         }catch(error){
             console.log("Error connecting to database");
             throw error;

@@ -17,7 +17,8 @@
  *      tg_user_id: number,
  *      puplic_api: string,
  *      private_api: string,
- *      testnet: boolean
+ *      testnet: boolean,
+ *      sub_account_uid: number
  * }} Sub_Account_Document_Interface
  */
 

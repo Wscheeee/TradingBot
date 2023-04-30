@@ -7,7 +7,7 @@ const calculateCapital = async () => {
         //Calculate the actual balances and the correct balances :
 
         // traders Collection format :
-        //sub_name: 'sub_1'
+        //sub_name: 'sub_1' 
         //trader_uid: 'traderUID'
         //weight: '0.1'
 
@@ -79,6 +79,7 @@ const calculateCapital = async () => {
 
                         // TODO!! Transfer the difference from accountA to accountB
                         // TODO!! Implement the logic for transferring the funds between the accounts using the API
+                        
 
                         // Update the account balances and differences
                         accountA.balance -= transferAmount;

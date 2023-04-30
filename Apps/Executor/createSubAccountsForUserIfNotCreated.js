@@ -49,6 +49,10 @@ module.exports.createSubAccountsForUserIfNotCreated = async function createSubAc
                         switch: bybit.SUB_ACCOUNT_SWITCH.TURN_ON_QUICK_LOGIN
                     });
                     if(createSubAccount2_Res.retCode!==0)throw new Error(createSubAccount2_Res.retMsg);
+                    // Enale SubUID universal Transer
+                    const enableUniversalTransfer_Res = await bybit.clients.bybit_RestClientV5.enableUniversalTransferForSubAccountsWithUIDs([createSubAccount2_Res.result.uid]);
+                    if(enableUniversalTransfer_Res.retCode!==0)throw new Error(enableUniversalTransfer_Res.retMsg);
+                    
 
                     // Create Api Key for the Sub Account
                     const createSubAccountUIDAPIKey_Res = await bybit.clients.bybit_RestClientV5.createSubAccountUIDAPIKey({
@@ -74,7 +78,8 @@ module.exports.createSubAccountsForUserIfNotCreated = async function createSubAc
                         private_api: createSubAccountUIDAPIKey_Res.result.secret,
                         puplic_api: createSubAccountUIDAPIKey_Res.result.apiKey,
                         trader_uid: trader.uid,
-                        testnet: subAccountConfig.testnet
+                        testnet: subAccountConfig.testnet,
+                        sub_account_uid: createSubAccount2_Res.result.uid
                     });
 
                     if(createNewDocument_Res.acknowledged===false)throw new Error(`Error writing to subAccountsCollection: new Sub Account saving name:${subAccountNameFromConfig} user:(${user.username})`);
@@ -125,6 +130,10 @@ module.exports.createSubAccountsForUserIfNotCreated = async function createSubAc
                     });
                     if(createSubAccount2_Res.retCode!==0)throw new Error(createSubAccount2_Res.retMsg);
 
+                    // Enale SubUID universal Transer
+                    const enableUniversalTransfer_Res = await bybit.clients.bybit_RestClientV5.enableUniversalTransferForSubAccountsWithUIDs([createSubAccount2_Res.result.uid]);
+                    if(enableUniversalTransfer_Res.retCode!==0)throw new Error(enableUniversalTransfer_Res.retMsg);
+
                     // Create Api Key for the Sub Account
                     const createSubAccountUIDAPIKey_Res = await bybit.clients.bybit_RestClientV5.createSubAccountUIDAPIKey({
                         permissions:{
@@ -139,6 +148,7 @@ module.exports.createSubAccountsForUserIfNotCreated = async function createSubAc
                         note: "Atomos User Config"
                     });
                     if(createSubAccountUIDAPIKey_Res.retCode!==0)throw new Error(createSubAccountUIDAPIKey_Res.retMsg);
+                    
 
                     // Save the Info About the created SUB ACCOUNT in SubAccountsCollection
                     const createNewDocument_Res = await mongoDatabase.collection.subAccountsCollection.createNewDocument({
@@ -149,7 +159,8 @@ module.exports.createSubAccountsForUserIfNotCreated = async function createSubAc
                         private_api: createSubAccountUIDAPIKey_Res.result.secret,
                         puplic_api: createSubAccountUIDAPIKey_Res.result.apiKey,
                         trader_uid: trader.uid,
-                        testnet: subCollectionDocument.testnet
+                        testnet: subCollectionDocument.testnet,
+                        sub_account_uid: createSubAccount2_Res.result.uid
                     });
 
                     if(createNewDocument_Res.acknowledged===false)throw new Error(`Error writing to subAccountsCollection: new Sub Account saving name:${subCollectionDocument.name} user:(${user.username})`);

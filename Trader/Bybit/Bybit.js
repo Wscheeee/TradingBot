@@ -110,6 +110,8 @@ module.exports.Bybit = class Bybit {
 
     // GETTERS
     get clients(){ return this.#clients;}
+
+    createNewBybitSubClass(){ return Bybit;}
     
 
     // Websocket Listerners

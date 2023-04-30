@@ -141,6 +141,19 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
 
 
     // Account
+
+
+
+    /**
+     * 
+     * @param {import('bybit-api').GetWalletBalanceParamsV5} params 
+     */
+    async getWalletBalance(params){
+        await this.#rateLimiter.addJob();
+        console.log("[method: getWalletBalance]");
+        const res =  await this.#restClientV5.getWalletBalance(params);
+        return res;
+    }
     /**
      * 
      * @param {import('bybit-api').GetAllCoinsBalanceParamsV5} params 
@@ -196,7 +209,7 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
     async getSubUIDList(){
         await this.#rateLimiter.addJob();
         console.log("[method: getSubUIDList]");
-        const res = await this.#restClientV5.getSubUIDList();
+        const res = await this.#restClientV5.getSubUIDList(); 
         return res;
     }
 

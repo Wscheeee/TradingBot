@@ -52,6 +52,20 @@ module.exports.Bybit_AccountAssetClientV3 = class Bybit_AccountAssetClientV3 {
         return getCoinInformation_Res;
     }
 
+    async getUSDTDerivativesAccountWalletBalance(){
+        const COIN = "USDT";//position.pair.toLowerCase().replace("usdt","").toUpperCase();
+        const accountBalance_Resp = await this.#accountAssetClientV3.getDerivativesCoinBalance({
+            accountType: "CONTRACT",
+            coin: COIN
+        });
+        if (!accountBalance_Resp.result || !accountBalance_Resp.result.balance) {
+            console.log({ accountBalance_Resp });
+            throw new Error(accountBalance_Resp.ret_msg);
+        }
+        const totalUSDT_balance = parseFloat(accountBalance_Resp.result.balance.walletBalance);
+        return totalUSDT_balance;
+    }
+
     // SUB ACCOUNTS
     /**
      * @param {import("bybit-api").CreateSubMemberRequestV3} createSubMemberRequestV3

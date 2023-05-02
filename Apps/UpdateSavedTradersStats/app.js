@@ -2,6 +2,7 @@
 //@ts-check
 /**
  * Scrape traders once per day and save/update in db;
+ * NOTE: Runs once at 4:am
  */
 
 const {BinanceScraper,createPuppeteerBrowser} = require("../../Binance_Scraper");
@@ -34,8 +35,10 @@ console.log(IS_LIVE);
     });
     let run = true;
     while(run){
+        // Run once at 4:am
+        const CURRENT_HOUR = new Date().getHours();
         const TODAY_DAY_NUMBER = new Date().getDay();
-        while(lastScrapedDayNumber!==TODAY_DAY_NUMBER){// Scrape when day changes
+        while(lastScrapedDayNumber!==TODAY_DAY_NUMBER && CURRENT_HOUR===4){// Scrape when day changes
             let mongoDatabase = null;
             let browser = null;
             try{

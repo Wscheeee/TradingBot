@@ -30,6 +30,10 @@ const {
 module.exports.MongoDatabase =  class MongoDatabase{
     static generateUIDString(){return new ObjectId().toString("base64");}
     /**
+     * @type {number[]}
+     */
+    #intervalsIds_Array = [];
+    /**
      * @type {string}
      */
     #uri = "";
@@ -106,31 +110,30 @@ module.exports.MongoDatabase =  class MongoDatabase{
                 // Ping the DB every 30 min
                 // Set an interval for sending a ping message every 30 minutes (1800000 ms)
                 console.log("Setting database ping");
-                setInterval(() => {
+                const interval = setInterval(() => {
                     // Send a dummy query or operation to the collection to keep the stream active
                     this.collection.usersCollection.findOne({}); // Replace with your specific query or operation
                     console.log("Ping database");
                 }, 1800000);
+                this.#intervalsIds_Array.push(interval);
             }
 
-
-            // Close the MongoDB connection pool when the app shuts down
-            // process.on("SIGINT", async () => {
-            //     await this.disconnect();
-            //     console.log("MongoDB connection pool closed");
-            //     process.exit(0);
-            // });
         }catch(error){
             console.log("Error connecting to database");
             throw error;
         }
     }
 
-    
+    clearAllIntervals(){
+        this.#intervalsIds_Array.forEach((id)=>{
+            clearInterval(id);
+        });
+    }
     
 
     async disconnect(){
         try {
+            this.clearAllIntervals();
             if(this.#database){
                 await this.#client.close();
                 this.#dbIsConnected = false;

@@ -26,7 +26,7 @@ module.exports.SubAccountsCollection =  class SubAccountsCollection{
     }
     
     async createIndexes(){
-        await this.#collection.createIndex("_id");
+        await this.#collection.createIndex(["_id","sub_link_name"],{unique:true});
         console.log("Indexes created");
     }
 

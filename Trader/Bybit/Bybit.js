@@ -46,6 +46,11 @@ module.exports.Bybit = class Bybit {
 
     // UTILS
     utils = {
+        generateRandomUsernameForSubAccount: function generateUsername() {
+            let randomDigits = Math.floor(Math.random() * 1000000).toString().padStart(6, "0");
+            let username = `atomos${randomDigits}`;
+            return username;
+        }
     };
 
     // CONSTS/ENUMS
@@ -63,6 +68,12 @@ module.exports.Bybit = class Bybit {
         "NORMAL_SUB_ACCOUNT":1,
         "CUSTODIAL_SUB_ACCOUNT":6
     };
+    /**
+     * @type {{
+     *      TURN_OFF_QUICK_LOGIN_default: 0 |1,
+     *      TURN_ON_QUICK_LOGIN: 0 |1
+     * }}
+     */
     SUB_ACCOUNT_SWITCH = {
         "TURN_OFF_QUICK_LOGIN_default": 0,
         "TURN_ON_QUICK_LOGIN": 1

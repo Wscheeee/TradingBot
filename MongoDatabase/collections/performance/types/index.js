@@ -1,7 +1,7 @@
 // server_timezone:string 
 /**
  * @typedef {{
- *      update_date: Date,
+ *      update_date: Date,s
  *      today_roi_percentage: number,
  *      today_real_roi_percentage: number,
  *      today_win: number,

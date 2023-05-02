@@ -198,6 +198,7 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
     async createSubAccount(createSubMemberParamsV5){
         await this.#rateLimiter.addJob();
         console.log("[method: createSubAccount]");
+        console.log(createSubMemberParamsV5);
         const res = await this.#restClientV5.createSubMember(createSubMemberParamsV5);
         return res;
     }
@@ -220,6 +221,7 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
     async createSubAccountUIDAPIKey(createSubApiKeyParamsV5){
         await this.#rateLimiter.addJob();
         console.log("[method: createSubAccountAPIKKey]");
+        console.log(createSubApiKeyParamsV5);
         const res = await this.#restClientV5.createSubUIDAPIKey(createSubApiKeyParamsV5);
         return res;
     }
@@ -241,6 +243,7 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
     async createUniversalTransfer(universalTransferParamsV5){
         await this.#rateLimiter.addJob();
         console.log("[method: createUniversalTransfer]");
+        console.log(universalTransferParamsV5);
         const res = await this.#restClientV5.createUniversalTransfer(universalTransferParamsV5);
         return res;
     }

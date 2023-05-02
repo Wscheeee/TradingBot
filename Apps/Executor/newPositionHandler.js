@@ -1,8 +1,8 @@
 const {Bybit} = require("../../Trader");
 
 const {newPositionSizingAlgorithm} = require("./algos/qty");
-const {calculateUsedAllocationAndSave} = require("./calculateUsedAllocationAndSave");
 const {createSubAccountsForUserIfNotCreated} = require("./createSubAccountsForUserIfNotCreated");
+const {allocateCapitalToSubAccounts} = require("./allocateCapitalToSubAccounts");
 
 /**
  * 
@@ -42,6 +42,11 @@ module.exports.newPositionHandler = async function newPositionHandler({
                 await createSubAccountsForUserIfNotCreated({
                     bybit,mongoDatabase,trader,user
                 });
+                console.log("fin:createSubAccountsForUserIfNotCreated");
+                await allocateCapitalToSubAccounts({
+                    bybit,mongoDatabase,user
+                });
+                console.log("fin:allocateCapitalToSubAccounts");
 
                 // Login to user's sub account of this trader
                 const subAccountDocument = await mongoDatabase.collection.subAccountsCollection.findOne({
@@ -55,7 +60,7 @@ module.exports.newPositionHandler = async function newPositionHandler({
                     publicKey: subAccountDocument.puplic_api,
                     testnet: subAccountDocument.testnet===false?false:true
                 });
-        
+                console.log("Pushing handler asyncc functions");
                 promises.push(handler({
                     bybit:bybitSubAccount,
                     logger,mongoDatabase,position,trader,user
@@ -94,7 +99,7 @@ async function handler({
     bybit,logger,mongoDatabase,position,trader,user
 }){
     logger.info("Calculate percentageBased_DynamicPositionSizingAlgo");
-    const {newLeverage,sizeToExecute} = await newPositionSizingAlgorithm({
+    const {sizeToExecute} = await newPositionSizingAlgorithm({
         bybit,
         position,
         trader,
@@ -131,8 +136,8 @@ async function handler({
              * Seet User Leverage
              */
     const setUserLeverage_Res = await bybit.clients.bybit_LinearClient.setUserLeverage({
-        buy_leverage: newLeverage,//position.leverage,
-        sell_leverage: newLeverage,//position.leverage,
+        buy_leverage: position.leverage,
+        sell_leverage: position.leverage,
         symbol: position.pair
     });
     if(setUserLeverage_Res.ret_code!==0){
@@ -196,13 +201,4 @@ async function handler({
     });
     logger.info("Saved the position to DB");
 
-
-    // calculateUsedAllocationAndSave
-    await calculateUsedAllocationAndSave({
-        mongoDatabase,
-        tradedPosition: await mongoDatabase.collection.tradedPositionsCollection.getDocumentById(userTradeDoc._id),
-        trader,
-        bybit,
-        user
-    });
 }

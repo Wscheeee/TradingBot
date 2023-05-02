@@ -9,11 +9,12 @@
 
 
 /**
+ * The username is randon generated
  * @typedef {{
- *      sub_account_name: string,
  *      trader_uid: string,
  *      weight: number,
- *      testnet: boolean
+ *      testnet: boolean,
+ *      sub_link_name: string 
  * }} Sub_Account_Config_Document_Interface
  */
 

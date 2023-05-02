@@ -1,7 +1,6 @@
 const {Bybit} = require("../../Trader");
 
 const {newPositionSizingAlgorithm} = require("./algos/qty");
-const {calculateUsedAllocationAndSave} = require("./calculateUsedAllocationAndSave");
 
 /**
  * 
@@ -107,7 +106,7 @@ async function handler({
     /**
  * Get the qty of the partial to close
 **/
-    const {newLeverage,sizeToExecute} = await newPositionSizingAlgorithm({
+    const {sizeToExecute} = await newPositionSizingAlgorithm({
         bybit,
         position,
         trader,
@@ -142,8 +141,8 @@ async function handler({
     }
     // Set user leverage
     const setUserLeverage_Res = await bybit.clients.bybit_LinearClient.setUserLeverage({
-        buy_leverage: newLeverage,// position.leverage,
-        sell_leverage:newLeverage,// position.leverage,
+        buy_leverage: position.leverage,
+        sell_leverage: position.leverage,
         symbol: position.pair
     });
     if(setUserLeverage_Res.ret_code!==0){
@@ -227,13 +226,6 @@ async function handler({
             });
         logger.info("Closed position in tradedPositionCollection db");
     }
-    // calculateUsedAllocationAndSave
-    await calculateUsedAllocationAndSave({
-        mongoDatabase,
-        tradedPosition: tradedPositionObj,
-        trader,
-        bybit,
-        user
-    });
+    
 
 }

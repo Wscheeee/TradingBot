@@ -9,7 +9,6 @@ const {
     TopTradersCollection,
     TradedPositionsCollection,
     PerformanceCollection,
-    UsedAllocationsCollection,
     SubAccountsCollection,
     SubAccountsConfigCollection
 } = require("./collections/");
@@ -22,7 +21,6 @@ const {
  *      topTradersCollection: TopTradersCollection,
  *      tradedPositionsCollection: TradedPositionsCollection,
  *      performanceCollection: PerformanceCollection,
- *      usedAllocationsCollection: UsedAllocationsCollection,
  *      subAccountsCollection: SubAccountsCollection,
  *      subAccountsConfigCollection: SubAccountsConfigCollection
  * }} Collections_Interface
@@ -58,7 +56,6 @@ module.exports.MongoDatabase =  class MongoDatabase{
         topTradersCollection:null,
         tradedPositionsCollection: null,
         performanceCollection: null,
-        usedAllocationsCollection: null,
         subAccountsCollection: null,
         subAccountsConfigCollection: null
     };
@@ -102,7 +99,6 @@ module.exports.MongoDatabase =  class MongoDatabase{
                     topTradersCollection: new TopTradersCollection(this.#database),
                     tradedPositionsCollection: new TradedPositionsCollection(this.#database),
                     performanceCollection: new PerformanceCollection(this.#database),
-                    usedAllocationsCollection: new UsedAllocationsCollection(this.#database),
                     subAccountsCollection: new SubAccountsCollection(this.#database),
                     subAccountsConfigCollection: new SubAccountsConfigCollection(this.#database)
                 };
@@ -119,12 +115,11 @@ module.exports.MongoDatabase =  class MongoDatabase{
 
 
             // Close the MongoDB connection pool when the app shuts down
-            process.on("SIGINT", () => {
-                this.#database.close(() => {
-                    console.log("MongoDB connection pool closed");
-                    process.exit(0);
-                });
-            });
+            // process.on("SIGINT", async () => {
+            //     await this.disconnect();
+            //     console.log("MongoDB connection pool closed");
+            //     process.exit(0);
+            // });
         }catch(error){
             console.log("Error connecting to database");
             throw error;
@@ -136,8 +131,8 @@ module.exports.MongoDatabase =  class MongoDatabase{
 
     async disconnect(){
         try {
-            if(this.database){
-                await this.client.close();
+            if(this.#database){
+                await this.#client.close();
                 this.#dbIsConnected = false;
                 console.log("Database connection closed.");
                 return true;

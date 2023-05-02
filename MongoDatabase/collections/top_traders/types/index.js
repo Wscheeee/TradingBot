@@ -9,6 +9,8 @@
  *      trader_base_allocation: number,
  *      daily_pnl: number,
  *      daily_roi: number,
+ *      past_day_roi: number,
+ *      past_day_pnl: number,
  *      weekly_pnl: number,
  *      weekly_roi: number,
  *      monthly_pnl: number,

@@ -10,7 +10,7 @@
 
 /**
  * @typedef {{
- *      name: string,
+ *      sub_account_username: string,
  *      trader_username: string,
  *      trader_uid: string,
  *      weight: number,
@@ -18,7 +18,8 @@
  *      puplic_api: string,
  *      private_api: string,
  *      testnet: boolean,
- *      sub_account_uid: number
+ *      sub_account_uid: number, 
+ *      sub_link_name: string
  * }} Sub_Account_Document_Interface
  */
 

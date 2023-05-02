@@ -71,6 +71,226 @@ console.log(IS_LIVE);
                 /***
                  * 3. Get the traders on the DB and get their performances and update
                  */
+
+                //Update the followed traders first
+                const folllowedSavedTraderCursor = await mongoDatabase.collection.topTradersCollection.getAllDocumentsBy({
+                    followed:true
+                });
+                while(await folllowedSavedTraderCursor.hasNext()){
+                    const savedTrader = await folllowedSavedTraderCursor.next();
+
+                    // Get the trader's performance and update on DB
+                    const traderPerformance = await binance.getOtherPerformance(page,{encryptedUid:savedTrader.uid,tradeType:"PERPETUAL"});
+ 
+            
+                    await mongoDatabase.collection.topTradersCollection.updateDocument(savedTrader._id,{
+                        username: savedTrader.username,
+                        uid: savedTrader.uid,
+                        copied: savedTrader.copied,
+                        followed: savedTrader.followed,
+                        past_day_pnl:savedTrader.daily_pnl===0?savedTrader.past_day_pnl:savedTrader.daily_pnl,
+                        past_day_roi:savedTrader.daily_roi===0?savedTrader.past_day_roi:savedTrader.daily_roi,  
+                        document_last_edited_at_datetime: new Date(),
+                        performances_last_uptade_datetime: new Date(),
+                        all_pnl: 
+                            binance.
+                                utils.
+                                traderPerformance.
+                                getValueForPerformance(
+                                    traderPerformance,
+                                    {
+                                        periodType:"ALL",
+                                        statisticsType:"PNL"
+                                    },
+                                    savedTrader.allPNL
+                                ),
+                        all_roi: 
+                            binance.
+                                utils.
+                                traderPerformance.
+                                getValueForPerformance(
+                                    traderPerformance,
+                                    {
+                                        periodType:"ALL",
+                                        statisticsType:"ROI"
+                                    },
+                                    savedTrader.allROI
+                                ),
+                        daily_pnl: 
+                            binance.
+                                utils.
+                                traderPerformance.
+                                getValueForPerformance(
+                                    traderPerformance,
+                                    {
+                                        periodType:"DAILY",
+                                        statisticsType:"PNL"
+                                    },
+                                    savedTrader.dailyPNL
+                                ),
+                        daily_roi: 
+                            binance.
+                                utils.
+                                traderPerformance.
+                                getValueForPerformance(
+                                    traderPerformance,
+                                    {
+                                        periodType:"DAILY",
+                                        statisticsType:"ROI"
+                                    },
+                                    savedTrader.dailyROI
+                                ),
+                        weekly_pnl:
+                            binance.
+                                utils.
+                                traderPerformance.
+                                getValueForPerformance(
+                                    traderPerformance,
+                                    {
+                                        periodType:"WEEKLY",
+                                        statisticsType:"PNL"
+                                    },
+                                    savedTrader.weeklyPNL
+                                ),
+                        weekly_roi:
+                            binance.
+                                utils.
+                                traderPerformance.
+                                getValueForPerformance(
+                                    traderPerformance,
+                                    {
+                                        periodType:"WEEKLY",
+                                        statisticsType:"ROI"
+                                    },
+                                    savedTrader.weeklyROI
+                                ),
+                        monthly_pnl:
+                            binance.
+                                utils.
+                                traderPerformance.
+                                getValueForPerformance(
+                                    traderPerformance,
+                                    {
+                                        periodType:"MONTHLY",
+                                        statisticsType:"PNL"
+                                    },
+                                    savedTrader.monthlyPNL
+                                ),
+                        monthly_roi:
+                            binance.
+                                utils.
+                                traderPerformance.
+                                getValueForPerformance(
+                                    traderPerformance,
+                                    {
+                                        periodType:"MONTHLY",
+                                        statisticsType:"ROI"
+                                    },
+                                    savedTrader.monthlyROI
+                                ),
+                        yearly_pnl:
+                            binance.
+                                utils.
+                                traderPerformance.
+                                getValueForPerformance(
+                                    traderPerformance,
+                                    {
+                                        periodType:"YEARLY",
+                                        statisticsType:"PNL"
+                                    },
+                                    savedTrader.yearlyPNL
+                                ),
+                        yearly_roi:
+                            binance.
+                                utils.
+                                traderPerformance.
+                                getValueForPerformance(
+                                    traderPerformance,
+                                    {
+                                        periodType:"YEARLY",
+                                        statisticsType:"ROI"
+                                    },
+                                    savedTrader.yearlyROI
+                                ),
+                        // exacts
+                        exact_weekly_pnl:
+                            binance.
+                                utils.
+                                traderPerformance.
+                                getValueForPerformance(
+                                    traderPerformance,
+                                    {
+                                        periodType:"EXACT_WEEKLY",
+                                        statisticsType:"PNL"
+                                    },
+                                    savedTrader.exactWeeklyPNL
+                                ),
+                        exact_weekly_roi:
+                            binance.
+                                utils.
+                                traderPerformance.
+                                getValueForPerformance(
+                                    traderPerformance,
+                                    {
+                                        periodType:"EXACT_WEEKLY",
+                                        statisticsType:"ROI"
+                                    },
+                                    savedTrader.exactWeeklyROI
+                                ),
+                        exact_monthly_pnl:
+                            binance.
+                                utils.
+                                traderPerformance.
+                                getValueForPerformance(
+                                    traderPerformance,
+                                    {
+                                        periodType:"EXACT_MONTHLY",
+                                        statisticsType:"PNL"
+                                    },
+                                    savedTrader.exactMonthlyPNL
+                                ),
+                        exact_monthly_roi:
+                            binance.
+                                utils.
+                                traderPerformance.
+                                getValueForPerformance(
+                                    traderPerformance,
+                                    {
+                                        periodType:"EXACT_MONTHLY",
+                                        statisticsType:"ROI"
+                                    },
+                                    savedTrader.exactMonthlyROI
+                                ),
+                        exact_yearly_pnl:
+                            binance.
+                                utils.
+                                traderPerformance.
+                                getValueForPerformance(
+                                    traderPerformance,
+                                    {
+                                        periodType:"EXACT_YEARLY",
+                                        statisticsType:"PNL"
+                                    },
+                                    savedTrader.exactYearlyPNL
+                                ),
+                        exact_yearly_roi:
+                            binance.
+                                utils.
+                                traderPerformance.
+                                getValueForPerformance(
+                                    traderPerformance,
+                                    {
+                                        periodType:"EXACT_YEARLY",
+                                        statisticsType:"ROI"
+                                    },
+                                    savedTrader.exactYearlyROI
+                                ),
+                    });
+
+                }
+
+
+                // Update all other traders
                 const savedTraderCursor = await mongoDatabase.collection.topTradersCollection.getAllDocuments();
                 while(await savedTraderCursor.hasNext()){
                     const savedTrader = await savedTraderCursor.next();

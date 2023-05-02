@@ -28,7 +28,6 @@
  *      performances_last_uptade_datetime: Date,
  *      copied: boolean,
  *      followed: boolean,
- *      weight: number,
  *      total_roi: number,
  *      sharpe_ratio: number,
  *      max_drawdown: number,

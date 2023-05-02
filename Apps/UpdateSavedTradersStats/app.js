@@ -86,7 +86,6 @@ console.log(IS_LIVE);
                         followed: savedTrader.followed,
                         past_day_pnl:savedTrader.daily_pnl===0?savedTrader.past_day_pnl:savedTrader.daily_pnl,
                         past_day_roi:savedTrader.daily_roi===0?savedTrader.past_day_roi:savedTrader.daily_roi,  
-                        // weight:0,
                         document_last_edited_at_datetime: new Date(),
                         performances_last_uptade_datetime: new Date(),
                         all_pnl: 

@@ -86,7 +86,6 @@ console.log(IS_LIVE);
                     await mongoDatabase.collection.topTradersCollection.updateDocument(savedTrader._id,{
                         username: savedTrader.username,
                         uid: savedTrader.uid,
-                        copied: savedTrader.copied,
                         followed: savedTrader.followed,
                         past_day_pnl:savedTrader.daily_pnl===0?savedTrader.past_day_pnl:savedTrader.daily_pnl,
                         past_day_roi:savedTrader.daily_roi===0?savedTrader.past_day_roi:savedTrader.daily_roi,  
@@ -302,7 +301,6 @@ console.log(IS_LIVE);
                     await mongoDatabase.collection.topTradersCollection.updateDocument(savedTrader._id,{
                         username: savedTrader.username,
                         uid: savedTrader.uid,
-                        copied: savedTrader.copied,
                         followed: savedTrader.followed,
                         past_day_pnl:savedTrader.daily_pnl===0?savedTrader.past_day_pnl:savedTrader.daily_pnl,
                         past_day_roi:savedTrader.daily_roi===0?savedTrader.past_day_roi:savedTrader.daily_roi,  

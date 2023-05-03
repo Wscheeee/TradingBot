@@ -270,7 +270,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
         return;
        
     }catch(error){
-        const newErrorMessage = `(fn:allocateCapitalToSubAccounts):${error.message}`;
+        const newErrorMessage = `(user:${user.tg_user_id}) (fn:allocateCapitalToSubAccounts):${error.message}`;
         error.message = newErrorMessage;
         throw error;
     }

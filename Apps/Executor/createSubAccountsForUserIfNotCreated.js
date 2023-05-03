@@ -130,7 +130,7 @@ module.exports.createSubAccountsForUserIfNotCreated = async function createSubAc
         return;
         
     }catch(error){
-        const newErrorMessage = `(fn:createSubAccountsForUserIfNotCreated):${error.message}`;
+        const newErrorMessage = `(user:${user.tg_user_id}) (fn:createSubAccountsForUserIfNotCreated):${error.message}`;
         error.message = newErrorMessage;
         throw error;
     }

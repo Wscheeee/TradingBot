@@ -19,7 +19,9 @@
  *      private_api: string,
  *      testnet: boolean,
  *      sub_account_uid: number, 
- *      sub_link_name: string
+ *      sub_link_name: string,
+ *      server_timezone:string,
+ *      document_created_at_datetime:Date
  * }} Sub_Account_Document_Interface
  */
 

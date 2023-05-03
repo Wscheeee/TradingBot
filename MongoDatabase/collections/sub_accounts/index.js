@@ -58,8 +58,8 @@ module.exports.SubAccountsCollection =  class SubAccountsCollection{
             if(!doc.server_timezone){
                 doc.server_timezone=process.env.TZ;
             }
-            if(!doc.creation_timestamp){
-                doc.creation_timestamp = Date.now();
+            if(!doc.document_created_at_datetime){
+                doc.document_created_at_datetime = new Date();
             }
             const insertedDoc =  await this.#collection.insertOne(doc);
             console.log("Doc inserted");

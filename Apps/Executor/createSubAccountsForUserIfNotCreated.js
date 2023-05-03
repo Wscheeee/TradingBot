@@ -1,5 +1,5 @@
 
-//@ts-check
+//@js-check
 
 /**
  * @param {{

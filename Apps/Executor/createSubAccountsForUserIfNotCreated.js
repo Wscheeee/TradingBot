@@ -20,7 +20,8 @@ module.exports.createSubAccountsForUserIfNotCreated = async function createSubAc
         // if not userIsAtomos set sub collection based on default
         if(!userIsAtomos){
             const getAllSubCollectionsForUser_Cursor = await mongoDatabase.collection.subAccountsCollection.getAllDocumentsBy({
-                tg_user_id: user.tg_user_id
+                tg_user_id: user.tg_user_id,
+                testnet: user.testnet
             });
             const allSubCollectionsForUser_Array = await getAllSubCollectionsForUser_Cursor.toArray();
 
@@ -51,10 +52,12 @@ module.exports.createSubAccountsForUserIfNotCreated = async function createSubAc
                     }else {
                         // create sub Account
                         await createSubAccount_itsApi_andSaveInDB({
-                            bybit,mongoDatabase,trader,user,
+                            bybit,mongoDatabase,
+                            trader: await mongoDatabase.collection.topTradersCollection.findOne({uid: traderSubAccountConfig.trader_uid}),
+                            user,
                             sub_account_api_note: "Atomos User Config",
                             sub_account_note:"Atomos User Config",
-                            sub_account_testnet:traderSubAccountConfig.testnet,
+                            sub_account_testnet:user.testnet,
                             sub_account_trader_weight: traderSubAccountConfig.weight,
                             sub_account_sub_link_name: traderSubAccountConfig.sub_link_name
                         });
@@ -63,10 +66,12 @@ module.exports.createSubAccountsForUserIfNotCreated = async function createSubAc
                     // Meaning that trader sub account info not found in sub accounts collection
                     // create sub Account
                     await createSubAccount_itsApi_andSaveInDB({
-                        bybit,mongoDatabase,trader,user,
+                        bybit,mongoDatabase,
+                        trader: await mongoDatabase.collection.topTradersCollection.findOne({uid: traderSubAccountConfig.trader_uid}),
+                        user,
                         sub_account_api_note: "Atomos User Config",
                         sub_account_note:"Atomos User Config",
-                        sub_account_testnet:traderSubAccountConfig.testnet,
+                        sub_account_testnet:user.testnet,//traderSubAccountConfig.testnet,
                         sub_account_trader_weight: traderSubAccountConfig.weight,
                         sub_account_sub_link_name: traderSubAccountConfig.sub_link_name
                     });
@@ -106,7 +111,9 @@ module.exports.createSubAccountsForUserIfNotCreated = async function createSubAc
                 if(subAcccountAlreadyCreated===false){
                     // create sub Account
                     await createSubAccount_itsApi_andSaveInDB({
-                        bybit,mongoDatabase,trader,user,
+                        bybit,mongoDatabase,
+                        trader: await mongoDatabase.collection.topTradersCollection.findOne({uid: subCollectionDocument.trader_uid}),
+                        user,
                         sub_account_api_note: "Atomos User Config",
                         sub_account_note:"Atomos User Config",
                         sub_account_testnet:subCollectionDocument.testnet,

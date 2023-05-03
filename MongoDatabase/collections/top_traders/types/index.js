@@ -3,9 +3,6 @@
  *      unique_number: string,
  *      uid: string
  *      username:string|null,
- *      average_concurrent_trades: number, 
- *      average_trade_count_value: number,
- *      averages_last_uptade_datetime: Date,
  *      trader_base_allocation: number,
  *      daily_pnl: number,
  *      daily_roi: number,
@@ -26,7 +23,6 @@
  *      all_pnl: number,
  *      all_roi: number,
  *      performances_last_uptade_datetime: Date,
- *      copied: boolean,
  *      followed: boolean,
  *      total_roi: number,
  *      sharpe_ratio: number,

@@ -55,12 +55,12 @@ module.exports.SubAccountsConfigCollection =  class SubAccountsConfigCollection{
         if(!doc){
             throw new Error("No doc passed to (fn) create New Document");
         }else {
-            if(!doc.server_timezone){
-                doc.server_timezone=process.env.TZ;
-            }
-            if(!doc.creation_timestamp){
-                doc.creation_timestamp = Date.now();
-            }
+            // if(!doc.server_timezone){
+            //     doc.server_timezone=process.env.TZ;
+            // }
+            // if(!doc.document_created_at_datetim){
+            //     doc.document_created_at_datetim = new Date();
+            // }
             const insertedDoc =  await this.#collection.insertOne(doc);
             console.log("Doc inserted");
             return insertedDoc;

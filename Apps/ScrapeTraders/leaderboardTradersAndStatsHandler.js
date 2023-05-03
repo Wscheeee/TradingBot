@@ -29,7 +29,6 @@ module.exports.leaderboardTradersAndStatsHandler = async function leaderboardTra
             mongoDatabase.collection.topTradersCollection.createNewDocument({
                 username: trader.nickName,
                 uid: trader.encryptedUid,
-                copied: false,
                 followed: false,
                 document_last_edited_at_datetime: new Date(),
                 performances_last_uptade_datetime: new Date(),
@@ -218,7 +217,6 @@ module.exports.leaderboardTradersAndStatsHandler = async function leaderboardTra
             await mongoDatabase.collection.topTradersCollection.updateDocument(savedTrader._id,{
                 username: trader.nickName,
                 uid: trader.encryptedUid,
-                copied: savedTrader.copied,
                 followed: savedTrader.followed,
                 document_last_edited_at_datetime:new Date(),
                 performances_last_uptade_datetime: new Date(),

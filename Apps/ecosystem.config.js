@@ -1,10 +1,6 @@
 module.exports = {
     apps : [
         {
-            name: "AverageCalc",
-            script: "./AverageCalc/app.js"
-        },
-        {
             name: "Executor",
             script: "./Executor/app.js"
         },

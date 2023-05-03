@@ -13,8 +13,8 @@
  * @typedef {{
  *      trader_uid: string,
  *      weight: number,
- *      testnet: boolean,
- *      sub_link_name: string 
+ *      sub_link_name: string,
+ *      trader_username: string,
  * }} Sub_Account_Config_Document_Interface
  */
 

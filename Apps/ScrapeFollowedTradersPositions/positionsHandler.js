@@ -10,6 +10,9 @@ const {calculateRoiFromPosition} = require("./calculateRoiFromPosition");
  */
 module.exports.positionsHandler = async function positionsHandler({mongoDatabase,binanceScraper}){
     const followedTradersCursor = await mongoDatabase.collection.topTradersCollection.getAllFollowedTraders();
+    const subAccountConfigCursor = await mongoDatabase.collection.subAccountsConfigCollection.getAllDocuments();
+    const subAccountConfig_Array = await subAccountConfigCursor.toArray();
+    const uidsOfTradersInSubAccountConfigCollection_Array = subAccountConfig_Array.map((config)=>config.trader_uid);
     /**
      * 2. Loop through the traders and their info and save or edit the required;
      */
@@ -127,7 +130,8 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                     direction: position_.direction,
                     entry_price: position_.entryPrice,
                     followed: savedTraderDbDoc && savedTraderDbDoc.followed?true:false,
-                    copied: savedTraderDbDoc && savedTraderDbDoc.copied?true:false,
+                    // copied: savedTraderDbDoc && savedTraderDbDoc.copied?true:false,
+                    copied: uidsOfTradersInSubAccountConfigCollection_Array.includes(savedTraderDbDoc.uid)?true:false,
                     leverage: position_.leverage,
                     mark_price: position_.markPrice,
                     open_datetime: new Date(position_.updateTimeStamp),

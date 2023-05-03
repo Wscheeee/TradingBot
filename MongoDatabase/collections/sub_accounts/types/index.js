@@ -1,13 +1,3 @@
-// subAccounts Collection format :
-//sub_name: 'sub_1'
-//trader_username:
-//trader_uid: 'traderUID'
-//weight: '0.1'
-//tg_user_id: 'id'
-//public_api
-//private_api
-
-
 /**
  * @typedef {{
  *      sub_account_username: string,

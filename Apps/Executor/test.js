@@ -32,7 +32,7 @@ const {positionCloseHandler} = require("./positionCloseHandler");
  
 const APP_NAME = "App:Executor";
 const logger = new Logger({app_name:APP_NAME});
-const {IS_LIVE} = require("../../appConfig");
+const {IS_LIVE} = {IS_LIVE:false};//require("../../appConfig");
 const dotEnvObj = readAndConfigureDotEnv(IS_LIVE);
 process.env.TZ = dotEnvObj.TZ;
 
@@ -90,11 +90,48 @@ process.env.TZ = dotEnvObj.TZ;
             publicKey: dotEnvObj.BYBIT_PUBLIC_KEY,
             testnet: true
         });
+
+        logger.info("Sending an order to update the position at bybit_RestClientV5");
+        const updatePositionRes = await bybit.clients.bybit_RestClientV5.updateAPosition({
+            category: "linear",
+            orderId: "f567ab7e-9a18-49c5-a515-4abebfbb2e0e",
+            symbol: "RLCUSDT",
+            qty: "0",
+        });
+        console.log({ updatePositionRes:updatePositionRes.result });
+
+        // const getClosedPostionOrderHistory_Res = await bybit.clients.bybit_RestClientV5.getOrderHistory({
+        //     category:"linear",
+        //     symbol: "RLCUSDT",
+        //     orderId: "07d2a19c-7148-453a-b4d9-fa0f17b5746c"
+        // });
+        // if(getClosedPostionOrderHistory_Res.retCode!==0)throw new Error(getClosedPostionOrderHistory_Res.retMsg);
+        // console.log("getClosedPostionOrderHistory_Res");
+        // console.log(getClosedPostionOrderHistory_Res.result);
+        
+        // const closedPartialPNL_res = await bybit.clients.bybit_RestClientV5.getClosedPositionPNL({
+        //     category:"linear",
+        //     symbol:"RLCUSDT",
+        // });
+        // console.log({
+        //     closedPartialPNL_res:closedPartialPNL_res.result
+        // });
+
+
+        // const res = await bybit.clients.bybit_RestClientV5.getClosedPositionInfo({
+        //     category:"linear",
+        //     orderId:"07d2a19c-7148-453a-b4d9-fa0f17b5746c"
+        
+        // });
+        // console.log({
+        //     res: res.result
+        // });
+        // orderId: '07d2a19c-7148-453a-b4d9-fa0f17b5746c'
         // Get Existing Sub Accounts on Bybit 
-        const getSubUIDList_Res = await bybit.clients.bybit_RestClientV5.getSubUIDList();
-        if(getSubUIDList_Res.retCode!==0)throw new Error(getSubUIDList_Res.retMsg);
-        const subAccountsPresentInUserBybitAccount_Array = getSubUIDList_Res.result.subMembers;
-        console.log({subAccountsPresentInUserBybitAccount_Array});
+        // const getSubUIDList_Res = await bybit.clients.bybit_RestClientV5.getSubUIDList();
+        // if(getSubUIDList_Res.retCode!==0)throw new Error(getSubUIDList_Res.retMsg);
+        // const subAccountsPresentInUserBybitAccount_Array = getSubUIDList_Res.result.subMembers;
+        // console.log({subAccountsPresentInUserBybitAccount_Array});
         // // Get Account info
         // const getAccountInfo_Res = await bybit.clients.bybit_AccountAssetClientV3.getAPIKeyInformation();
         // console.log("getAccountInfo_Res");

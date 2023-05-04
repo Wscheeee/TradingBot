@@ -1,3 +1,6 @@
+//@ts-check
+
+const { DecimalMath } = require("../../DecimalMath");
 const {Bybit} = require("../../Trader");
 
 const {newPositionSizingAlgorithm} = require("./algos/qty");
@@ -28,21 +31,16 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
                 /**
                  * Connect to user Bybit Account
                  */
-                // const bybit = new Bybit({
-                //     millisecondsToDelayBetweenRequests: 5000,
-                //     privateKey: user.privateKey,
-                //     publicKey: user.publicKey,
-                //     testnet: true // check
-                // });
                 const subAccountDocument = await mongoDatabase.collection.subAccountsCollection.findOne({
                     tg_user_id: user.tg_user_id,
                     trader_uid: trader.uid,
+                    testnet: user.testnet 
                 });
                 if(!subAccountDocument) throw new Error(`No SubAccount found in subAccountDocument for trader :${trader.username}) and user :(${user.tg_user_id}) `);
                 const bybitSubAccount = new Bybit({
                     millisecondsToDelayBetweenRequests: 5000,
                     privateKey: subAccountDocument.private_api,
-                    publicKey: subAccountDocument.puplic_api,
+                    publicKey: subAccountDocument.public_api,
                     testnet: subAccountDocument.testnet===false?false:true
                 });
                 promises.push(handler({
@@ -75,8 +73,7 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
 *      position: import("../../MongoDatabase/collections/open_trades/types").OpenTrades_Collection_Document_Interface,
 *      trader: import("../../MongoDatabase/collections/top_traders/types").TopTraderCollection_Document_Interface,
 *      user: import("../../MongoDatabase/collections/users/types").Users_Collection_Document_Interface,
-*
-* }} param0 
+*}} param0 
 */
 async function handler({
     bybit,logger,mongoDatabase,position,trader,user
@@ -93,10 +90,11 @@ async function handler({
         const tradedPositionObj = await mongoDatabase.
             collection.
             tradedPositionsCollection.
-            getOneOpenPositionBy({
+            findOne({
                 direction:position.direction,
                 pair: position.pair,
-                trader_uid: trader.uid
+                trader_uid: trader.uid,
+                testnet: user.testnet
             });
         logger.info("Return from mongoDatabase.collection.tradedPositionsCollection.getOneOpenPositionBy");
                         
@@ -136,7 +134,7 @@ async function handler({
             mode:"BothSide",// 3:Both Sides
             symbol:position.pair,
         });
-        if(switchPositionMode_Res.ext_code!==0){
+        if(Number(switchPositionMode_Res.ext_code)!==0){
             // an error
             logger.error("switchPositionMode_Res: "+""+switchPositionMode_Res.ret_msg);
         }
@@ -219,44 +217,48 @@ async function handler({
         let closedPartialPNL  = parseFloat(closedPositionPNLObj.closedPnl);
     
         const timestampNow = Date.now();
+        const dateNow = new Date();
         /**
                  * Add the partial position to DB
                  */
         await mongoDatabase.collection.tradedPositionsCollection.createNewDocument({
             close_price: parseFloat(closedPositionPNLObj.avgExitPrice),
+            testnet: tradedPositionObj.testnet,
             closed_pnl: closedPartialPNL,
             closed_roi_percentage: bybit.calculateClosedPositionROI_fromclosedPnLV5(closedPositionPNLObj),
-            entry_price: closedPositionPNLObj.avgEntry,//Pricebybit.getPositionEntryPrice(positionInExchange),
+            entry_price: parseFloat(closedPositionPNLObj.avgEntryPrice),//Pricebybit.getPositionEntryPrice(positionInExchange),
             leverage: parseFloat(closedPositionPNLObj.leverage),
             pair: position.pair,
-            position_id_in_oldTradesCollection: position._id,
-            position_id_in_openTradesCollection: orderObject.position_id_in_openTradesCollection,
+            position_id_in_oldTradesCollection: tradedPositionObj.position_id_in_oldTradesCollection,
+            position_id_in_openTradesCollection: tradedPositionObj.position_id_in_openTradesCollection,
             size: parseFloat(closedPositionPNLObj.qty),
-            order_id: orderObject.order_id,
-            actual_position_size: orderObject.qty,
+            order_id: orderObject.orderId,
+            actual_position_size: position.size,
             status: "CLOSED",
             trader_uid: trader.uid,
-            trader_username: trader.username,
-            direction: orderObject.direction,
-            entry_datetime: orderObject.entry_datetime,
+            trader_username: trader.username?trader.username:"",
+            direction: position.direction,
+            entry_datetime: tradedPositionObj.entry_datetime,
             close_datetime: new Date(timestampNow),
-            tg_user_id: user.tg_user_id
+            tg_user_id: user.tg_user_id,
+            actual_position_leverage: position.leverage,
+            actual_position_original_size: position.original_size,
+            document_created_at_datetime: dateNow,
+            document_last_edited_at_datetime: dateNow,
+            server_timezone: process.env.TZ??"",
+            traded_value: parseFloat(closedPositionPNLObj.cumExitValue)
         });
         logger.info("Saved the partial closed position to DB");
     
     
         /**
-                 * Update the original traded position in DB
-                 */
+         * Update the original traded position in DB
+         */
         await mongoDatabase.collection.tradedPositionsCollection.
             updateDocument(tradedPositionObj._id,{
-                position_id_in_oldTradesCollection: null,
                 position_id_in_openTradesCollection: position._id,
                 size: tradedPositionObj.size - parseFloat(closed_positionInExchange_Obj.qty),
-                traded_value: tradedPositionObj - closedPartialPositionInfo_Res.cumExecValue,
-                status: "OPEN",
-                trader_uid: trader.uid,
-                trader_username: trader.username,
+                traded_value: new DecimalMath(tradedPositionObj.traded_value) .subtract(parseFloat(closed_positionInExchange_Obj.cumExecValue)).getResult(),
             });
         logger.info("Updated position in tradedPositionCollection db");
 

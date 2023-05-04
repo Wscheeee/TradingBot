@@ -18,7 +18,7 @@ module.exports.createSubAccountsForUserIfNotCreated = async function createSubAc
         const userIsAtomos = user.atomos||false;
         // if userIsAtomos set sub accounts based on user selection
         // if not userIsAtomos set sub collection based on default
-        if(!userIsAtomos){
+        if(userIsAtomos===false){
             const getAllSubCollectionsForUser_Cursor = await mongoDatabase.collection.subAccountsCollection.getAllDocumentsBy({
                 tg_user_id: user.tg_user_id,
                 testnet: user.testnet
@@ -37,7 +37,7 @@ module.exports.createSubAccountsForUserIfNotCreated = async function createSubAc
             console.log({subAccountsPresentInUserBybitAccount_Array});
             // Check that Sub Accounts have been created for traders listed in the SubAccountsConfig
             for(const traderSubAccountConfig of subAccountsConfig_documents_Array){
-                const traderSubAccountInfoInSubAcccountsCollection = allSubCollectionsForUser_Array.find((doc)=>doc.trader_uid===traderSubAccountConfig.trader_uid);
+                const traderSubAccountInfoInSubAcccountsCollection = allSubCollectionsForUser_Array.find((doc)=>doc.sub_link_name===traderSubAccountConfig.sub_link_name);
                 console.log({traderSubAccountInfoInSubAcccountsCollection});
                 if(traderSubAccountInfoInSubAcccountsCollection){
                     // trader sub account info is already savedd in subaccounts collection
@@ -50,16 +50,16 @@ module.exports.createSubAccountsForUserIfNotCreated = async function createSubAc
                     if(traderSubAccountInBybit){
                         console.log("Trader sub Account exists");
                     }else {
-                        // create sub Account
-                        await createSubAccount_itsApi_andSaveInDB({
+                        // Meaning that trader sub account found in sub accounts collection but not found in bybit subaccounts
+                        // Meaning we need to create the subaccount in bybit but then update the existing document in sub account collection
+                        // create sub Account and update the sub accounts document
+                        await createSubAccount_itsApi_andUpdateInDB({
                             bybit,mongoDatabase,
-                            trader: await mongoDatabase.collection.topTradersCollection.findOne({uid: traderSubAccountConfig.trader_uid}),
-                            user,
                             sub_account_api_note: "Atomos User Config",
-                            sub_account_note:"Atomos User Config",
-                            sub_account_testnet:user.testnet,
-                            sub_account_trader_weight: traderSubAccountConfig.weight,
-                            sub_account_sub_link_name: traderSubAccountConfig.sub_link_name
+                            sub_account_note: "Atomos User Config",
+                            sub_account_document: traderSubAccountInfoInSubAcccountsCollection,
+                            trader:traderSubAccountConfig.trader_uid? await mongoDatabase.collection.topTradersCollection.findOne({uid: traderSubAccountConfig.trader_uid}):null,
+                            user
                         });
                     }
                 }else {
@@ -67,7 +67,7 @@ module.exports.createSubAccountsForUserIfNotCreated = async function createSubAc
                     // create sub Account
                     await createSubAccount_itsApi_andSaveInDB({
                         bybit,mongoDatabase,
-                        trader: await mongoDatabase.collection.topTradersCollection.findOne({uid: traderSubAccountConfig.trader_uid}),
+                        trader: traderSubAccountConfig.trader_uid? await mongoDatabase.collection.topTradersCollection.findOne({uid: traderSubAccountConfig.trader_uid}) : null,
                         user,
                         sub_account_api_note: "Atomos User Config",
                         sub_account_note:"Atomos User Config",
@@ -82,8 +82,9 @@ module.exports.createSubAccountsForUserIfNotCreated = async function createSubAc
             // So user as own set traders to copy
             //2. Get All User's Sub Accounts in sub accounts collection
             const getAllSubCollectionsForUser_Cursor = await mongoDatabase.collection.subAccountsCollection.getAllDocumentsBy({
-                tg_user_id: user.tg_user_id
-            });
+                tg_user_id: user.tg_user_id,
+                testnet: user.testnet
+            }); 
 
             // Get the Sub Accounts present in user's bybit
             const getSubUIDList_Res = await bybit.clients.bybit_RestClientV5.getSubUIDList();
@@ -112,7 +113,7 @@ module.exports.createSubAccountsForUserIfNotCreated = async function createSubAc
                     // create sub Account
                     await createSubAccount_itsApi_andSaveInDB({
                         bybit,mongoDatabase,
-                        trader: await mongoDatabase.collection.topTradersCollection.findOne({uid: subCollectionDocument.trader_uid}),
+                        trader: subCollectionDocument.trader_uid?await mongoDatabase.collection.topTradersCollection.findOne({uid: subCollectionDocument.trader_uid}):null,
                         user,
                         sub_account_api_note: "Atomos User Config",
                         sub_account_note:"Atomos User Config",
@@ -150,13 +151,13 @@ module.exports.createSubAccountsForUserIfNotCreated = async function createSubAc
  * @param {{
  *      bybit: import("../../Trader").Bybit,
  *      mongoDatabase: import("../../MongoDatabase").MongoDatabase,
- *      trader: import("../../MongoDatabase/collections/top_traders/types").TopTraderCollection_Document_Interface,
+ *      trader: import("../../MongoDatabase/collections/top_traders/types").TopTraderCollection_Document_Interface|null,
  *      user: import("../../MongoDatabase/collections/users/types").Users_Collection_Document_Interface,
  *      sub_account_note: string,
  *      sub_account_api_note: string
  *      sub_account_testnet: boolean,
  *      sub_account_trader_weight: number,
- *      sub_account_sub_link_name: string
+ *      sub_account_sub_link_name: string,
  * }} param0
  */
 async function createSubAccount_itsApi_andSaveInDB({
@@ -225,19 +226,113 @@ async function createSubAccount_itsApi_andSaveInDB({
     });
     if(createSubAccountUIDAPIKey_Res.retCode!==0)throw new Error(createSubAccountUIDAPIKey_Res.retMsg);
 
+    
+    // create new sub_account_document
     // Save the Info About the created SUB ACCOUNT in SubAccountsCollection
     const createNewDocument_Res = await mongoDatabase.collection.subAccountsCollection.createNewDocument({
         sub_account_username: createdAccount.username,
         tg_user_id: user.tg_user_id,
-        trader_username: trader.username,
+        trader_username: trader?trader.username:"",
         weight: sub_account_trader_weight,
         private_api: createSubAccountUIDAPIKey_Res.result.secret,
-        puplic_api: createSubAccountUIDAPIKey_Res.result.apiKey,
-        trader_uid: trader.uid,
+        public_api: createSubAccountUIDAPIKey_Res.result.apiKey,
+        trader_uid: trader?trader.uid:"",
         testnet: sub_account_testnet,
         sub_account_uid: Number(createdAccount.uid),
         sub_link_name: sub_account_sub_link_name
     });
 
     if(createNewDocument_Res.acknowledged===false)throw new Error(`Error writing to subAccountsCollection: new Sub Account saving name:${createdAccount.username} user:(${user.username})`);
+}
+
+/**
+ * @param {{
+*      bybit: import("../../Trader").Bybit,
+*      mongoDatabase: import("../../MongoDatabase").MongoDatabase,
+*      trader: import("../../MongoDatabase/collections/top_traders/types").TopTraderCollection_Document_Interface|null,
+*      user: import("../../MongoDatabase/collections/users/types").Users_Collection_Document_Interface,
+*      sub_account_document: import("../../MongoDatabase/collections/sub_accounts/types/index").Sub_Account_Collection_Document_Interface|null
+*      sub_account_note: string,
+*      sub_account_api_note: string
+* }} param0
+*/
+async function createSubAccount_itsApi_andUpdateInDB({
+    bybit,
+    mongoDatabase,
+    trader,
+    user,
+    sub_account_note,
+    sub_account_api_note,
+    sub_account_document
+}){
+    console.log("(fn:createSubAccount_itsApi_andUpdateInDB)");
+    /**
+     * @type {{
+     *      uid: string,
+     *      username: string,
+     *      memberType: number,
+     *      status: number,
+     *      remark: string
+     * }}
+     */
+    let createdAccount = {};
+    let subAccountCreated = false;
+    while(subAccountCreated===false){
+        const subAccountUsername = bybit.utils.generateRandomUsernameForSubAccount();// randomly generated
+        // create the sub Account with the username
+        const createSubAccount2_Res = await bybit.clients.bybit_RestClientV5.createSubAccount({
+            memberType:bybit.SUB_ACCOUNTS_MEMBER_TYPES.NORMAL_SUB_ACCOUNT,
+            username:subAccountUsername,//"APPTEST1",
+            note:sub_account_note,//"Atomos Default Config",
+            switch: bybit.SUB_ACCOUNT_SWITCH.TURN_ON_QUICK_LOGIN
+        });
+        console.log(createSubAccount2_Res);
+        // If response says that user exists create new username and create new subaccount
+        if(createSubAccount2_Res.retCode===0){
+            subAccountCreated = true;
+            createdAccount = {
+                ...createSubAccount2_Res.result
+            };
+        }else if(createSubAccount2_Res.retCode===31005 || createSubAccount2_Res.retMsg.includes("The user already exists")){
+            subAccountCreated = false;
+        }else {
+            if(createSubAccount2_Res.retCode!==0)throw new Error(createSubAccount2_Res.retMsg);
+        }
+    }
+    
+    // Enale SubUID universal Transer
+    const enableUniversalTransfer_Res = await bybit.clients.bybit_RestClientV5.enableUniversalTransferForSubAccountsWithUIDs([createdAccount.uid]);
+    if(enableUniversalTransfer_Res.retCode!==0)throw new Error(enableUniversalTransfer_Res.retMsg);
+    
+
+    // Create Api Key for the Sub Account
+    const createSubAccountUIDAPIKey_Res = await bybit.clients.bybit_RestClientV5.createSubAccountUIDAPIKey({
+        permissions:{
+            ContractTrade:["Order","Position"],
+            Derivatives:["DerivativesTrade"],
+            Wallet:["AccountTransfer","SubMemberTransferList"],
+            Exchange:["ExchangeHistory"]
+
+        },
+        readOnly: bybit.API_KEYS_READ_ONLY_MODES.READ_AND_WRITE,//Read and Write
+        subuid: createdAccount.uid,
+        note: sub_account_api_note,//"Atomos Default Config"
+    });
+    if(createSubAccountUIDAPIKey_Res.retCode!==0)throw new Error(createSubAccountUIDAPIKey_Res.retMsg);
+    
+    //update
+    const updateDocument_Res = await mongoDatabase.collection.subAccountsCollection.updateDocument(sub_account_document._id,{
+        sub_account_username: createdAccount.username,
+        tg_user_id: user.tg_user_id,
+        trader_username: trader?trader.username:"",
+        weight: sub_account_document.weight,
+        private_api: createSubAccountUIDAPIKey_Res.result.secret,
+        public_api: createSubAccountUIDAPIKey_Res.result.apiKey,
+        trader_uid: trader?trader.uid:"",
+        testnet: sub_account_document.testnet,
+        sub_account_uid: Number(createdAccount.uid),
+        sub_link_name: sub_account_document.sub_link_name
+    });
+    if(updateDocument_Res.acknowledged===false)throw new Error(`Error updating to subAccountsCollection: update Sub Account saving name:${createdAccount.username} user:(${user.username})`);
+    
 }

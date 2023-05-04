@@ -4,10 +4,10 @@
  * This class exports methods to interact wit binance leaderboard and extract data.
  * It uses puppeteer and an api.
  */
-const  {  Browser, Page} =  require('puppeteer');
+const  {  Browser, Page} =  require("puppeteer");
 const {getLeaderboardRank_API,BinanceTrader} = require("./getLeaderboardRank_API");
 const { getOtherLeaderboardBaseInfo_API} = require("./getOtherLeaderboardBaseInfo_API");
-const {getOtherPerformance_API,BinanceTraderPerfomance, getValueForPerformance} = require("./getOtherPerformance_API")
+const {getOtherPerformance_API,BinanceTraderPerfomance, getValueForPerformance} = require("./getOtherPerformance_API");
 const {getOtherPosition_API, BinancePosition} = require("./getOtherPosition_API");
 
 
@@ -29,7 +29,7 @@ const {getOtherPosition_API, BinancePosition} = require("./getOtherPosition_API"
 module.exports.BinanceScraper = class BinanceScraper {
     binanceURLS = {
         leaderBoardFuturesPage: "https://www.binance.com/en/futures-activity/leaderboard/futures",
-    }
+    };
 
     // utils
     utils = {
@@ -40,17 +40,17 @@ module.exports.BinanceScraper = class BinanceScraper {
             getValueForPerformance
         },
         sleepAsync :async ()=>{
-            console.log("Binance sleep delay(milliseconds):",this.#settings.delayPerRequestInMs)
+            console.log("Binance sleep delay(milliseconds):",this.#settings.delayPerRequestInMs);
             if(this.#settings.delayPerRequestInMs==0 ||!this.#settings.delayPerRequestInMs)return;
             return new Promise((resolve,reject)=>{
                 const timeout = setTimeout(()=>{
                     clearTimeout(timeout);
-                    resolve(true)
-                },this.#settings.delayPerRequestInMs)
-            })
+                    resolve(true);
+                },this.#settings.delayPerRequestInMs);
+            });
         }
         
-    }
+    };
     /**
      * @type {import("puppeteer").Page|null}
      */
@@ -66,7 +66,7 @@ module.exports.BinanceScraper = class BinanceScraper {
      */
     constructor(settings){
         this.#settings = settings;
-    };
+    }
 
     //setter
     /**
@@ -79,21 +79,23 @@ module.exports.BinanceScraper = class BinanceScraper {
     // gette
     get globalPage(){
         if(this.#globalPage){
-            return this.#globalPage
+            return this.#globalPage;
         }else{
-            throw new Error("Global page muust be set first in order to call this.")
+            throw new Error("Global page muust be set first in order to call this.");
         }
     }
 
 
     async createNewPage(){
         try {
-            if(!this.#settings.browser) throw new Error("First Create a browser")
-            const page = await this.#settings.browser.newPage()
-            page.setDefaultNavigationTimeout(0)
+            if(!this.#settings.browser) throw new Error("First Create a browser");
+            const page = await this.#settings.browser.newPage();
+            page.setDefaultNavigationTimeout(0);
             return page;
-        }catch(error){
-            throw error;
+        }catch(e){
+            const newErrorMessage = `(fn:createNewPage) ${e.message}`;
+            e.message = newErrorMessage;
+            throw e;
         }
     }
 
@@ -110,8 +112,10 @@ module.exports.BinanceScraper = class BinanceScraper {
                 return true;
             }
             return false;
-        }catch(error){
-            throw error;
+        }catch(e){
+            const newErrorMessage = `(fn:closePage) ${e.message}`;
+            e.message = newErrorMessage;
+            throw e;
         }
     }
 
@@ -124,8 +128,10 @@ module.exports.BinanceScraper = class BinanceScraper {
     async navigateToUrl(page,pageUrl){
         try {
             return await page.goto(pageUrl,{waitUntil:"networkidle0"});
-        }catch(error){
-            throw error;
+        }catch(e){
+            const newErrorMessage = `(fn:navigateToUrl) ${e.message}`;
+            e.message = newErrorMessage;
+            throw e;
         }
     }
 
@@ -139,8 +145,10 @@ module.exports.BinanceScraper = class BinanceScraper {
         try {
             const pageUrl = this.binanceURLS.leaderBoardFuturesPage;
             return await this.navigateToUrl(page,pageUrl);
-        }catch(error){
-            throw error;
+        }catch(e){
+            const newErrorMessage = `(fn:openLeaderboardFuturesPage) ${e.message}`;
+            e.message = newErrorMessage;
+            throw e;
         }
     }
 
@@ -153,11 +161,14 @@ module.exports.BinanceScraper = class BinanceScraper {
      */
     async getLeaderboardRankUsers(page,getLeaderboardRankUsers_Payload){
         try {
-            console.log("[method:getLeaderboardRank]")
+            console.log("[method:getLeaderboardRank]");
+            console.log({getLeaderboardRankUsers_Payload});
             const getTradersResponseData =  (await getLeaderboardRank_API(page,getLeaderboardRankUsers_Payload)).data;
             return getTradersResponseData.map(t => new BinanceTrader(t));
-        }catch(err){
-            throw err;
+        }catch(e){
+            const newErrorMessage = `(fn:getLeaderboardRankUsers) ${e.message}`;
+            e.message = newErrorMessage;
+            throw e;
         }
     }
 
@@ -169,10 +180,12 @@ module.exports.BinanceScraper = class BinanceScraper {
      */
     async getOtherLeaderboardBaseInfo(page,getOtherLeaderboardBaseInfo_payload){
         try{
-            return (await getOtherLeaderboardBaseInfo_API(page,getOtherLeaderboardBaseInfo_payload)).data
+            return (await getOtherLeaderboardBaseInfo_API(page,getOtherLeaderboardBaseInfo_payload)).data;
             
-        }catch(error){
-            throw error;
+        }catch(e){
+            const newErrorMessage = `(fn:getOtherLeaderboardBaseInfo) ${e.message}`;
+            e.message = newErrorMessage;
+            throw e;
         }
     }
     /**
@@ -181,10 +194,12 @@ module.exports.BinanceScraper = class BinanceScraper {
      */
     async getOtherPerformance(page,getOtherPerformance_Payload){
         try{
-            const performaceRespData =  (await getOtherPerformance_API(page,getOtherPerformance_Payload)).data
-            return performaceRespData.performanceRetList.map(p => new BinanceTraderPerfomance(p))
-        }catch(error){
-            throw error;
+            const performaceRespData =  (await getOtherPerformance_API(page,getOtherPerformance_Payload)).data;
+            return performaceRespData.performanceRetList.map(p => new BinanceTraderPerfomance(p));
+        }catch(e){
+            const newErrorMessage = `(fn:getOtherPerformance) ${e.message}`;
+            e.message = newErrorMessage;
+            throw e;
         }
     }
 
@@ -194,14 +209,16 @@ module.exports.BinanceScraper = class BinanceScraper {
      */
     async getOtherPosition(page,getOtherPosition_Payload){
         try{
-            const positionsResponseData =  (await getOtherPosition_API(page,getOtherPosition_Payload)).data
+            const positionsResponseData =  (await getOtherPosition_API(page,getOtherPosition_Payload)).data;
             if(positionsResponseData && positionsResponseData.otherPositionRetList && positionsResponseData.otherPositionRetList.length>0){
-                return positionsResponseData.otherPositionRetList.map(p => new BinancePosition(p))
+                return positionsResponseData.otherPositionRetList.map(p => new BinancePosition(p));
             }else {
                 return [];
             }
-        }catch(error){
-            throw error;
+        }catch(e){
+            const newErrorMessage = `(fn:getOtherPosition) ${e.message}`;
+            e.message = newErrorMessage;
+            throw e;
         }
     }
     
@@ -226,12 +243,12 @@ module.exports.BinanceScraper = class BinanceScraper {
             /***
              * @type {TraderInfo_Interface[]}
              */
-            const tradersAndTheirInfo = []
+            const tradersAndTheirInfo = [];
             // loop each trader and get their positions and perfomance
             for(const trader of traders){
                 await this.utils.sleepAsync();
-                const traderPerformace = await this.getOtherPerformance(page,{encryptedUid:trader.encryptedUid,tradeType:'PERPETUAL'});
-                const traderPositions = await this.getOtherPosition(page,{encryptedUid:trader.encryptedUid, tradeType:"PERPETUAL"})
+                const traderPerformace = await this.getOtherPerformance(page,{encryptedUid:trader.encryptedUid,tradeType:"PERPETUAL"});
+                const traderPositions = await this.getOtherPosition(page,{encryptedUid:trader.encryptedUid, tradeType:"PERPETUAL"});
     
                 /**
                  * @type {TraderInfo_Interface}
@@ -242,12 +259,14 @@ module.exports.BinanceScraper = class BinanceScraper {
                     trader: trader
                 };
     
-                tradersAndTheirInfo.push(traderInfo)
+                tradersAndTheirInfo.push(traderInfo);
             }
 
             return tradersAndTheirInfo;
 
         }catch(e){
+            const newErrorMessage = `(fn:getTradersTheirInfoAndPositions) ${e.message}`;
+            e.message = newErrorMessage;
             throw e;
         }
     }
@@ -269,11 +288,11 @@ module.exports.BinanceScraper = class BinanceScraper {
             /***
              * @type {TraderInfo_Interface[]}
              */
-            const tradersAndTheirInfo = []
+            const tradersAndTheirInfo = [];
             // loop each trader and get their positions and perfomance
             for(const trader of traders){
                 await this.utils.sleepAsync();
-                const traderPerformace = await this.getOtherPerformance(page,{encryptedUid:trader.encryptedUid,tradeType:'PERPETUAL'});
+                const traderPerformace = await this.getOtherPerformance(page,{encryptedUid:trader.encryptedUid,tradeType:"PERPETUAL"});
     
                 /**
                  * @type {TraderInfo_Interface}
@@ -283,16 +302,18 @@ module.exports.BinanceScraper = class BinanceScraper {
                     trader: trader
                 };
     
-                tradersAndTheirInfo.push(traderInfo)
+                tradersAndTheirInfo.push(traderInfo);
             }
 
             return tradersAndTheirInfo;
 
         }catch(e){
+            const newErrorMessage = `(fn:getTradersTheirInfoStatistics) ${e.message}`;
+            e.message = newErrorMessage;
             throw e;
         }
     }
 
 
 
-}
+};

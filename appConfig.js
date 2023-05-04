@@ -1,3 +1,3 @@
 module.exports = {
-    IS_LIVE: true,
+    IS_LIVE: false,
 };

@@ -1,3 +1,4 @@
+//@ts-check
 const {Bybit} = require("../../Trader");
 
 const {newPositionSizingAlgorithm} = require("./algos/qty");
@@ -29,7 +30,7 @@ module.exports.newPositionHandler = async function newPositionHandler({
             const promises = [];
             for(const user of users_array){
                 /**
-                 * Connect to user Bybit Account
+                 * Connect to user subaccount Bybit Account
                  */
                 const bybit = new Bybit({
                     millisecondsToDelayBetweenRequests: 5000,
@@ -52,12 +53,13 @@ module.exports.newPositionHandler = async function newPositionHandler({
                 const subAccountDocument = await mongoDatabase.collection.subAccountsCollection.findOne({
                     tg_user_id: user.tg_user_id,
                     trader_uid: trader.uid,
+                    testnet: user.testnet 
                 });
                 if(!subAccountDocument) throw new Error(`No SubAccount found in subAccountDocument for trader :${trader.username}) and user :(${user.tg_user_id}) `);
                 const bybitSubAccount = new Bybit({
                     millisecondsToDelayBetweenRequests: 5000,
                     privateKey: subAccountDocument.private_api,
-                    publicKey: subAccountDocument.puplic_api,
+                    publicKey: subAccountDocument.public_api,
                     testnet: subAccountDocument.testnet===false?false:true
                 });
                 console.log("Pushing handler async functions");
@@ -67,7 +69,7 @@ module.exports.newPositionHandler = async function newPositionHandler({
                 }));
             }
 
-            await Promise.all(promises);
+            await Promise.allSettled(promises);
 
 
             
@@ -93,8 +95,7 @@ module.exports.newPositionHandler = async function newPositionHandler({
 *      position: import("../../MongoDatabase/collections/open_trades/types").OpenTrades_Collection_Document_Interface,
 *      trader: import("../../MongoDatabase/collections/top_traders/types").TopTraderCollection_Document_Interface,
 *      user: import("../../MongoDatabase/collections/users/types").Users_Collection_Document_Interface,
-*
-* }} param0 
+*}} param0 
 */
 async function handler({
     bybit,logger,mongoDatabase,position,trader,user
@@ -116,7 +117,7 @@ async function handler({
             mode:"BothSide",// 3:Both Sides
             symbol:position.pair,
         });
-        if(switchPositionMode_Res.ext_code!==0){
+        if(String(switchPositionMode_Res.ext_code)!=="0"){
             // an error
             logger.error("switchPositionMode_Res: "+""+switchPositionMode_Res.ret_msg);
         }
@@ -177,29 +178,36 @@ async function handler({
         logger.info("Saving the position to DB");
         // successfully placed a position
     
-        // Find the trade related to the user
-        const userTradeDoc = await mongoDatabase.collection["tradedPositionsCollection"].findOne({
-            status: "OPEN",
-            pair: position.pair,
-            direction: position.direction,
-            trader_uid: position.trader_uid,
-            tg_user_id: user.tg_user_id
-        });
-        if(!userTradeDoc) throw new Error("userTradeDoc not found");
-                
-        await mongoDatabase.collection.tradedPositionsCollection.updateDocument(userTradeDoc._id,{
-            entry_price: bybit.getPositionEntryPrice(orderInExchange),
+
+        const nowDate = new Date();
+        await mongoDatabase.collection.tradedPositionsCollection.createNewDocument({
+            entry_price: parseFloat(orderInExchange.avgPrice),
+            testnet: user.testnet,
             leverage: position.leverage,
             pair: position.pair,
             position_id_in_openTradesCollection: position._id,
             size: parseFloat(orderInExchange.qty),
             status: "OPEN",
             trader_uid: trader.uid,
-            trader_username: trader.username,
+            trader_username: trader.username?trader.username:"",
             entry_datetime: new Date(parseFloat(orderInExchange.createdTime)),
             direction: position.direction,
-            traded_value: (orderInExchange.cumExecValue / position.leverage),
+            traded_value: (parseFloat(orderInExchange.cumExecValue) / position.leverage),
             order_id: openPositionRes.result.orderId,
+            tg_user_id: user.tg_user_id,
+            actual_position_leverage: position.leverage,
+            actual_position_original_size: position.size,
+            actual_position_size: position.size,
+            document_created_at_datetime: nowDate,
+            document_last_edited_at_datetime: nowDate,
+            position_id_in_oldTradesCollection: null,
+            server_timezone: process.env.TZ?process.env.TZ:"",
+            closed_roi_percentage: 0,
+            close_datetime: nowDate,
+            close_price: 0,
+            closed_pnl: 0,
+            
+            
         });
         logger.info("Saved the position to DB");
 

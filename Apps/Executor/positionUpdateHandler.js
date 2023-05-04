@@ -27,23 +27,19 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
             const promises = [];
             for(const user of users_array){
                 /**
-                 * Connect to user Bybit Account
+                 * Connect to user Bybit SubAccount Account
                  */
-                // const bybit = new Bybit({
-                //     millisecondsToDelayBetweenRequests: 5000,
-                //     privateKey: user.privateKey,
-                //     publicKey: user.publicKey,
-                //     testnet: true // check
-                // });
                 const subAccountDocument = await mongoDatabase.collection.subAccountsCollection.findOne({
                     tg_user_id: user.tg_user_id,
                     trader_uid: trader.uid,
+                    testnet: user.testnet 
                 });
                 if(!subAccountDocument) throw new Error(`No SubAccount found in subAccountDocument for trader :${trader.username}) and user :(${user.tg_user_id}) `);
+                console.log({subAccountDocument});
                 const bybitSubAccount = new Bybit({
                     millisecondsToDelayBetweenRequests: 5000,
                     privateKey: subAccountDocument.private_api,
-                    publicKey: subAccountDocument.puplic_api,
+                    publicKey: subAccountDocument.public_api,
                     testnet: subAccountDocument.testnet===false?false:true
                 });
                 promises.push(handler({
@@ -91,10 +87,11 @@ async function handler({
         const tradedPositionObj = await mongoDatabase.
             collection.
             tradedPositionsCollection.
-            getOneOpenPositionBy({
+            findOne({
                 direction: position.direction,
                 pair: position.pair,
-                trader_uid: trader.uid
+                trader_uid: trader.uid,
+                testnet: user.testnet
             });
         logger.info("Return from mongoDatabase.collection.tradedPositionsCollection.getOneOpenPositionBy");
     
@@ -175,11 +172,11 @@ async function handler({
             symbol: position.pair,
             qty: String(standardized_qty),
         });
+        console.log({ updatePositionRes:updatePositionRes.result });
         if (!updatePositionRes || !updatePositionRes.result || !updatePositionRes.result.orderId) {
             throw new Error(updatePositionRes.retMsg);
         }
         logger.info("Updated the position at bybit_RestClientV5");
-        console.log({ updatePositionRes });
     
         /**
          * Get the order again

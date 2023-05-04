@@ -5,7 +5,7 @@
  *      trader_uid: string,
  *      weight: number,
  *      tg_user_id: number,
- *      puplic_api: string,
+ *      public_api: string,
  *      private_api: string,
  *      testnet: boolean,
  *      sub_account_uid: number, 

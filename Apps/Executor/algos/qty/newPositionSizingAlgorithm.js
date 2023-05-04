@@ -1,3 +1,4 @@
+//@ts-check
 const { DecimalMath } = require("../../../../DecimalMath");
 
 /**
@@ -19,9 +20,7 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
     bybit,
     mongoDatabase,
 }) {
-    let newValue;
     let sizeToExecute;
-    let trade;
 
     switch (action) {
     case "new_trade": {
@@ -63,7 +62,7 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
 
         // - Check if balance changed more than 15% from yesterday (this is to prevent from innacurate balance calculations)
         // const diff = Math.abs((trader_balance_today - trader_balance_yesterday).dividedBy(trader_balance_yesterday)) * 100;
-        const diff = Math.abs(new DecimalMath((trader_balance_today - trader_balance_yesterday)).divide(trader_balance_yesterday)) * 100;
+        const diff = Math.abs(new DecimalMath((trader_balance_today - trader_balance_yesterday)).divide(trader_balance_yesterday).getResult()) * 100;
             
         // - Calculate the trader allocated balance for this trade
         let qty = 0;
@@ -93,19 +92,6 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
 
         sizeToExecute = standardizedQTY;
 
-        // Create a new user's trade document with status 'OPEN'
-        trade = {
-            pair: position.pair,
-            direction: position.direction,
-            status: "OPEN",
-            traded_value: qty,
-            leverage: position.leverage,
-            trader_uid: trader.uid,
-            tg_user_id: user.tg_user_id
-        };
-        // Create the user's trade and save it in the database
-        await mongoDatabase.collection["tradedPositionsCollection"].createNewDocument(trade);
-
         break;
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -113,27 +99,25 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
     case "resize": {
 
         // Find the trade related to the user
-        const userTrade_Cursor = await mongoDatabase.collection["tradedPositionsCollection"].findOne({
+        const userTrade_Doc = await mongoDatabase.collection["tradedPositionsCollection"].findOne({
             status: "OPEN",
             pair: position.pair,
             direction: position.direction,
             trader_uid: position.trader_uid,
             tg_user_id: user.tg_user_id
         });
+        if(!userTrade_Doc)throw new Error("(algo:Action:Resize)userTrade_Doc not found");
 
         // Calculate the amount to cut for the user's trade
-        const cutPercentage = (position.previous_size_before_partial_close - position.size) / position.previous_size_before_partial_close;
-        const valueToCut = userTrade_Cursor.traded_value * cutPercentage;
+        const cutPercentage = Math.abs((position.previous_size_before_partial_close - position.size) / position.previous_size_before_partial_close);
+        const valueToCut = userTrade_Doc.traded_value * cutPercentage;
         const qty = valueToCut / position.entry_price;
         const qtyToByWith = qty;
         // standardize the qty
         const standardizedQTY = await bybit.standardizeQuantity({ quantity: qtyToByWith, symbol: position.pair });
         console.log({ standardizedQTY });
-        sizeToExecute = standardizedQTY;
 
-        // Update the user's trade document with new traded_value
-        userTrade_Cursor.traded_value = userTrade_Cursor.traded_value - valueToCut;
-        await userTrade_Cursor.save();
+        sizeToExecute = standardizedQTY;
 
         break;
 
@@ -142,18 +126,18 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
     }
     case "update": {
         // Find the trade related to the user
-        const userTrade_Cursor = await mongoDatabase.collection["tradedPositionsCollection"].findOne({
+        const userTrade_Doc = await mongoDatabase.collection["tradedPositionsCollection"].findOne({
             status: "OPEN",
             pair: position.pair,
             direction: position.direction,
             trader_uid: position.trader_uid,
             tg_user_id: user.tg_user_id
         });
+        if(!userTrade_Doc)throw new Error("(algo:Action:Update)userTrade_Doc not found");
 
         // Calculate the amount to add for the user's trade
-        const cutPercentage = (position.previous_size_before_partial_close - position.size) / position.previous_size_before_partial_close;
-        const valueToAdd = userTrade_Cursor.traded_value * cutPercentage;
-        newValue = userTrade_Cursor.traded_value + valueToAdd;
+        const cutPercentage = (position.size - position.previous_size_before_partial_close) / position.previous_size_before_partial_close
+        const valueToAdd = userTrade_Doc.traded_value * cutPercentage;
 
         const qty = valueToAdd / position.entry_price;
         const qtyToByWith = qty;
@@ -162,10 +146,6 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
         console.log({ standardizedQTY });
         sizeToExecute = standardizedQTY;
 
-        // Update the user's trade document with new traded_value
-        userTrade_Cursor.traded_value = newValue;
-        await userTrade_Cursor.save();
-
         break;
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -173,27 +153,24 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
     case "trade_close": {
         console.log("ACTION:trade_close");
         // Find the trade related to the user
-        const userTrade = await mongoDatabase.collection["tradedPositionsCollection"].findOne({
+        const userTrade_Doc = await mongoDatabase.collection["tradedPositionsCollection"].findOne({
             status: "OPEN",
             pair: position.pair,
             direction: position.direction,
             trader_uid: position.trader_uid,
             tg_user_id: user.tg_user_id
         });
-        console.log({ userTrade });
+        console.log({ userTrade_Doc });
+        if(!userTrade_Doc)throw new Error("(algo:Action:Close)userTrade_Doc not found");
 
         // Calculate the amount to cut for the user's trade
-        const qty = userTrade.size;//userTrade_Cursor.traded_value / position.entry_price;
+        const qty = userTrade_Doc.size;//userTrade_Cursor.traded_value / position.entry_price;
         const qtyToByWith = qty;
         // standardize the qty
         const standardizedQTY = await bybit.standardizeQuantity({ quantity: qtyToByWith, symbol: position.pair });
         console.log({ standardizedQTY });
         sizeToExecute = standardizedQTY;
 
-        // Set the status of the trade to 'CLOSED'
-        await mongoDatabase.collection["tradedPositionsCollection"].updateDocument(userTrade._id, {
-            status: "CLOSED"
-        });
         break;
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////

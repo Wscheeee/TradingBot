@@ -26,7 +26,7 @@ module.exports.SubAccountsCollection =  class SubAccountsCollection{
     }
     
     async createIndexes(){
-        await this.#collection.createIndex(["_id","sub_link_name"],{unique:true});
+        await this.#collection.createIndex(["_id"],{unique:true});
         console.log("Indexes created");
     }
 
@@ -64,6 +64,23 @@ module.exports.SubAccountsCollection =  class SubAccountsCollection{
             const insertedDoc =  await this.#collection.insertOne(doc);
             console.log("Doc inserted");
             return insertedDoc;
+        }
+    }
+
+    /**
+     * @param {import("mongodb").ObjectId} documentId
+     * @param {import("./types").Sub_Account_Document_Interface} doc 
+     */
+    async updateDocument(documentId,doc){
+        console.log(doc);
+        if(!doc){
+            throw new Error("No doc passed to (fn) update Document");
+        }else {
+            const updatedDoc =  await this.#collection.updateOne({
+                _id: documentId,
+            },{$set:doc});
+            console.log("Doc updated");
+            return updatedDoc;
         }
     }
 

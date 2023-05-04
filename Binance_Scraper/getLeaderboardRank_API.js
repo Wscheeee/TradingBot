@@ -1,5 +1,5 @@
 // const {performFetch} = require("../Utils/performFetch")
-const  {  Browser, Page} =  require('puppeteer');
+const  {  Browser, Page} =  require("puppeteer");
 /**
  * @typedef  {{
  *      encryptedUid: string,
@@ -54,13 +54,13 @@ const  {  Browser, Page} =  require('puppeteer');
  */
 exports.getLeaderboardRank_API = async function getLeaderboardRank_API(page,payload){
     try {
-        console.log("[method:getLeaderboardRank]")
+        console.log("[method:getLeaderboardRank]");
         const res = await page.evaluate(async (payload)=>{
             const url = "https://www.binance.com/bapi/futures/v3/public/future/leaderboard/getLeaderboardRank";
             const host = "www.binance.com";
-            const pathname = "/bapi/futures/v3/public/future/leaderboard/getLeaderboardRank"
+            const pathname = "/bapi/futures/v3/public/future/leaderboard/getLeaderboardRank";
             const method = "POST";
-            const postBody = JSON.stringify(payload)
+            const postBody = JSON.stringify(payload);
 
             
             const res = await fetch(url,{
@@ -82,24 +82,26 @@ exports.getLeaderboardRank_API = async function getLeaderboardRank_API(page,payl
                 // console.log(res)
                 if(resJson.code!=="000000"){
                     // an error occcurred
-                    throw new Error(resJson.message)
+                    throw new Error(resJson.message);
                 }else {
                     return resJson;
                 }
             }catch(error){
-                const text = await resCopy.text()
+                const text = await resCopy.text();
                 throw new Error(text);
             }
 
 
 
-        },payload)
+        },payload);
         // const res = await getLeaderboardRank()
         return res;
     }catch(error){
+        const newErrorMessage = `(fn:getLeaderboardRank_API) ${error.message}`;
+        error.message = newErrorMessage;
         throw error;
     }
-}
+};
 
 
 
@@ -118,7 +120,7 @@ module.exports.BinanceTrader = class BinanceTrader {
     //utils
     toJson(){
         return this.#traderData;
-    };
+    }
     get encryptedUid(){
         return this.#traderData.encryptedUid;
     }
@@ -138,7 +140,7 @@ module.exports.BinanceTrader = class BinanceTrader {
         return this.#traderData.openId;
     }
     get pnl(){
-        return this.#traderData.pnl
+        return this.#traderData.pnl;
     }
     get positionShared(){
         return this.#traderData.positionShared;
@@ -161,4 +163,4 @@ module.exports.BinanceTrader = class BinanceTrader {
     get userPhotoUrl(){
         return this.userPhotoUrl;
     }
-}
+};

@@ -3,13 +3,15 @@ module.exports.makeDifferentLeaderboardSearchQueries = function makeDifferentLea
      * @returns {import("../../Binance_Scraper/getLeaderboardRank_API").GetOtherLeaderboardBaseInfo_API_Payload_Interface[]} 
      */
     function getAllPossibleValues() {
-        const periodTypes = ["WEEKLY", "DAILY", "MONTHLY", "TOTAL"];
+        // const periodTypes = ["WEEKLY", "DAILY", "MONTHLY"];
+        const periodTypes = ["TOTAL","WEEKLY", "DAILY", "MONTHLY"];
         const statisticsTypes = ["ROI", "PNL"];
         const tradeTypes = ["PERPETUAL", "DELIVERY"];
         const allPossibleValues = [];
       
         const isSharedValues = [true];
         const isTraderValues = [true, false];
+        // const isTraderValues = [false];
       
         periodTypes.forEach(periodType => {
             statisticsTypes.forEach(statisticsType => {

@@ -15,7 +15,8 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
 
         // Retrieve the subAccounts
         const userSubAccounts_Cursor = await mongoDatabase.collection.subAccountsCollection.getAllDocumentsBy({
-            tg_user_id: user.tg_user_id
+            tg_user_id: user.tg_user_id,
+            testnet: user.testnet
         });
         const userSubAccounts_Array = await userSubAccounts_Cursor.toArray();
 
@@ -24,18 +25,6 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
         if(getMasterAccountAPIKeyInfo_Res.retCode!==0)throw new Error(getMasterAccountAPIKeyInfo_Res.retMsg);
         // Add master account to index 0 of userSubAccounts_Array
 
-        // userSubAccounts_Array.unshift({
-        //     _id: null,
-        //     private_api: user.privateKey,
-        //     puplic_api: user.publicKey,
-        //     sub_account_uid: getMasterAccountAPIKeyInfo_Res.result.userID,
-        //     testnet: user.testnet===false?false:true,
-        //     sub_account_username: user.username,
-        //     tg_user_id: user.tg_user_id,
-        //     trader_uid: null,
-        //     trader_username: null,
-        //     weight: 0.2
-        // });
 
         //The account balancee of the master
         const masterAccountWalletBalance = await bybit.clients.bybit_AccountAssetClientV3.getUSDTDerivativesAccountWalletBalance();
@@ -57,7 +46,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
             const subAccount_bybit = new BybitSubClass({
                 millisecondsToDelayBetweenRequests: 5000,
                 privateKey: subAccountDocument.private_api,
-                publicKey: subAccountDocument.puplic_api,
+                publicKey: subAccountDocument.public_api,
                 testnet: subAccountDocument.testnet?true:false
             });
             const subAccountWalletBalance = await subAccount_bybit.clients.bybit_AccountAssetClientV3.getUSDTDerivativesAccountWalletBalance();

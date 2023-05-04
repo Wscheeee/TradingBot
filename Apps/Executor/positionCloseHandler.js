@@ -1,3 +1,5 @@
+//@ts-check
+
 const {Bybit} = require("../../Trader");
 
 const {newPositionSizingAlgorithm} = require("./algos/qty");
@@ -33,12 +35,13 @@ module.exports.positionCloseHandler = async function positionCloseHandler({
                 const subAccountDocument = await mongoDatabase.collection.subAccountsCollection.findOne({
                     tg_user_id: user.tg_user_id,
                     trader_uid: trader.uid,
+                    testnet: user.testnet 
                 });
                 if(!subAccountDocument) throw new Error(`No SubAccount found in subAccountDocument for trader :${trader.username}) and user :(${user.tg_user_id}) `);
                 const bybitSubAccount = new Bybit({
                     millisecondsToDelayBetweenRequests: 5000,
                     privateKey: subAccountDocument.private_api,
-                    publicKey: subAccountDocument.puplic_api,
+                    publicKey: subAccountDocument.public_api,
                     testnet: subAccountDocument.testnet===false?false:true
                 });
                 promises.push(handler({
@@ -91,7 +94,8 @@ async function handler({
             direction: position.direction,
             leverage: position.leverage,
             trader_uid: trader.uid,
-            tg_user_id: user.tg_user_id
+            tg_user_id: user.tg_user_id,
+            testnet: user.testnet
         });
         if(!tradedPositionObj){
             throw new Error("Position setting out to close was never trades/open");
@@ -117,7 +121,7 @@ async function handler({
             mode:"BothSide",// 3:Both Sides
             symbol:position.pair,
         });
-        if(switchPositionMode_Res.ext_code!==0){
+        if(Number(switchPositionMode_Res.ext_code)!==0){
         // an error
             logger.error("switchPositionMode_Res: "+""+switchPositionMode_Res.ret_msg);
         }
@@ -175,14 +179,38 @@ async function handler({
         }
         // get the closed position pnl obj
         logger.info("Get closed partial position info");
+
+        ////////////////////////////////////////////////
+        /// Added for a little delay
+
+        const getClosedPostionOrderHistory_Res = await bybit.clients.bybit_RestClientV5.getOrderHistory({
+            category:"linear",
+            symbol: position.pair,
+            orderId: closePositionRes.result.orderId
+        });
+        if(getClosedPostionOrderHistory_Res.retCode!==0)throw new Error(getClosedPostionOrderHistory_Res.retMsg);
+        console.log("getClosedPostionOrderHistory_Res");
+        console.log(getClosedPostionOrderHistory_Res.result);
+
+        const res = await bybit.clients.bybit_RestClientV5.getClosedPositionInfo({
+            category:"linear",
+            orderId:closePositionRes.result.orderId
+        
+        });
+        console.log({
+            res: res.result
+        });
+
+        ///////////////////////////////////////////////////
+
         
         const closedPartialPNL_res = await bybit.clients.bybit_RestClientV5.getClosedPositionPNL({
             category:"linear",
             symbol:position.pair,
         });
-    
+        // orderId: '07d2a19c-7148-453a-b4d9-fa0f17b5746c'
         
-        if(!closedPartialPNL_res.result ||!closedPartialPNL_res.result.list[0]){
+        if(!closedPartialPNL_res.result ||closedPartialPNL_res.result.list.length===0){
             logger.error("Position partial expected to be closed , it's close PNL not found.");
         }
         const closedPositionPNLObj = closedPartialPNL_res.result.list.find((closedPnlV5) => closedPnlV5.orderId===closePositionRes.result.orderId );
@@ -199,7 +227,8 @@ async function handler({
                 direction:position.direction,
                 pair: position.pair,
                 trader_uid: trader.uid,
-                tg_user_id: user.tg_user_id
+                tg_user_id: user.tg_user_id,
+                testnet: user.testnet
             });
         logger.info("Return from mongoDatabase.collection.tradedPositionsCollection.getOneOpenPositionBy");
         if(!tradedOpenPositionDocument){

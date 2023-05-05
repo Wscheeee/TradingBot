@@ -4,7 +4,7 @@ module.exports.makeDifferentLeaderboardSearchQueries = function makeDifferentLea
      */
     function getAllPossibleValues() {
         // const periodTypes = ["WEEKLY", "DAILY", "MONTHLY"];
-        const periodTypes = ["TOTAL","WEEKLY", "DAILY", "MONTHLY"];
+        const periodTypes = ["ALL","WEEKLY", "DAILY", "MONTHLY"];
         const statisticsTypes = ["ROI", "PNL"];
         const tradeTypes = ["PERPETUAL", "DELIVERY"];
         const allPossibleValues = [];

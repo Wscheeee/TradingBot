@@ -46,28 +46,28 @@ console.log(process.env);
             );
         });
 
-        //         positionsStateDetector.onUpdatePosition(async (position, trader) => {
-        //             console.log("Position updated");
-        //             let sizeChange = position.size - position.original_size;
-        //             if (sizeChange >= 0) {
-        //                 sizeChange = "+" + sizeChange; }
+        positionsStateDetector.onUpdatePosition(async (position, trader) => {
+            console.log("Position updated");
+            let sizeChange = position.size - position.original_size;
+            if (sizeChange >= 0) {
+                sizeChange = "+" + sizeChange; }
 
-        //             if(Number.isNaN(sizeChange)){
-        //                 logger.error(`Size change is :${sizeChange} \n ${{"position.size":position.size, "position.original_size":position.original_size }}`);
-        //             }
-        //             bot.sendMessage("@AtomosTradingSignals",
-        //                 `✴️ Position Updated ✴️
+            if(Number.isNaN(sizeChange)){
+                logger.error(`Size change is :${sizeChange} \n ${{"position.size":position.size, "position.original_size":position.original_size }}`);
+            }
+            bot.sendMessage("@AtomosTradingSignals",
+                `✴️ Position Updated ✴️
 
-        // 👨🏽‍💻 Trader : ${"Anonymous"}
-        // 💰 Pair : ${position.pair}
-        // 🔖 Type : ${position.direction}
-        // 🌿 Leverage : ${position.leverage}
-        // ⌛ Entry Price : ${position.entry_price}
-        // ❇️ Size Change of : ${sizeChange}
+👨🏽‍💻 Trader : ${"Anonymous"}
+💰 Pair : ${position.pair}
+🔖 Type : ${position.direction}
+🌿 Leverage : ${position.leverage}
+⌛ Entry Price : ${position.entry_price}
+❇️ Size Change of : ${sizeChange}
 
-        // ✨ Size : ${position.original_size} ➡️ ${position.size} ✨`
-        //             );
-        //         });
+✨ Size : ${position.original_size} ➡️ ${position.size} ✨`
+            );
+        });
 
         positionsStateDetector.onPositionResize(async (originalPosition, position,trader) => {
             console.log("Close position");

@@ -1,3 +1,4 @@
+//@ts-check
 /***
  * EXECUTOR STEPS
  * =================
@@ -71,22 +72,34 @@ process.env.TZ = dotEnvObj.TZ;
         await newPositionHandler({
             logger,
             mongoDatabase,
-            positionsStateDetector
+            positionsStateDetector,
+            onErrorCb:(error)=>{
+                logger.error(error.message);
+            } 
         });
         await positionUpdateHandler({
             logger,
             mongoDatabase,
-            positionsStateDetector
+            positionsStateDetector,
+            onErrorCb:(error)=>{
+                logger.error(error.message);
+            }
         });
         await positionResizeHandler({
             logger,
             mongoDatabase,
-            positionsStateDetector
+            positionsStateDetector,
+            onErrorCb:(error)=>{
+                logger.error(error.message);
+            }
         });
         await positionCloseHandler({
             logger,
             mongoDatabase,
             positionsStateDetector,
+            onErrorCb:(error)=>{
+                logger.error(error.message);
+            } 
         });
 
         

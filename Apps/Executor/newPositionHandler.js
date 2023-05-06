@@ -10,11 +10,12 @@ const {allocateCapitalToSubAccounts} = require("./allocateCapitalToSubAccounts")
  * @param {{
  *      mongoDatabase: import("../../MongoDatabase").MongoDatabase,
  *      logger: import("../../Logger").Logger,
- *      positionsStateDetector: import("../../MongoDatabase").PositionsStateDetector
+ *      positionsStateDetector: import("../../MongoDatabase").PositionsStateDetector,
+ *      onErrorCb:(error:Error)=>any
  * }} param0 
  */
 module.exports.newPositionHandler = async function newPositionHandler({
-    logger,mongoDatabase,positionsStateDetector
+    logger,mongoDatabase,positionsStateDetector,onErrorCb
 }){ 
     console.log("fn:newPositionHandler");
     positionsStateDetector.onNewPosition(async (position, trader) => {
@@ -29,44 +30,57 @@ module.exports.newPositionHandler = async function newPositionHandler({
             const users_array = await users_Cursor.toArray();
             const promises = [];
             for(const user of users_array){
-                /**
-                 * Connect to user subaccount Bybit Account
-                 */
-                const bybit = new Bybit({
-                    millisecondsToDelayBetweenRequests: 5000,
-                    privateKey: user.privateKey,
-                    publicKey: user.publicKey,
-                    testnet: user.testnet===false?false:true
-                });
+                try {
+                    /**
+                     * Connect to user subaccount Bybit Account
+                     */
+                    const bybit = new Bybit({
+                        millisecondsToDelayBetweenRequests: 5000,
+                        privateKey: user.privateKey,
+                        publicKey: user.publicKey,
+                        testnet: user.testnet===false?false:true
+                    });
+    
+                    // 
+                    await createSubAccountsForUserIfNotCreated({
+                        bybit,mongoDatabase,trader,user
+                    });
+                    console.log("fin:createSubAccountsForUserIfNotCreated");
+                    await allocateCapitalToSubAccounts({
+                        bybit,mongoDatabase,user
+                    });
+                    console.log("fin:allocateCapitalToSubAccounts");
+    
+                    // Login to user's sub account of this trader
+                    const subAccountDocument = await mongoDatabase.collection.subAccountsCollection.findOne({
+                        tg_user_id: user.tg_user_id,
+                        trader_uid: trader.uid,
+                        testnet: user.testnet 
+                    });
+                    if(!subAccountDocument) throw new Error("No SubAccount found in subAccountDocument");
+                    const bybitSubAccount = new Bybit({
+                        millisecondsToDelayBetweenRequests: 5000,
+                        privateKey: subAccountDocument.private_api,
+                        publicKey: subAccountDocument.public_api,
+                        testnet: subAccountDocument.testnet===false?false:true
+                    });
+                    console.log("Pushing handler async functions");
+                    promises.push(handler({
+                        bybit:bybitSubAccount,
+                        logger,mongoDatabase,position,trader,user,
+                        onErrorCb:(error)=>{
+                            const newErrorMessage = `(fn:newPositionHandler)  trader :${trader.username}) and user :(${user.tg_user_id}) ${error.message}`;
+                            error.message = newErrorMessage;
+                            onErrorCb(error);
+                        }
+                    }));
 
-                // 
-                await createSubAccountsForUserIfNotCreated({
-                    bybit,mongoDatabase,trader,user
-                });
-                console.log("fin:createSubAccountsForUserIfNotCreated");
-                await allocateCapitalToSubAccounts({
-                    bybit,mongoDatabase,user
-                });
-                console.log("fin:allocateCapitalToSubAccounts");
-
-                // Login to user's sub account of this trader
-                const subAccountDocument = await mongoDatabase.collection.subAccountsCollection.findOne({
-                    tg_user_id: user.tg_user_id,
-                    trader_uid: trader.uid,
-                    testnet: user.testnet 
-                });
-                if(!subAccountDocument) throw new Error(`No SubAccount found in subAccountDocument for trader :${trader.username}) and user :(${user.tg_user_id}) `);
-                const bybitSubAccount = new Bybit({
-                    millisecondsToDelayBetweenRequests: 5000,
-                    privateKey: subAccountDocument.private_api,
-                    publicKey: subAccountDocument.public_api,
-                    testnet: subAccountDocument.testnet===false?false:true
-                });
-                console.log("Pushing handler async functions");
-                promises.push(handler({
-                    bybit:bybitSubAccount,
-                    logger,mongoDatabase,position,trader,user
-                }));
+                }catch(error){
+                    // Error thrown only for user but loop not to be stopped
+                    const newErrorMessage = `(fn:newPositionHandler) trader :${trader.username}) and user :(${user.tg_user_id}) ${error.message}`;
+                    error.message = newErrorMessage;
+                    onErrorCb(error);
+                }
             }
 
             await Promise.allSettled(promises);
@@ -95,10 +109,11 @@ module.exports.newPositionHandler = async function newPositionHandler({
 *      position: import("../../MongoDatabase/collections/open_trades/types").OpenTrades_Collection_Document_Interface,
 *      trader: import("../../MongoDatabase/collections/top_traders/types").TopTraderCollection_Document_Interface,
 *      user: import("../../MongoDatabase/collections/users/types").Users_Collection_Document_Interface,
+*      onErrorCb:(error:Error)=>any
 *}} param0 
 */
 async function handler({
-    bybit,logger,mongoDatabase,position,trader,user
+    bybit,logger,mongoDatabase,position,trader,user,onErrorCb
 }){
     try{ 
         logger.info("Calculate percentageBased_DynamicPositionSizingAlgo");
@@ -200,21 +215,23 @@ async function handler({
             actual_position_size: position.size,
             document_created_at_datetime: nowDate,
             document_last_edited_at_datetime: nowDate,
+            //@ts-ignore
             position_id_in_oldTradesCollection: null,
             server_timezone: process.env.TZ?process.env.TZ:"",
             closed_roi_percentage: 0,
             close_datetime: nowDate,
             close_price: 0,
-            closed_pnl: 0,
+            closed_pnl: 0, 
             
             
         });
         logger.info("Saved the position to DB");
 
     }catch(error){
-        const newErrorMessage = `user:${user.tg_user_id} (fn:handler) ${error.message}`;
+        const newErrorMessage = `(fn:handler) ${error.message}`;
         error.message = newErrorMessage;
-        throw error;
+        onErrorCb(error);
+        // throw error;
     }
 
 }

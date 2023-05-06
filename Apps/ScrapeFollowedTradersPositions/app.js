@@ -5,7 +5,7 @@ const {positionsHandler} = require("./positionsHandler");
 const {readAndConfigureDotEnv} = require("../../Utils/readAndConfigureDotEnv");
 const {Telegram} = require("../../Telegram");
 const {Logger} = require("../../Logger");
-const APP_NAME = "App:ScrapeFolledTradersPositions";
+const APP_NAME = "App:ScrapeFollowedTradersPositions";
 const logger = new Logger({app_name:APP_NAME});
 const {IfHoursPassed} = require("../../Utils/IfHoursPassed");
 

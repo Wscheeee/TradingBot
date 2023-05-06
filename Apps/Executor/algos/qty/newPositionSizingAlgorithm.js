@@ -110,6 +110,7 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
 
         // Calculate the amount to cut for the user's trade
         const cutPercentage = Math.abs((position.previous_size_before_partial_close - position.size) / position.previous_size_before_partial_close);
+        console.log({cutPercentage});
         const valueToCut = userTrade_Doc.traded_value * cutPercentage;
         const qty = valueToCut / position.entry_price;
         const qtyToByWith = qty;
@@ -134,13 +135,15 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
             tg_user_id: user.tg_user_id
         });
         if(!userTrade_Doc)throw new Error("(algo:Action:Update)userTrade_Doc not found");
-
+        console.log("position:",position);
         // Calculate the amount to add for the user's trade
-        const cutPercentage = (position.size - position.previous_size_before_partial_close) / position.previous_size_before_partial_close
+        const cutPercentage = (position.size - position.previous_size_before_partial_close) / position.previous_size_before_partial_close;
+        console.log({cutPercentage});
         const valueToAdd = userTrade_Doc.traded_value * cutPercentage;
-
+        console.log({valueToAdd});
         const qty = valueToAdd / position.entry_price;
         const qtyToByWith = qty;
+        console.log({qtyToByWith})
         // standardize the qty
         const standardizedQTY = await bybit.standardizeQuantity({ quantity: qtyToByWith, symbol: position.pair });
         console.log({ standardizedQTY });

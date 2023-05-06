@@ -58,6 +58,7 @@ module.exports.Logger = class Logger {
    * @type {LoggerClassSettings_Interface}
    */
     #settings;
+
     /**
   * Create a new Logger instance with default log levels and colors.
   * @constructor

@@ -10,11 +10,12 @@ const {newPositionSizingAlgorithm} = require("./algos/qty");
  * @param {{
 *      mongoDatabase: import("../../MongoDatabase").MongoDatabase,
 *      logger: import("../../Logger").Logger,
-*      positionsStateDetector: import("../../MongoDatabase").PositionsStateDetector
+*      positionsStateDetector: import("../../MongoDatabase").PositionsStateDetector,
+*      onErrorCb:(error:Error)=>any
 * }} param0 
 */
 module.exports.positionResizeHandler = async function positionResizeHandler({
-    logger,mongoDatabase,positionsStateDetector
+    logger,mongoDatabase,positionsStateDetector,onErrorCb
 }){
     console.log("fn:positionResizeHandler");
     positionsStateDetector.onPositionResize(async (originalPosition,position,trader)=>{
@@ -28,30 +29,44 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
             const users_array = await users_Cursor.toArray();
             const promises = [];
             for(const user of users_array){
-                /**
-                 * Connect to user Bybit Account
-                 */
-                const subAccountDocument = await mongoDatabase.collection.subAccountsCollection.findOne({
-                    tg_user_id: user.tg_user_id,
-                    trader_uid: trader.uid,
-                    testnet: user.testnet 
-                });
-                if(!subAccountDocument) throw new Error(`No SubAccount found in subAccountDocument for trader :${trader.username}) and user :(${user.tg_user_id}) `);
-                const bybitSubAccount = new Bybit({
-                    millisecondsToDelayBetweenRequests: 5000,
-                    privateKey: subAccountDocument.private_api,
-                    publicKey: subAccountDocument.public_api,
-                    testnet: subAccountDocument.testnet===false?false:true
-                });
-                promises.push(handler({
-                    bybit:bybitSubAccount,
-                    logger,
-                    mongoDatabase,
-                    position,
-                    trader,
-                    user
-                }));
+                try{
+                    /**
+                     * Connect to user Bybit Account
+                     */
+                    const subAccountDocument = await mongoDatabase.collection.subAccountsCollection.findOne({
+                        tg_user_id: user.tg_user_id,
+                        trader_uid: trader.uid,
+                        testnet: user.testnet 
+                    });
+                    if(!subAccountDocument) throw new Error(`No SubAccount found in subAccountDocument for trader :${trader.username}) and user :(${user.tg_user_id}) `);
+                    const bybitSubAccount = new Bybit({
+                        millisecondsToDelayBetweenRequests: 5000,
+                        privateKey: subAccountDocument.private_api,
+                        publicKey: subAccountDocument.public_api,
+                        testnet: subAccountDocument.testnet===false?false:true
+                    });
+                    promises.push(handler({
+                        bybit:bybitSubAccount,
+                        logger,
+                        mongoDatabase,
+                        position,
+                        trader,
+                        user,
+                        onErrorCb:(error)=>{
+                            const newErrorMessage = `(fn:positionResizeHandler)  trader :${trader.username}) and user :(${user.tg_user_id}) ${error.message}`;
+                            error.message = newErrorMessage;
+                            onErrorCb(error);
+                        }
+                    }));
+                }catch(error){
+                    // Error thrown only for user but loop not to be stopped
+                    const newErrorMessage = `(fn:positionResizeHandler) trader :${trader.username}) and user :(${user.tg_user_id}) ${error.message}`;
+                    error.message = newErrorMessage;
+                    onErrorCb(error);
+                }
+                
             }
+
             await Promise.all(promises);
 
         }catch(error){
@@ -73,10 +88,11 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
 *      position: import("../../MongoDatabase/collections/open_trades/types").OpenTrades_Collection_Document_Interface,
 *      trader: import("../../MongoDatabase/collections/top_traders/types").TopTraderCollection_Document_Interface,
 *      user: import("../../MongoDatabase/collections/users/types").Users_Collection_Document_Interface,
+*      onErrorCb:(error:Error)=>any
 *}} param0 
 */
 async function handler({
-    bybit,logger,mongoDatabase,position,trader,user
+    bybit,logger,mongoDatabase,position,trader,user,onErrorCb
 }){
 
     try {
@@ -265,7 +281,8 @@ async function handler({
     }catch(error){
         const newErrorMessage = `user:${user.tg_user_id} (fn:handler) ${error.message}`;
         error.message = newErrorMessage;
-        throw error;
+        onErrorCb(error);
+        // throw error;
     }
     
 

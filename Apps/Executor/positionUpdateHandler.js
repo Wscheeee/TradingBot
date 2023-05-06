@@ -28,24 +28,8 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
             const promises = [];
             for(const user of users_array){
                 try{
-                    /**
-                     * Connect to user Bybit SubAccount Account
-                     */
-                    const subAccountDocument = await mongoDatabase.collection.subAccountsCollection.findOne({
-                        tg_user_id: user.tg_user_id,
-                        trader_uid: trader.uid,
-                        testnet: user.testnet 
-                    });
-                    if(!subAccountDocument) throw new Error(`No SubAccount found in subAccountDocument for trader :${trader.username}) and user :(${user.tg_user_id}) `);
-                    console.log({subAccountDocument});
-                    const bybitSubAccount = new Bybit({
-                        millisecondsToDelayBetweenRequests: 5000,
-                        privateKey: subAccountDocument.private_api,
-                        publicKey: subAccountDocument.public_api,
-                        testnet: subAccountDocument.testnet===false?false:true
-                    });
+                    
                     promises.push(handler({
-                        bybit:bybitSubAccount,
                         logger,
                         mongoDatabase,
                         position,
@@ -83,7 +67,6 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
 /**
  * 
  * @param {{
-*      bybit: import("../../Trader").Bybit,
 *      mongoDatabase: import("../../MongoDatabase").MongoDatabase,
 *      logger: import("../../Logger").Logger,
 *      position: import("../../MongoDatabase/collections/open_trades/types").OpenTrades_Collection_Document_Interface,
@@ -93,9 +76,31 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
 * }} param0 
 */
 async function handler({
-    bybit,logger,mongoDatabase,position,trader,user,onErrorCb
+    logger,mongoDatabase,position,trader,user,onErrorCb
 }){
     try {
+        /////////////////////////////////////////////
+        /**
+         * Connect to user Bybit SubAccount Account
+         */
+        const subAccountDocument = await mongoDatabase.collection.subAccountsCollection.findOne({
+            tg_user_id: user.tg_user_id,
+            trader_uid: trader.uid,
+            testnet: user.testnet 
+        });
+        if(!subAccountDocument) throw new Error(`No SubAccount found in subAccountDocument for trader :${trader.username}) and user :(${user.tg_user_id}) `);
+        console.log({subAccountDocument});
+        const bybitSubAccount = new Bybit({
+            millisecondsToDelayBetweenRequests: 5000,
+            privateKey: subAccountDocument.private_api,
+            publicKey: subAccountDocument.public_api,
+            testnet: subAccountDocument.testnet===false?false:true
+        });
+
+
+        /////////////////////////////////////////////
+        const bybit = bybitSubAccount;
+
         /**
          * Check that the position is in db
          * */

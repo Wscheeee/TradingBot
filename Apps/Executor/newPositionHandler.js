@@ -31,42 +31,10 @@ module.exports.newPositionHandler = async function newPositionHandler({
             const promises = [];
             for(const user of users_array){
                 try {
-                    /**
-                     * Connect to user subaccount Bybit Account
-                     */
-                    const bybit = new Bybit({
-                        millisecondsToDelayBetweenRequests: 5000,
-                        privateKey: user.privateKey,
-                        publicKey: user.publicKey,
-                        testnet: user.testnet===false?false:true
-                    });
-    
-                    // 
-                    await createSubAccountsForUserIfNotCreated({
-                        bybit,mongoDatabase,trader,user
-                    });
-                    console.log("fin:createSubAccountsForUserIfNotCreated");
-                    await allocateCapitalToSubAccounts({
-                        bybit,mongoDatabase,user
-                    });
-                    console.log("fin:allocateCapitalToSubAccounts");
-    
-                    // Login to user's sub account of this trader
-                    const subAccountDocument = await mongoDatabase.collection.subAccountsCollection.findOne({
-                        tg_user_id: user.tg_user_id,
-                        trader_uid: trader.uid,
-                        testnet: user.testnet 
-                    });
-                    if(!subAccountDocument) throw new Error("No SubAccount found in subAccountDocument");
-                    const bybitSubAccount = new Bybit({
-                        millisecondsToDelayBetweenRequests: 5000,
-                        privateKey: subAccountDocument.private_api,
-                        publicKey: subAccountDocument.public_api,
-                        testnet: subAccountDocument.testnet===false?false:true
-                    });
+                    
                     console.log("Pushing handler async functions");
                     promises.push(handler({
-                        bybit:bybitSubAccount,
+                        // bybit:bybitSubAccount,
                         logger,mongoDatabase,position,trader,user,
                         onErrorCb:(error)=>{
                             const newErrorMessage = `(fn:newPositionHandler)  trader :${trader.username}) and user :(${user.tg_user_id}) ${error.message}`;
@@ -103,7 +71,6 @@ module.exports.newPositionHandler = async function newPositionHandler({
 /**
  * 
  * @param {{
-*      bybit: import("../../Trader").Bybit,
 *      mongoDatabase: import("../../MongoDatabase").MongoDatabase,
 *      logger: import("../../Logger").Logger,
 *      position: import("../../MongoDatabase/collections/open_trades/types").OpenTrades_Collection_Document_Interface,
@@ -113,9 +80,51 @@ module.exports.newPositionHandler = async function newPositionHandler({
 *}} param0 
 */
 async function handler({
-    bybit,logger,mongoDatabase,position,trader,user,onErrorCb
+    // bybit,
+    logger,mongoDatabase,position,trader,user,onErrorCb
 }){
     try{ 
+        ////////////////////////////////////////////////
+        /**
+         * Connect to user subaccount Bybit Account
+         */
+        const masterBybit = new Bybit({
+            millisecondsToDelayBetweenRequests: 5000,
+            privateKey: user.privateKey,
+            publicKey: user.publicKey,
+            testnet: user.testnet===false?false:true
+        });
+
+        // 
+        await createSubAccountsForUserIfNotCreated({
+            bybit:masterBybit,mongoDatabase,trader,user
+        });
+        console.log("fin:createSubAccountsForUserIfNotCreated");
+        await allocateCapitalToSubAccounts({
+            bybit:masterBybit,mongoDatabase,user
+        });
+        console.log("fin:allocateCapitalToSubAccounts");
+
+        // Login to user's sub account of this trader
+        const subAccountDocument = await mongoDatabase.collection.subAccountsCollection.findOne({
+            tg_user_id: user.tg_user_id,
+            trader_uid: trader.uid,
+            testnet: user.testnet 
+        });
+        if(!subAccountDocument) throw new Error("No SubAccount found in subAccountDocument");
+        const bybitSubAccount = new Bybit({
+            millisecondsToDelayBetweenRequests: 5000,
+            privateKey: subAccountDocument.private_api,
+            publicKey: subAccountDocument.public_api,
+            testnet: subAccountDocument.testnet===false?false:true
+        });
+
+
+
+        /////////////////////////////////////////
+        const bybit = bybitSubAccount;
+
+
         logger.info("Calculate percentageBased_DynamicPositionSizingAlgo");
         const {sizeToExecute} = await newPositionSizingAlgorithm({
             bybit,

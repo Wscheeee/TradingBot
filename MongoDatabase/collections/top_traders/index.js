@@ -148,7 +148,7 @@ module.exports.TopTradersCollection =  class TopTradersCollection{
         }
     }
     /**
-     * @param {import("./types").TopTraderDocument_Interface} filter
+     * @param {import("mongodb").filter<import("./types").TopTraderDocument_Interface>} filter
      */
     async findOne(filter){
         return await this.#collection.findOne(filter);

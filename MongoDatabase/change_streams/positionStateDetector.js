@@ -1,3 +1,4 @@
+//@ts-check
 // ================================
 
 module.exports.PositionsStateDetector = class PositionsStateDetector {
@@ -53,7 +54,7 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
     #onCloseFullPositionCallbacks = [];
     /**
    * @constructor
-   * @param {{mongoDatabase:MongoDatabase}} param0 
+   * @param {{mongoDatabase:import("../MongoDatabase").MongoDatabase}} param0 
    */
     constructor({ mongoDatabase }) {
         this.#mongoDatabase = mongoDatabase;
@@ -67,8 +68,9 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
                 console.log("(openTradesCollection):INSERT event");
                 const documentId = change.documentKey._id;
                 const fullDocument = await this.#mongoDatabase.collection.openTradesCollection.getDocumentById(documentId);
-                if (fullDocument.copied) {
+                if (fullDocument && fullDocument.copied) {
                     const trader = await this.#mongoDatabase.collection.topTradersCollection.getDocumentByTraderUid(fullDocument.trader_uid);
+                    if(!trader)throw new Error(`New position came in but trader not found: trader_uid:${fullDocument.trader_uid} position documentId:${fullDocument._id}` );
                     this.#onNewPositionCallbacks.forEach((cb) => {
                         cb(fullDocument, trader);
                     });
@@ -76,40 +78,25 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
                 // this.#openTradesCollection_previousUpdatedDocs[documentId.toString("base64")] = fullDocument;
             } else if (change.operationType === "update") {
                 console.log("(openTradesCollection):UPDATE event");
-                // const documentId = change.documentKey._id;
-                // const previousDoc = this.#openTradesCollection_previousUpdatedDocs[documentId.toString("base64")];
+                const documentId = change.documentKey._id;
                 const updatedFields = change.updateDescription.updatedFields;
-                // const updatedFieldsKeys_Array = Object.keys(updatedFields);
-                let fullDocumentBeforeChange = change.fullDocumentBeforeChange;//await this.#mongoDatabase.collection.openTradesCollection.getDocumentById(documentId);
-                console.log({fullDocumentBeforeChange,change,updatedFields});
-                const fullDocument =  change.fullDocument;
-                // console.log({
-                //     fullDocument, 
-                //     updatedFields,
-                //     previousDoc
-                // });
-                // if(!fullDocument || !previousDoc)return;
-                // if(fullDocument.size===previousDoc.size) return;
-                const trader = await this.#mongoDatabase.collection.topTradersCollection.getDocumentByTraderUid(fullDocument.trader_uid);
-                //change.fullDocumentBeforeChange
-                // console.log("Passed previousDoc :",previousDoc);
+                const fullDocumentAfterUpdate =  await this.#mongoDatabase.collection.openTradesCollection.findOne({_id:documentId});
+                if(!fullDocumentAfterUpdate) throw new Error(`(openTradesCollection):UPDATE event fullDocumentAfterUpdate is empty for documentId:${change.documentKey._id}`);
+                const trader = await this.#mongoDatabase.collection.topTradersCollection.getDocumentByTraderUid(fullDocumentAfterUpdate.trader_uid);
+                if(!trader) throw new Error(`(openTradesCollection):UPDATE event trader not found for documentId:${change.documentKey._id} and trader_uid:${fullDocumentAfterUpdate.trader_uid}`);
+                
                 let hasRealChange = false;
                 for (const key in updatedFields) {
                     if(key.toLocaleLowerCase().includes("datetime")===false){
                         hasRealChange = true;
                         break;
                     }
-                    // if(key.toLowerCase().includes("datetime"))continue;
-                    // if (previousDoc[key] !== updatedFields[key]) {
-                    //     hasRealChange = true;
-                    //     break; 
-                    // }
                 } 
 
-                if (hasRealChange && fullDocument.copied) {
+                if (hasRealChange && fullDocumentAfterUpdate.copied) {
                     console.log("OpenTrades Document has real changes!");
                     this.#onUpdatePositionCallbacks.forEach((cb) => {
-                        cb(fullDocument, trader);
+                        cb(fullDocumentAfterUpdate, trader);
                     });
                 } else {
                     // console.log("OpenTrades Document has no real changes.");
@@ -128,23 +115,22 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
                 console.log("(oldTradesCollection):INSERT event");
                 const documentId = change.documentKey._id;
                 const fullDocument = await this.#mongoDatabase.collection.oldTradesCollection.getDocumentById(documentId);
+                if(!fullDocument) throw new Error(`((oldTradesCollection):INSERT event change.fullDocument is empty for documentId:${change.documentKey._id}`);
                 if (fullDocument.copied) {
                     const trader = await this.#mongoDatabase.collection.topTradersCollection.getDocumentByTraderUid(fullDocument.trader_uid);
+                    if(!trader) throw new Error(`(openTradesCollection):UPDATE event trader not found for documentId:${change.documentKey._id} and trader_uid:${fullDocument.trader_uid}`);
                     if (fullDocument.part === 0) {
                         this.#onCloseFullPositionCallbacks.forEach((cb) => {
                             cb(fullDocument, trader);
                         });
                     } else {
                         const originalPosition = await this.#mongoDatabase.collection.openTradesCollection.getDocumentById(fullDocument.original_position_id);
+                        if(!originalPosition) throw new Error(`(openTradesCollection):UPDATE event originalPosition not found for documentId:${change.documentKey._id} and trader_uid:${fullDocument.trader_uid} and original_position_id:${fullDocument.original_position_id}`);
                         this.#onResizePositionCallbacks.forEach((cb) => {
                             cb(originalPosition, fullDocument, trader);
                         });
                     }
                 }
-                // // delete the doc obj from mem
-                // if(fullDocument.part===0){
-                //     delete this.#openTradesCollection_previousUpdatedDocs[documentId.toString("base64")];
-                // }
             }
         });
     }

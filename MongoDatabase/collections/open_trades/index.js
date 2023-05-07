@@ -146,7 +146,7 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
     }
   
     /**
-     * @param {import("./types").OpenTrades_Interface} filter
+     * @param {import("mongodb").Filter<import("./types").OpenTrades_Interface>} filter
      */
     async findOne(filter){
         return await this.#collection.findOne(filter);

@@ -68,6 +68,24 @@ module.exports.UsersCollection =  class UsersCollection{
         }
     }
 
+    /**
+     * @param {import("mongodb").ObjectId} documentId
+     * @param {import("./types").User_Interface} doc 
+     * @returns {import("./types").Users_Collection_Document_Interface}
+     */
+    async updateDocument(documentId,doc){
+        console.log(doc);
+        if(!doc){
+            throw new Error("No doc passed to (fn) update Document");
+        }else {
+            const updatedDoc =  await this.#collection.updateOne({
+                _id: documentId,
+            },{$set:doc});
+            console.log("Doc updated");
+            return updatedDoc;
+        }
+    }
+
    
 
     // added

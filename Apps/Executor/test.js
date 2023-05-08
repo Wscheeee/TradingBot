@@ -64,6 +64,37 @@ process.env.TZ = dotEnvObj.TZ;
         logger.info("Create DB");
         await mongoDatabase.connect(dotEnvObj.DATABASE_NAME);
         logger.info("Connect DB");
+
+        // const createtUserRes = await mongoDatabase.collection.usersCollection.createNewDocument({
+        //     atomos: false,
+        //     chatId:"101",
+        //     copiedTraders:[],
+        //     daysLeft:100,
+        //     firstDate:new Date(),
+        //     language:"english",
+        //     privateKey:"",
+        //     publicKey:"",
+        //     status:true,
+        //     testnet:true,
+        //     tg_user_id:"101",
+        //     totalMonths:12,
+        //     totalPaid:100,
+        //     totalPnl:100,
+        //     totalRoi:10,
+        //     updateDate:new Date(), 
+        //     username:"Speet"
+        // });
+        // console.log({createtUserRes});
+        // const speetUser = await mongoDatabase.collection.usersCollection.findOne({username:"Speet"});
+        // console.log({speetUser});
+        // if(speetUser){
+        //     const updateRes = await mongoDatabase.collection.usersCollection.updateDocument(speetUser._id,{
+        //         totalPnl:102,
+        //         privateKey:"",
+        //         publicKey:"",
+        //     });
+        //     console.log({updateRes});
+        // }
         // const allSubbAccountConfigs = await(await mongoDatabase.collection.subAccountsConfigCollection.getAllDocuments()).toArray();
         // // delete emm all
         // const deleteRes = await mongoDatabase.collection.subAccountsConfigCollection.deleteManyDocumentsByIds(allSubbAccountConfigs.map((doc)=>doc._id));
@@ -84,21 +115,21 @@ process.env.TZ = dotEnvObj.TZ;
         /**
                  * Connect to user Bybit Account
                  */
-        const bybit = new Bybit({
-            millisecondsToDelayBetweenRequests: 5000,
-            privateKey: dotEnvObj.BYBIT_PRIVATE_KEY,
-            publicKey: dotEnvObj.BYBIT_PUBLIC_KEY,
-            testnet: true
-        });
+        // const bybit = new Bybit({
+        //     millisecondsToDelayBetweenRequests: 5000,
+        //     privateKey: dotEnvObj.BYBIT_PRIVATE_KEY,
+        //     publicKey: dotEnvObj.BYBIT_PUBLIC_KEY,
+        //     testnet: true
+        // });
 
-        logger.info("Sending an order to update the position at bybit_RestClientV5");
-        const updatePositionRes = await bybit.clients.bybit_RestClientV5.updateAPosition({
-            category: "linear",
-            orderId: "f567ab7e-9a18-49c5-a515-4abebfbb2e0e",
-            symbol: "RLCUSDT",
-            qty: "0",
-        });
-        console.log({ updatePositionRes:updatePositionRes.result });
+        // logger.info("Sending an order to update the position at bybit_RestClientV5");
+        // const updatePositionRes = await bybit.clients.bybit_RestClientV5.updateAPosition({
+        //     category: "linear",
+        //     orderId: "f567ab7e-9a18-49c5-a515-4abebfbb2e0e",
+        //     symbol: "RLCUSDT",
+        //     qty: "0",
+        // });
+        // console.log({ updatePositionRes:updatePositionRes.result });
 
         // const getClosedPostionOrderHistory_Res = await bybit.clients.bybit_RestClientV5.getOrderHistory({
         //     category:"linear",

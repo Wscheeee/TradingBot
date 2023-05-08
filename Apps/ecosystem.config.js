@@ -1,6 +1,10 @@
 module.exports = {
     apps : [
         {
+            name: "CreateSubAccountsAndAllocateCapital",
+            script: "./CreateSubAccountsAndAllocateCapital/app.js"
+        },
+        {
             name: "Executor",
             script: "./Executor/app.js"
         },

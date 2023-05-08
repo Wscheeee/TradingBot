@@ -2,8 +2,6 @@
 const {Bybit} = require("../../Trader");
 
 const {newPositionSizingAlgorithm} = require("./algos/qty");
-const {createSubAccountsForUserIfNotCreated} = require("./createSubAccountsForUserIfNotCreated");
-const {allocateCapitalToSubAccounts} = require("./allocateCapitalToSubAccounts");
 
 /**
  * 
@@ -88,22 +86,7 @@ async function handler({
         /**
          * Connect to user subaccount Bybit Account
          */
-        const masterBybit = new Bybit({
-            millisecondsToDelayBetweenRequests: 5000,
-            privateKey: user.privateKey,
-            publicKey: user.publicKey,
-            testnet: user.testnet===false?false:true
-        });
 
-        // 
-        await createSubAccountsForUserIfNotCreated({
-            bybit:masterBybit,mongoDatabase,trader,user
-        });
-        console.log("fin:createSubAccountsForUserIfNotCreated");
-        await allocateCapitalToSubAccounts({
-            bybit:masterBybit,mongoDatabase,user
-        });
-        console.log("fin:allocateCapitalToSubAccounts");
 
         // Login to user's sub account of this trader
         const subAccountDocument = await mongoDatabase.collection.subAccountsCollection.findOne({

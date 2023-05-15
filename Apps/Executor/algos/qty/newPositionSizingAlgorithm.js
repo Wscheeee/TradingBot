@@ -45,7 +45,7 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
 
         /** TRADE VALUE
         * - Get the trade size + entry price + leverage
-        * - Calculate Trade Value = (Size * Entry price) / Leverage
+        * - Calculate Trade Value = (Size * Entry price) / Leverages
         */
         const tradeValue = new DecimalMath(position.size).multiply(position.entry_price).divide(position.leverage).getResult();
 
@@ -58,8 +58,7 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
 
         // - Calculate the trader balance for today + yesterday
         const trader_balance_today = new DecimalMath(trader.daily_pnl).divide(trader.daily_roi).add(trader.daily_pnl).getResult();
-        const trader_balance_yesterday = new DecimalMath(trader.daily_pnl).divide(trader.daily_roi).add(trader.daily_pnl).getResult();
-
+        const trader_balance_yesterday = new DecimalMath(trader.past_day_pnl).divide(trader.past_day_roi).add(trader.past_day_pnl).getResult();
         // - Check if balance changed more than 15% from yesterday (this is to prevent from innacurate balance calculations)
         // const diff = Math.abs((trader_balance_today - trader_balance_yesterday).dividedBy(trader_balance_yesterday)) * 100;
         const diff = Math.abs(new DecimalMath((trader_balance_today - trader_balance_yesterday)).divide(trader_balance_yesterday).getResult()) * 100;
@@ -68,7 +67,7 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
         let qty = 0;
 
         if (diff > 15) {
-            qty = trader_balance_today * 0.01;         
+            qty = trader_balance_today * 0.01;          
         } else {
             const ratio = tradeValue / trader_balance_today;
             qty = totalUSDT_balance * ratio;

@@ -17,7 +17,8 @@
 *   totalRoi: number,
 *   publicKey: string,
 *   privateKey: string,
-*   atomos: true
+*   atomos: true,
+*   last_sub_allocation_check_datetime: undefined| string
 * }} User_Interface 
 */
 

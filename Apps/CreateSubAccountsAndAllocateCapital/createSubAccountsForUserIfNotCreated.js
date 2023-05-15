@@ -34,20 +34,30 @@ module.exports.createSubAccountsForUserIfNotCreated = async function createSubAc
             if(getSubUIDList_Res.retCode!==0)throw new Error(getSubUIDList_Res.retMsg);
             const subAccountsPresentInUserBybitAccount_Array = getSubUIDList_Res.result.subMembers;
             console.log({subAccountsPresentInUserBybitAccount_Array});
-            // Check that Sub Accounts have been created for traders listed in the SubAccountsConfig
+            // Check that Sub Accounts have been created for sub_link_name listed in the SubAccountsConfig
             for(const traderSubAccountConfig of subAccountsConfig_documents_Array){
-                const traderSubAccountInfoInSubAcccountsCollection = allSubCollectionsForUser_Array.find((doc)=>doc.sub_link_name===traderSubAccountConfig.sub_link_name);
-                console.log({traderSubAccountInfoInSubAcccountsCollection});
-                if(traderSubAccountInfoInSubAcccountsCollection){
+                const subAcccountWithSubLinkNameInConfigIsPresentInSubAccountsCollection = allSubCollectionsForUser_Array.find((doc)=>doc.sub_link_name===traderSubAccountConfig.sub_link_name);
+                console.log({subAcccountWithSubLinkNameInConfigIsPresentInSubAccountsCollection});
+                if(subAcccountWithSubLinkNameInConfigIsPresentInSubAccountsCollection){
                     // trader sub account info is already savedd in subaccounts collection
                     // Check that the sub account uid matches any of the eisting sub accounts on bybit
-                    const traderSubAccountInBybit = subAccountsPresentInUserBybitAccount_Array.find((subMemberV5)=> (
-                        subMemberV5.username===traderSubAccountInfoInSubAcccountsCollection.sub_account_username &&
-                        subMemberV5.uid===String(traderSubAccountInfoInSubAcccountsCollection.sub_account_uid)
+                    const subAccountInBybit = subAccountsPresentInUserBybitAccount_Array.find((subMemberV5)=> (
+                        subMemberV5.username===subAcccountWithSubLinkNameInConfigIsPresentInSubAccountsCollection.sub_account_username &&
+                        subMemberV5.uid===String(subAcccountWithSubLinkNameInConfigIsPresentInSubAccountsCollection.sub_account_uid)
                     ));
-                    console.log({traderSubAccountInBybit});
-                    if(traderSubAccountInBybit){
-                        console.log("Trader sub Account exists");
+                    console.log({subAccountInBybit});
+                    if(subAccountInBybit){
+                        // If sub Account in Vybit and in SubAccounts Collection but not assigned to a trader assign a trader
+                        if(!subAcccountWithSubLinkNameInConfigIsPresentInSubAccountsCollection.trader_uid && traderSubAccountConfig.trader_uid){
+                            // ub Account in collection docs has no trader assigned but subAccounttConfig has a tradder assigned
+                            await mongoDatabase.collection.subAccountsCollection.updateDocument(subAcccountWithSubLinkNameInConfigIsPresentInSubAccountsCollection._id,{
+                                trader_uid: traderSubAccountConfig.trader_uid,
+                                trader_username: traderSubAccountConfig.trader_username,
+                                weight: traderSubAccountConfig.weight,
+                            });
+                        }else {
+                            console.log("Sub Accountt set and ready"); 
+                        }
                     }else {
                         // Meaning that trader sub account found in sub accounts collection but not found in bybit subaccounts
                         // Meaning we need to create the subaccount in bybit but then update the existing document in sub account collection
@@ -56,7 +66,7 @@ module.exports.createSubAccountsForUserIfNotCreated = async function createSubAc
                             bybit,mongoDatabase,
                             sub_account_api_note: "Atomos User Config",
                             sub_account_note: "Atomos User Config",
-                            sub_account_document: traderSubAccountInfoInSubAcccountsCollection,
+                            sub_account_document: subAcccountWithSubLinkNameInConfigIsPresentInSubAccountsCollection,
                             trader:traderSubAccountConfig.trader_uid? await mongoDatabase.collection.topTradersCollection.findOne({uid: traderSubAccountConfig.trader_uid}):null,
                             user
                         });
@@ -229,7 +239,7 @@ async function createSubAccount_itsApi_andSaveInDB({
     // create new sub_account_document
     // Save the Info About the created SUB ACCOUNT in SubAccountsCollection
     const createNewDocument_Res = await mongoDatabase.collection.subAccountsCollection.createNewDocument({
-        sub_account_username: createdAccount.username,
+        sub_account_username: createdAccount.username, 
         tg_user_id: user.tg_user_id,
         trader_username: trader?trader.username:"",
         weight: sub_account_trader_weight,

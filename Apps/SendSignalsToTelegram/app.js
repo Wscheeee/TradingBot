@@ -3,7 +3,7 @@ const { MongoDatabase , PositionsStateDetector} = require("../../MongoDatabase")
 const { sleepAsync } = require("../../Utils/sleepAsync");
 const {Telegram} = require("../../Telegram");
 const {Logger} = require("../../Logger");
-
+const {DecimalMath} = require("../../DecimalMath");
 const { readAndConfigureDotEnv } = require("../../Utils/readAndConfigureDotEnv");
 
 
@@ -48,12 +48,13 @@ console.log(process.env);
 
         positionsStateDetector.onUpdatePosition(async (position, trader) => {
             console.log("Position updated");
-            let sizeChange = position.size - position.original_size;
+            if(position.size<position.previous_size_before_partial_close)return;
+            let sizeChange = new DecimalMath(position.size).subtract(position.previous_size_before_partial_close).getResult();
             if (sizeChange >= 0) {
                 sizeChange = "+" + sizeChange; }
 
             if(Number.isNaN(sizeChange)){
-                logger.error(`Size change is :${sizeChange} \n ${{"position.size":position.size, "position.original_size":position.original_size }}`);
+                logger.error(`Size change is :${sizeChange} \n ${{"position.size":position.size, "position.original_size":position.previous_size_before_partial_close }}`);
             }
             bot.sendMessage("@AtomosTradingSignals",
                 `✴️ Position Updated ✴️
@@ -65,7 +66,7 @@ console.log(process.env);
 ⌛ Entry Price : ${position.entry_price}
 ❇️ Size Change of : ${sizeChange}
 
-✨ Size : ${position.original_size} ➡️ ${position.size} ✨`
+✨ Size : ${position.previous_size_before_partial_close} ➡️ ${position.size} ✨`
             );
         });
 

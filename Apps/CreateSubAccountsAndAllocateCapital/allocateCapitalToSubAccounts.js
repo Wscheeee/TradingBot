@@ -129,6 +129,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                 for(const subAccount of userSubAccounts_Array){
                     const subAccountInfoBalancesCalcsObj = accountUsernameToTheirDetailsObj[subAccount.sub_account_username];
                     if(subAccountInfoBalancesCalcsObj && subAccountInfoBalancesCalcsObj.difference>0 && subAccountInfoBalancesCalcsObj.difference.toFixed(2)>0.0){
+                        await bybit.clients.bybit_RestClientV5.enableUniversalTransferForSubAccountsWithUIDs([String(getMasterAccountAPIKeyInfo_Res.result.userID),String(subAccount.sub_account_uid)]);
                         const createUniversalTransfer_Res = await bybit.clients.bybit_RestClientV5.createUniversalTransfer({
                             amount: String(subAccountInfoBalancesCalcsObj.difference.toFixed(2)),
                             coin:"USDT",
@@ -241,6 +242,8 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
             // Make transfers
             for(const transactionLedger of transactionsLedgersArray){
                 if(transactionLedger.amount.toFixed(2)>0.00){
+                    // eneable universal transfer
+                    await bybit.clients.bybit_RestClientV5.enableUniversalTransferForSubAccountsWithUIDs([String(transactionLedger.toUid),String(transactionLedger.fromUid)]);
                     const createUniversalTransfer_Res = await bybit.clients.bybit_RestClientV5.createUniversalTransfer({
                         amount: String(transactionLedger.amount.toFixed(2)),
                         coin:"USDT",

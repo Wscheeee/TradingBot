@@ -87,7 +87,9 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
                 
                 let hasRealChange = false;
                 for (const key in updatedFields) {
-                    if(key.toLocaleLowerCase().includes("datetime")===false){
+                    const keysToDetectAsUpdates = ["size","leverage"];
+                    // if(key.toLocaleLowerCase().includes("datetime")===false){
+                    if(keysToDetectAsUpdates.includes(key.toLocaleLowerCase())){
                         hasRealChange = true;
                         break;
                     }

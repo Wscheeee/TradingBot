@@ -5,6 +5,7 @@ const {Bybit} = require("../../Trader");
 // local
 const {createSubAccountsForUserIfNotCreated} = require("./createSubAccountsForUserIfNotCreated");
 const {allocateCapitalToSubAccounts} = require("./allocateCapitalToSubAccounts");
+const { DateTime } = require("../../DateTime");
 
 /**
  * 
@@ -39,6 +40,10 @@ module.exports.createSubAccountsAndAllocateCapital_forAllUsers_InParalell =  asy
                 });
                 await allocateCapitalToSubAccounts({
                     bybit,mongoDatabase,user
+                });
+                // set last_sub_allocation_check_datetime
+                await mongoDatabase.collection.usersCollection.updateDocument(user._id,{
+                    last_sub_allocation_check_datetime: new DateTime().now().date_time_string,
                 });
 
             }catch(error){

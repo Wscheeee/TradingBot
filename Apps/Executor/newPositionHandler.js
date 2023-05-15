@@ -76,6 +76,7 @@ module.exports.newPositionHandler = async function newPositionHandler({
 *      user: import("../../MongoDatabase/collections/users/types").Users_Collection_Document_Interface,
 *      onErrorCb:(error:Error)=>any
 *}} param0 
+
 */
 async function handler({
     // bybit,
@@ -164,7 +165,7 @@ async function handler({
             positionIdx:position.direction==="LONG"?1:2, //Used to identify positions in different position modes. Under hedge-mode, this param is required 0: one-way mode  1: hedge-mode Buy side 2: hedge-mode Sell side
         });
         if(!openPositionRes || !openPositionRes.result || Object.keys(openPositionRes.result).length==0){
-            throw new Error(openPositionRes.retMsg);
+            throw new Error(`${openPositionRes.retMsg} standardized_qty:${standardized_qty}`);
         }
         logger.info("Got response from openANewPosition Order from bybit_RestClientV5");
         console.log({openPositionRes});

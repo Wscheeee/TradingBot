@@ -70,7 +70,7 @@ module.exports.UsersCollection =  class UsersCollection{
 
     /**
      * @param {import("mongodb").ObjectId} documentId
-     * @param {import("./types").User_Interface} doc 
+     * @param {import("mongodb").UpdateFilter<import("./types").User_Interface>} doc 
      * @returns {import("./types").Users_Collection_Document_Interface}
      */
     async updateDocument(documentId,doc){

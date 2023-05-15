@@ -52,7 +52,23 @@ process.env.TZ = dotEnvObj.TZ;
         const errorbot = new Telegram({telegram_bot_token:dotEnvObj.TELEGRAM_BOT_TOKEN,requestDelay:2000});
         logger.info("Create Telegrambot");
         logger.addLogCallback("error",async (cbIndex,message)=>{
-            await errorbot.sendMessage(dotEnvObj.TELEGRAM_ERROR_CHHANNEL_ID,message);
+            // FILTER OUT SOME MESSAGES
+            const messagesToFilterOut= [
+                "leverage not modified",
+                "Isolated not modified",
+                "position mode not modified"
+            ];
+            const messageIsUnwanted = messagesToFilterOut.filter((filterText)=>{
+                if(!message.includes(filterText)){
+                    return filterText;
+
+                }
+            });
+            if(!messageIsUnwanted){
+                await errorbot.sendMessage(dotEnvObj.TELEGRAM_ERROR_CHHANNEL_ID,message);
+
+            }
+                
             logger.info("Send error message to telegram error channel");
         });
 

@@ -24,6 +24,7 @@ const {createSubAccountsAndAllocateCapital_forAllUsers_InParalell} = require("./
 const APP_NAME = "App:CreateSubAccountsAndAllocateCapital";
 const logger = new Logger({app_name:APP_NAME});
 const {IS_LIVE} = require("../../appConfig");
+const { DateTime } = require("../../DateTime");
 const dotEnvObj = readAndConfigureDotEnv(IS_LIVE);
 process.env.TZ = dotEnvObj.TZ;
 
@@ -66,24 +67,34 @@ process.env.TZ = dotEnvObj.TZ;
         const subAccountsConfigCollectionStateDetector = new SubAccountsConfigCollectionStateDetector({ mongoDatabase: mongoDatabase });
         logger.info("Create SubAccountsConfigCollectionStateDetector and set listeners");
         subAccountsConfigCollectionStateDetector.onCreateDocument(async (configDocument)=>{
-            logger.info(`subAcccountConfig.onCreateDocument ${configDocument.sub_link_name}`);
-            if(!mongoDatabase)return;
-            await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
-                mongoDatabase,
-                onError: (error)=>{
-                    logger.error(error.message);
-                }
-            });
+            try{
+                logger.info(`subAcccountConfig.onCreateDocument ${configDocument.sub_link_name}`);
+                if(!mongoDatabase)return;
+                await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
+                    mongoDatabase,
+                    onError: (error)=>{
+                        logger.error(error.message);
+                    }
+                });
+
+            }catch(e){
+                logger.error(`subAcccountConfig.onCreateDocument ${e.message}`);
+            }
         });
         subAccountsConfigCollectionStateDetector.onUpdateDocument(async (configDocument)=>{
-            logger.info(`subAcccountConfig.onUpdateDocument ${configDocument.sub_link_name}`);
-            if(!mongoDatabase)return;
-            await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
-                mongoDatabase,
-                onError: (error)=>{
-                    logger.error(error.message);
-                }
-            });
+            try{
+                logger.info(`subAcccountConfig.onUpdateDocument ${configDocument.sub_link_name}`);
+                if(!mongoDatabase)return;
+                await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
+                    mongoDatabase,
+                    onError: (error)=>{
+                        logger.error(error.message);
+                    }
+                });
+
+            }catch(e){
+                logger.error(`subAcccountConfig.onUpdateDocument ${e.message}`);
+            }
         });
 
         
@@ -97,24 +108,33 @@ process.env.TZ = dotEnvObj.TZ;
         const usersCollectionStateDetector = new UsersCollectionStateDetector({ mongoDatabase: mongoDatabase });
         logger.info("Create UsersCollectionStateDetector and set listeners");
         usersCollectionStateDetector.onCreateDocument(async (user)=>{
-            logger.info(`user.onCreateDocument ${user.tg_user_id}`);
-            if(!mongoDatabase)return;
-            await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
-                mongoDatabase,
-                onError: (error)=>{
-                    logger.error(error.message);
-                }
-            });
+            try{
+                logger.info(`user.onCreateDocument ${user.tg_user_id}`);
+                if(!mongoDatabase)return;
+                await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
+                    mongoDatabase,
+                    onError: (error)=>{
+                        logger.error(error.message);
+                    }
+                });
+
+            }catch(e){
+                logger.error(`user.onCreateDocument ${e.message}`);
+            }
         });
         usersCollectionStateDetector.onUpdateDocument(async (user)=>{
-            logger.info(`user.onUpdateDocument ${user.tg_user_id}`);
-            if(!mongoDatabase)return;
-            await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
-                mongoDatabase,
-                onError: (error)=>{
-                    logger.error(error.message);
-                }
-            });
+            try{
+                logger.info(`user.onUpdateDocument ${user.tg_user_id}`);
+                if(!mongoDatabase)return;
+                await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
+                    mongoDatabase,
+                    onError: (error)=>{
+                        logger.error(error.message);
+                    }
+                });
+            }catch(e){
+                logger.error(`user.onUpdateDocument ${e.message}`);
+            }
         });
 
         
@@ -125,14 +145,12 @@ process.env.TZ = dotEnvObj.TZ;
 
         //////////////////////////////////
         // RUN AT A PARTICULAR TIME
-        let previousDayRun = -1;
+        // let previousDayRun = -1;
+        let previousHourRun = -1;
         interval = setInterval(async()=>{
-            const now = new Date();
-            const now_localTimeString = now.toLocaleTimeString("en-US", { hour12: false });
-            const [now_hours, now_minutes, now_seconds] = now_localTimeString.split(":").map(s=>Number(s));
-            console.log({now_hours, now_minutes, now_seconds});
-
-            if (now_hours==2 && previousDayRun!== now.getDay()) {
+            const dateTIme = new DateTime();
+            const nowHours = dateTIme.now().hours;
+            if (previousHourRun!== nowHours) { // run each hour
                 console.log("(=>Run At 2am)");
                 if(!mongoDatabase)return;
                 await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
@@ -142,13 +160,19 @@ process.env.TZ = dotEnvObj.TZ;
                     }
                 });
                 // If the target time has already passed, schedule the task for the next day
-                previousDayRun = new Date().getDay();
+                previousHourRun = nowHours;
 
             }
-        },1000);
+        },(1000*60)*60);//1 hr
         
       
-
+        // NONCE run
+        await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
+            mongoDatabase,
+            onError: (error)=>{
+                logger.error(error.message);
+            }
+        });
         //////////////////////////////////
       
     }catch(error){

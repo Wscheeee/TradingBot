@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Atomos Dashboard</title>
+    <link rel="stylesheet" href="./assets/css/presets.css"/>
+    <!-- scripts -->
+    <script src="./components/app-sidenav/index.js"></script>
+    <script src="./components/app-listbar/index.js"></script>
+    <script src="./components/app-content/index.js"></script>
+    <style>
+        body{
+            display: flex;
+            flex-direction: row;
+        }
+    </style>
+</head>
+<body>
+    <!-- A side nav to the left and main content to the right -->
+    <sp-sidenavbar></sp-sidenavbar>
+    <s-listbar></s-listbar>
+    <sp-content></sp-content>
+</body>
+</html>

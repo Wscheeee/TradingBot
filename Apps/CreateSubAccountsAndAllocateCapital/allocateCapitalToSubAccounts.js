@@ -1,5 +1,9 @@
 //@ts-check
 const {DecimalMath} = require("../../DecimalMath");
+
+//locals
+const {createUniversalTransferOnAUserAccounts} = require("./createUniversalTransferOnAUserAccounts");
+
 /** 
  * @param {{
 *      user: import("../../MongoDatabase/collections/users/types").Users_Collection_Document_Interface,
@@ -12,6 +16,8 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
 }){ 
     try {
         console.log("(fn:allocateCapitalToSubAccounts)");
+        // 
+        // await bybit.clients.bybit_RestClientV5.enableUniversalTransferForSubAccountsWithUIDs([String(user.),String(transactionLedger.fromUid)]);
         // Calculatte the acttual balances and the correct balances
 
         // Retrieve the subAccounts
@@ -23,12 +29,21 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
 
         // Get master account info
         const getMasterAccountAPIKeyInfo_Res = await bybit.clients.bybit_AccountAssetClientV3.getAPIKeyInformation();
-        if(getMasterAccountAPIKeyInfo_Res.ret_code!==0)throw new Error(getMasterAccountAPIKeyInfo_Res.ret_msg);
-        // Add master account to index 0 of userSubAccounts_Array
+        // console.log(getMasterAccountAPIKeyInfo_Res);
+        //@ts-ignore
+        if(getMasterAccountAPIKeyInfo_Res.retCode!==0)throw new Error("getMasterAccountAPIKeyInfo_Res: "+getMasterAccountAPIKeyInfo_Res.retMsg);
+   
+        // await bybit.clients.bybit_RestClientV5.enableUniversalTransferForSubAccountsWithUIDs([String(getMasterAccountAPIKeyInfo_Res.result.userID)]);
+        await createUniversalTransferOnAUserAccounts({
+            masterBybit:bybit,
+            masterAccountUserId: String(getMasterAccountAPIKeyInfo_Res.result.userID),
+            subAccountsUids: []
 
-
+        });
         //The account balancee of the master
         const masterAccountWalletBalance = await bybit.clients.bybit_AccountAssetClientV3.getUSDTDerivativesAccountWalletBalance();
+        console.log({masterAccountWalletBalance});
+
         let totalAccountsBalance = masterAccountWalletBalance;
         /**
          * @type {{
@@ -140,7 +155,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                 for(const subAccount of userSubAccounts_Array){
                     const subAccountInfoBalancesCalcsObj = accountUsernameToTheirDetailsObj[subAccount.sub_account_username];
                     if(subAccountInfoBalancesCalcsObj && subAccountInfoBalancesCalcsObj.difference>0 && Number(subAccountInfoBalancesCalcsObj.difference.toFixed(2))>0.0){
-                        await bybit.clients.bybit_RestClientV5.enableUniversalTransferForSubAccountsWithUIDs([String(getMasterAccountAPIKeyInfo_Res.result.userID),String(subAccount.sub_account_uid)]);
+                        // await bybit.clients.bybit_RestClientV5.enableUniversalTransferForSubAccountsWithUIDs([String(getMasterAccountAPIKeyInfo_Res.result.userID),String(subAccount.sub_account_uid)]);
                         const createUniversalTransfer_Res = await bybit.clients.bybit_RestClientV5.createUniversalTransfer({
                             amount: String(subAccountInfoBalancesCalcsObj.difference.toFixed(2)),
                             coin:"USDT",
@@ -256,7 +271,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
             for(const transactionLedger of transactionsLedgersArray){
                 if(Number(transactionLedger.amount.toFixed(2))>0.00){
                     // eneable universal transfer
-                    await bybit.clients.bybit_RestClientV5.enableUniversalTransferForSubAccountsWithUIDs([String(transactionLedger.toUid),String(transactionLedger.fromUid)]);
+                    // await bybit.clients.bybit_RestClientV5.enableUniversalTransferForSubAccountsWithUIDs([String(transactionLedger.toUid),String(transactionLedger.fromUid)]);
                     const createUniversalTransfer_Res = await bybit.clients.bybit_RestClientV5.createUniversalTransfer({
                         amount: String(transactionLedger.amount.toFixed(2)),
                         coin:"USDT",

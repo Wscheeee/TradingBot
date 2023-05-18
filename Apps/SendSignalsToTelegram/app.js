@@ -44,20 +44,24 @@ console.log(process.env);
 🌿 Leverage : ${position.leverage}
 ⌛ Entry Price : ${position.entry_price}`
             );
-        });
-
-        positionsStateDetector.onUpdatePosition(async (position, trader) => {
-            console.log("Position updated");
-            if(position.size<position.previous_size_before_partial_close)return;
-            let sizeChange = new DecimalMath(position.size).subtract(position.previous_size_before_partial_close).getResult();
-            if (sizeChange >= 0) {
-                sizeChange = "+" + sizeChange; }
-
-            if(Number.isNaN(sizeChange)){
-                logger.error(`Size change is :${sizeChange} \n ${{"position.size":position.size, "position.original_size":position.previous_size_before_partial_close }}`);
-            }
-            bot.sendMessage("@AtomosTradingSignals",
-                `✴️ Position Updated ✴️
+        }); 
+ 
+        positionsStateDetector.onUpdatePosition(async (previousPosition,position,trader) => {
+            if(!previousPosition)return;
+            if(previousPosition.size>position.size) return;// Its a resize
+            if(position.size<position.previous_size_before_partial_close)return;// Its a resize
+            console.log("Position updated"); 
+            if(previousPosition.size<position.size){
+                // size increased
+                let sizeChange = new DecimalMath(position.size).subtract(position.previous_size_before_partial_close).getResult();
+                if(sizeChange===0)return;
+                if (sizeChange >= 0) {
+                    sizeChange = "+" + sizeChange; }
+    
+                if(Number.isNaN(sizeChange)){
+                    logger.error(`Size change is :${sizeChange} \n ${{"position.size":position.size, "position.original_size":position.previous_size_before_partial_close }}`);
+                }
+                bot.sendMessage("@AtomosTradingSignals",`✴️ Position Updated ✴️
 
 👨🏽‍💻 Trader : ${"Anonymous"}
 💰 Pair : ${position.pair}
@@ -67,7 +71,32 @@ console.log(process.env);
 ❇️ Size Change of : ${sizeChange}
 
 ✨ Size : ${position.previous_size_before_partial_close} ➡️ ${position.size} ✨`
-            );
+);
+            }
+
+            if(previousPosition.leverage!==position.leverage){
+                // leverage addjusted
+                let leverageChange = new DecimalMath(previousPosition.leverage).subtract(position.leverage).getResult();
+                if(leverageChange===0)return;
+                if (leverageChange >= 0) {
+                    leverageChange = "+" + leverageChange; }
+    
+                if(Number.isNaN(leverageChange)){
+                    logger.error(`Leverage change is :${leverageChange} \n ${{"previousPosition.leverage":previousPosition.leverage, "position.leverage":position.leverage }}`);
+                }
+                bot.sendMessage("@AtomosTradingSignals",`✴️ Position Updated ✴️
+
+👨🏽‍💻 Trader : ${"Anonymous"}
+💰 Pair : ${position.pair}
+🔖 Type : ${position.direction}
+🌿 Leverage :  ${previousPosition.leverage} ➡️ ${position.leverage} ✨
+⌛ Entry Price : ${position.entry_price}
+❇️ Leverage Change of : ${leverageChange}
+
+✨ Size : ${position.size}`
+);
+
+            }
         });
 
         positionsStateDetector.onPositionResize(async (originalPosition, position,trader) => {

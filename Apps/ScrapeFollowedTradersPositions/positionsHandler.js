@@ -1,3 +1,4 @@
+//@ts-check
 const {DecimalMath} = require("../../DecimalMath/DecimalMath");
 
 const {calculateRoiFromPosition} = require("./calculateRoiFromPosition");
@@ -18,6 +19,7 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
      */
     while(await followedTradersCursor.hasNext()){
         const savedTraderDbDoc = await followedTradersCursor.next();
+        if(!savedTraderDbDoc)return;
         const traderPositions = await binanceScraper.getOtherPosition(binanceScraper.globalPage,{encryptedUid:savedTraderDbDoc.uid,tradeType:"PERPETUAL"});
         //::## WORK ON POSITIONS
         const savedPositionsDbDocCursor = await mongoDatabase.collection.openTradesCollection.getDocumentsByTraderUid(savedTraderDbDoc.uid);
@@ -74,19 +76,24 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                                 trader_uid: savedPosition_.trader_uid,
                                 document_created_at_datetime: savedPosition_.document_created_at_datetime,
                                 document_last_edited_at_datetime: new Date(),
+                                //@ts-ignore
                                 server_timezone: process.env.TZ
                             });
-                            const currentOpenPositionNewSize = new DecimalMath(savedPosition_.size).subtract(new DecimalMath(savedPosition_.size).subtract(position_.amount).getResult());
+                            const currentOpenPositionNewSize = new DecimalMath(savedPosition_.size).subtract(new DecimalMath(savedPosition_.size).subtract(position_.amount).getResult()).getResult();
                             // adjust the open position to partial closed
                             await mongoDatabase.collection.openTradesCollection.updateDocument(savedPosition_._id,{
                                 size: currentOpenPositionNewSize,
                                 previous_size_before_partial_close: savedPosition_.size,
                                 document_last_edited_at_datetime: new Date(),
-                                total_parts: currentPositionsTotalParts
+                                total_parts: currentPositionsTotalParts,
+
                             });
                         }
 
+                        
+
                     }
+
                     // if(savedPosition_.size<position_.amount){
                     // means that a size was added :: might happen even when posiition is not running
                     // update even if nothing changed
@@ -125,7 +132,7 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                 const datetimeNow = new Date();
                 await mongoDatabase.collection.openTradesCollection.createNewDocument({
                     trader_id: savedTraderDbDoc._id,
-                    trader_uid: savedTraderDbDoc.uid,
+                    trader_uid: savedTraderDbDoc.uid, 
                     close_datetime: new Date(),
                     direction: position_.direction,
                     entry_price: position_.entryPrice,
@@ -147,7 +154,7 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                     total_parts: 1,
                     document_created_at_datetime: datetimeNow,
                     document_last_edited_at_datetime: datetimeNow,
-                    server_timezone: process.env.TZ
+                    server_timezone: process.env.TZ||""
                 });
             }
             
@@ -204,7 +211,7 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                     trader_uid: positionToClose_.trader_uid ,
                     document_created_at_datetime: datetimeNow,
                     document_last_edited_at_datetime: datetimeNow,
-                    server_timezone: process.env.TZ,
+                    server_timezone: process.env.TZ||"",
                     
                 });
                 // delete from openPositions collections

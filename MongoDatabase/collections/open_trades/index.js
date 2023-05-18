@@ -19,6 +19,13 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
      */
     #eventListenersArray = [];
 
+    /**
+     * @type {{
+     *      [documentId:string]:prev_document: import("./types").OpenTrades_Collection_Document_Interface,
+     *  }}
+     */
+    previousDocumentsForUpdates_Object = {};
+
 
     /**
      * 
@@ -27,6 +34,8 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
     constructor(database){
         this.#database = database;
         this.#collection = this.#database.collection(this.#COLLECTION_NAME);
+
+        
     }
     
     async createIndexes(){
@@ -102,14 +111,22 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
 
     /**
      * @param {import("mongodb").ObjectId} documentId
-     * @param {import("./types").OpenTrades_Interface} doc 
-     * @returns {import("./types").OpenTrades_Collection_Document_Interface}
+     * @param {import("mongodb").UpdateFilter<import("./types").OpenTrades_Interface>} doc 
      */
     async updateDocument(documentId,doc){
         console.log(doc);
         if(!doc){
             throw new Error("No doc passed to (fn) update Document");
         }else {
+            // get previousDocument
+            const previousDocument = await this.findOne({_id:documentId});
+            this.previousDocumentsForUpdates_Object[previousDocument._id.toString()] = previousDocument;
+            // detele document in previousDocumentsForUpdates_Object after being saved for 10 seconds;
+            const timeout = setTimeout(()=>{
+                clearTimeout(timeout);
+                delete this.previousDocumentsForUpdates_Object[previousDocument._id.toString()];
+            },(1000,10));
+            if(!previousDocument)throw new Error(`(fn:updateDocument) previousDocument not found: documentId: ${documentId} previousDocument:${previousDocument}`);
             const updatedDoc =  await this.#collection.updateOne({
                 _id: documentId,
             },{$set:doc});

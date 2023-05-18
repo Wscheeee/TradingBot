@@ -1,3 +1,4 @@
+//@ts-check
 const {DecimalMath} = require("../../DecimalMath");
 /** 
  * @param {{
@@ -22,7 +23,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
 
         // Get master account info
         const getMasterAccountAPIKeyInfo_Res = await bybit.clients.bybit_AccountAssetClientV3.getAPIKeyInformation();
-        if(getMasterAccountAPIKeyInfo_Res.retCode!==0)throw new Error(getMasterAccountAPIKeyInfo_Res.retMsg);
+        if(getMasterAccountAPIKeyInfo_Res.ret_code!==0)throw new Error(getMasterAccountAPIKeyInfo_Res.ret_msg);
         // Add master account to index 0 of userSubAccounts_Array
 
 
@@ -52,14 +53,16 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
             const subAccountWalletBalance = await subAccount_bybit.clients.bybit_AccountAssetClientV3.getUSDTDerivativesAccountWalletBalance();
             totalAccountsBalance+=subAccountWalletBalance;
             accountUsernameToTheirDetailsObj[subAccountDocument.sub_account_username] = {
-                balance: subAccountWalletBalance
+                balance: subAccountWalletBalance,
+                desiredBalance:0,
+                difference: 0
             };
         }
 
         console.log({accountUsernameToTheirDetailsObj});
 
 
-
+        // Set disiredBalancce and difference
         // Retrieve the weight of each trader and calculate the correct capital for each account
         for (const subAccount of userSubAccounts_Array) {
             const weight = subAccount.weight;
@@ -109,16 +112,24 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
             /**
              * @type {LedgerObject}
              */
-            let ledgerObj = {};
+            let ledgerObj = {//Inittialize
+                amount:0,
+                fromUid:0,
+                toUid:0
+            };
             // Top up those accounts with negative difference with those accounts with positive difference
             for(const subAccount of userSubAccounts_Array){
                 const subAccountInfoBalancesCalcsObj = accountUsernameToTheirDetailsObj[subAccount.sub_account_username];
-                const {balance,desiredBalance,difference} = subAccountInfoBalancesCalcsObj;
+                const {difference} = subAccountInfoBalancesCalcsObj;
                 if(difference<0){//Means that the account needs some top up
                     ledgerObj.toUid = subAccount.sub_account_uid;
                     ledgerObj.amount = Math.abs(difference);
                     ledgerObj_Arrray.push(ledgerObj);
-                    ledgerObj = {};
+                    ledgerObj = {// reset
+                        amount:0,
+                        fromUid:0,
+                        toUid:0
+                    };
                 }
             }
             console.log("ledgerObj_Arrray");
@@ -128,7 +139,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                 // Send the ecess change in subaccounts to master account
                 for(const subAccount of userSubAccounts_Array){
                     const subAccountInfoBalancesCalcsObj = accountUsernameToTheirDetailsObj[subAccount.sub_account_username];
-                    if(subAccountInfoBalancesCalcsObj && subAccountInfoBalancesCalcsObj.difference>0 && subAccountInfoBalancesCalcsObj.difference.toFixed(2)>0.0){
+                    if(subAccountInfoBalancesCalcsObj && subAccountInfoBalancesCalcsObj.difference>0 && Number(subAccountInfoBalancesCalcsObj.difference.toFixed(2))>0.0){
                         await bybit.clients.bybit_RestClientV5.enableUniversalTransferForSubAccountsWithUIDs([String(getMasterAccountAPIKeyInfo_Res.result.userID),String(subAccount.sub_account_uid)]);
                         const createUniversalTransfer_Res = await bybit.clients.bybit_RestClientV5.createUniversalTransfer({
                             amount: String(subAccountInfoBalancesCalcsObj.difference.toFixed(2)),
@@ -142,7 +153,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                         if(createUniversalTransfer_Res.retCode!==0)throw new Error(createUniversalTransfer_Res.retMsg);
                     }
                 }
-                console.og("No money transfers");
+                console.log("No money transfers");
                 return;
             }
             const gettingMoneyFromSubAccounts = ()=>{
@@ -154,11 +165,11 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                     const subAccount = subAcccountToTakeMoneyFrom;
                     // (const subAccount of userSubAccounts_Array)
                     const subAccountInfoBalancesCalcsObj = accountUsernameToTheirDetailsObj[subAccount.sub_account_username];
-                    const {balance,desiredBalance,difference} = subAccountInfoBalancesCalcsObj;
+                    const {difference} = subAccountInfoBalancesCalcsObj;
                     if(difference>0){//Means that the account needs some to top up another account with the excess
                         let remainingChange = difference;
                         ledgerObj_Arrray.forEach((ledgerObj_)=>{
-                            const {amount,fromUid,toUid}  = ledgerObj_;
+                            const {amount,toUid}  = ledgerObj_;
                             if(remainingChange<=amount){// Meaning the difference in account cannot fill in the required in "subAcccount to"
                                 // Create a trransaction ledger to send the whole remaining change to the to account still.
                                 transactionsLedgersArray.push({
@@ -169,6 +180,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                                 // move to next index
                                 indexCounter++;
                                 if(indexCounter>maxIndexOfSubAccountsArray){
+                                    //@ts-ignore
                                     subAcccountToTakeMoneyFrom = null;
                                 }else {
                                     subAcccountToTakeMoneyFrom = userSubAccounts_Array[indexCounter];
@@ -177,7 +189,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                             }else {
                                 // the remainingChange > amount needed to "subAccount to"
                                 // Take only what is needed
-                                remainingChange = new DecimalMath(remainingChange).subtract(amount);
+                                remainingChange = new DecimalMath(remainingChange).subtract(amount).getResult();
                                 transactionsLedgersArray.push({
                                     amount: amount,
                                     fromUid: subAccount.sub_account_uid,
@@ -193,6 +205,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                         // move to next index
                         indexCounter++;
                         if(indexCounter>maxIndexOfSubAccountsArray){
+                            //@ts-ignore
                             subAcccountToTakeMoneyFrom = null;
                         }else {
                             subAcccountToTakeMoneyFrom = userSubAccounts_Array[indexCounter];
@@ -208,7 +221,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                 let remainingChange = masterAccountWalletBalance;
                 ledgerObj_Arrray.forEach((ledgerObj_)=>{
                     if(remainingChange>0){
-                        const {amount,fromUid,toUid}  = ledgerObj_;
+                        const {amount,toUid}  = ledgerObj_;
                         if(remainingChange<=amount){// Meaning the difference in account cannot fill in the required in "subAcccount to"
                             // Create a trransaction ledger to send the whole remaining change to the to account still.
                             transactionsLedgersArray.push({
@@ -241,7 +254,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
 
             // Make transfers
             for(const transactionLedger of transactionsLedgersArray){
-                if(transactionLedger.amount.toFixed(2)>0.00){
+                if(Number(transactionLedger.amount.toFixed(2))>0.00){
                     // eneable universal transfer
                     await bybit.clients.bybit_RestClientV5.enableUniversalTransferForSubAccountsWithUIDs([String(transactionLedger.toUid),String(transactionLedger.fromUid)]);
                     const createUniversalTransfer_Res = await bybit.clients.bybit_RestClientV5.createUniversalTransfer({

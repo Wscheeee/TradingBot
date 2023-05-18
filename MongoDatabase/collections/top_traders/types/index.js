@@ -2,7 +2,7 @@
  * @typedef  {{
  *      unique_number: string,
  *      uid: string
- *      username:string|null,
+ *      username:string,
  *      trader_base_allocation: number,
  *      daily_pnl: number,
  *      daily_roi: number,

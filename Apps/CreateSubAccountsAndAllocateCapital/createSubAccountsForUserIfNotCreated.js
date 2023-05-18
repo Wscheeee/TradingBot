@@ -1,5 +1,5 @@
 
-//@js-check
+//@ts-check
 
 /**
  * @param {{
@@ -103,6 +103,7 @@ module.exports.createSubAccountsForUserIfNotCreated = async function createSubAc
             let counter = 0;// Counts how many subAccountsCollection documents were got from db
             while(await getAllSubCollectionsForUser_Cursor.hasNext()){
                 const subCollectionDocument = await getAllSubCollectionsForUser_Cursor.next();
+                if(!subCollectionDocument)return;
                 counter+=1;
 
                 let subAcccountAlreadyCreated = false;
@@ -190,12 +191,14 @@ async function createSubAccount_itsApi_andSaveInDB({
      *      remark: string
      * }}
      */
+    //@ts-ignore
     let createdAccount = {};
     let subAccountCreated = false;
     while(subAccountCreated===false){
         const subAccountUsername = bybit.utils.generateRandomUsernameForSubAccount();// randomly generated
         // create the sub Account with the username
         const createSubAccount2_Res = await bybit.clients.bybit_RestClientV5.createSubAccount({
+            //@ts-ignore
             memberType:bybit.SUB_ACCOUNTS_MEMBER_TYPES.NORMAL_SUB_ACCOUNT,
             username:subAccountUsername,//"APPTEST1",
             note:sub_account_note,//"Atomos Default Config",
@@ -214,6 +217,7 @@ async function createSubAccount_itsApi_andSaveInDB({
             if(createSubAccount2_Res.retCode!==0)throw new Error(createSubAccount2_Res.retMsg);
         }
     }
+    if(!createdAccount.uid)throw new Error("Error creating sub account: createdAccount object has no required filed uid: createdAccount:"+JSON.stringify(createdAccount));
     
     // Enale SubUID universal Transer
     const enableUniversalTransfer_Res = await bybit.clients.bybit_RestClientV5.enableUniversalTransferForSubAccountsWithUIDs([createdAccount.uid]);
@@ -229,7 +233,9 @@ async function createSubAccount_itsApi_andSaveInDB({
             Exchange:["ExchangeHistory"]
 
         },
+        //@ts-ignore
         readOnly: bybit.API_KEYS_READ_ONLY_MODES.READ_AND_WRITE,//Read and Write
+        //@ts-ignore
         subuid: createdAccount.uid,
         note: sub_account_api_note,//"Atomos Default Config"
     });
@@ -248,7 +254,10 @@ async function createSubAccount_itsApi_andSaveInDB({
         trader_uid: trader?trader.uid:"",
         testnet: sub_account_testnet,
         sub_account_uid: Number(createdAccount.uid),
-        sub_link_name: sub_account_sub_link_name
+        sub_link_name: sub_account_sub_link_name,
+        document_created_at_datetime: new Date(),
+        //@ts-ignore
+        server_timezone: process.env.TZ
     });
 
     if(createNewDocument_Res.acknowledged===false)throw new Error(`Error writing to subAccountsCollection: new Sub Account saving name:${createdAccount.username} user:(${user.username})`);
@@ -284,12 +293,14 @@ async function createSubAccount_itsApi_andUpdateInDB({
      *      remark: string
      * }}
      */
+    //@ts-ignore
     let createdAccount = {};
     let subAccountCreated = false;
     while(subAccountCreated===false){
         const subAccountUsername = bybit.utils.generateRandomUsernameForSubAccount();// randomly generated
         // create the sub Account with the username
         const createSubAccount2_Res = await bybit.clients.bybit_RestClientV5.createSubAccount({
+            //@ts-ignore
             memberType:bybit.SUB_ACCOUNTS_MEMBER_TYPES.NORMAL_SUB_ACCOUNT,
             username:subAccountUsername,//"APPTEST1",
             note:sub_account_note,//"Atomos Default Config",
@@ -308,6 +319,8 @@ async function createSubAccount_itsApi_andUpdateInDB({
             if(createSubAccount2_Res.retCode!==0)throw new Error(createSubAccount2_Res.retMsg);
         }
     }
+
+    if(!createdAccount.uid)throw new Error("Error creating sub account: createdAccount object has no required filed uid: createdAccount:"+JSON.stringify(createdAccount));
     
     // Enale SubUID universal Transer
     const enableUniversalTransfer_Res = await bybit.clients.bybit_RestClientV5.enableUniversalTransferForSubAccountsWithUIDs([createdAccount.uid]);
@@ -323,12 +336,13 @@ async function createSubAccount_itsApi_andUpdateInDB({
             Exchange:["ExchangeHistory"]
 
         },
+        //@ts-ignore
         readOnly: bybit.API_KEYS_READ_ONLY_MODES.READ_AND_WRITE,//Read and Write
-        subuid: createdAccount.uid,
+        subuid: Number(createdAccount.uid),
         note: sub_account_api_note,//"Atomos Default Config"
     });
     if(createSubAccountUIDAPIKey_Res.retCode!==0)throw new Error(createSubAccountUIDAPIKey_Res.retMsg);
-    
+    if(!sub_account_document ||!sub_account_document._id)throw new Error("error in sub_account_document:"+JSON.stringify(sub_account_document));
     //update
     const updateDocument_Res = await mongoDatabase.collection.subAccountsCollection.updateDocument(sub_account_document._id,{
         sub_account_username: createdAccount.username,

@@ -219,10 +219,7 @@ async function createSubAccount_itsApi_andSaveInDB({
     }
     if(!createdAccount.uid)throw new Error("Error creating sub account: createdAccount object has no required filed uid: createdAccount:"+JSON.stringify(createdAccount));
     
-    // Enale SubUID universal Transer
-    const enableUniversalTransfer_Res = await bybit.clients.bybit_RestClientV5.enableUniversalTransferForSubAccountsWithUIDs([createdAccount.uid]);
-    if(enableUniversalTransfer_Res.retCode!==0)throw new Error(enableUniversalTransfer_Res.retMsg);
-    
+ 
 
     // Create Api Key for the Sub Account
     const createSubAccountUIDAPIKey_Res = await bybit.clients.bybit_RestClientV5.createSubAccountUIDAPIKey({
@@ -241,7 +238,10 @@ async function createSubAccount_itsApi_andSaveInDB({
     });
     if(createSubAccountUIDAPIKey_Res.retCode!==0)throw new Error(createSubAccountUIDAPIKey_Res.retMsg);
 
-    
+    // Enale SubUID universal Transer After creating API keys
+    const enableUniversalTransfer_Res = await bybit.clients.bybit_RestClientV5.enableUniversalTransferForSubAccountsWithUIDs([createdAccount.uid]);
+    if(enableUniversalTransfer_Res.retCode!==0)throw new Error(enableUniversalTransfer_Res.retMsg);
+       
     // create new sub_account_document
     // Save the Info About the created SUB ACCOUNT in SubAccountsCollection
     const createNewDocument_Res = await mongoDatabase.collection.subAccountsCollection.createNewDocument({
@@ -322,10 +322,6 @@ async function createSubAccount_itsApi_andUpdateInDB({
 
     if(!createdAccount.uid)throw new Error("Error creating sub account: createdAccount object has no required filed uid: createdAccount:"+JSON.stringify(createdAccount));
     
-    // Enale SubUID universal Transer
-    const enableUniversalTransfer_Res = await bybit.clients.bybit_RestClientV5.enableUniversalTransferForSubAccountsWithUIDs([createdAccount.uid]);
-    if(enableUniversalTransfer_Res.retCode!==0)throw new Error(enableUniversalTransfer_Res.retMsg);
-    
 
     // Create Api Key for the Sub Account
     const createSubAccountUIDAPIKey_Res = await bybit.clients.bybit_RestClientV5.createSubAccountUIDAPIKey({
@@ -342,7 +338,14 @@ async function createSubAccount_itsApi_andUpdateInDB({
         note: sub_account_api_note,//"Atomos Default Config"
     });
     if(createSubAccountUIDAPIKey_Res.retCode!==0)throw new Error(createSubAccountUIDAPIKey_Res.retMsg);
+    console.log("API kes created");
     if(!sub_account_document ||!sub_account_document._id)throw new Error("error in sub_account_document:"+JSON.stringify(sub_account_document));
+
+    // Enale SubUID universal Transer
+    const enableUniversalTransfer_Res = await bybit.clients.bybit_RestClientV5.enableUniversalTransferForSubAccountsWithUIDs([createdAccount.uid]);
+    if(enableUniversalTransfer_Res.retCode!==0)throw new Error(enableUniversalTransfer_Res.retMsg);
+    
+     
     //update
     const updateDocument_Res = await mongoDatabase.collection.subAccountsCollection.updateDocument(sub_account_document._id,{
         sub_account_username: createdAccount.username,

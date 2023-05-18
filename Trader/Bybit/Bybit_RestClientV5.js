@@ -236,6 +236,20 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
         const res = await this.#restClientV5.enableUniversalTransferForSubUIDs(subMemberIds);
         return res;
     }
+
+    async deleteSubApiKey(){
+        await this.#rateLimiter.addJob();
+        console.log("[method: deleteSubApiKey]");
+        const res = await this.#restClientV5.deleteSubApiKey();
+        return res;
+    }
+
+    // async updateAPiKeyPermissions(){
+    //     await this.#rateLimiter.addJob();
+    //     console.log("[method: updateAPiKeyPermissions]");
+    //     const res = await this.#restClientV5.();
+    //     return res;
+    // }
     /**
      * 
      * @param {import("bybit-api").UniversalTransferParamsV5} universalTransferParamsV5
@@ -247,7 +261,9 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
         const res = await this.#restClientV5.createUniversalTransfer(universalTransferParamsV5);
         return res;
     }
-   
+
+
+ 
 
 
 

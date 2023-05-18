@@ -2,7 +2,7 @@
 const {DecimalMath} = require("../../DecimalMath");
 
 //locals
-const {createUniversalTransferOnAUserAccounts} = require("./createUniversalTransferOnAUserAccounts");
+const { performUniversalTransfer } = require("./performUniversalTransfer");
 
 /** 
  * @param {{
@@ -33,13 +33,10 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
         //@ts-ignore
         if(getMasterAccountAPIKeyInfo_Res.retCode!==0)throw new Error("getMasterAccountAPIKeyInfo_Res: "+getMasterAccountAPIKeyInfo_Res.retMsg);
    
-        // await bybit.clients.bybit_RestClientV5.enableUniversalTransferForSubAccountsWithUIDs([String(getMasterAccountAPIKeyInfo_Res.result.userID)]);
-        await createUniversalTransferOnAUserAccounts({
-            masterBybit:bybit,
-            masterAccountUserId: String(getMasterAccountAPIKeyInfo_Res.result.userID),
-            subAccountsUids: []
-
-        });
+        // await enableUniversalTransferForSubAccounts({
+        //     masterBybit:bybit,
+        //     subAccountsUids: []
+        // });
         //The account balancee of the master
         const masterAccountWalletBalance = await bybit.clients.bybit_AccountAssetClientV3.getUSDTDerivativesAccountWalletBalance();
         console.log({masterAccountWalletBalance});
@@ -155,17 +152,15 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                 for(const subAccount of userSubAccounts_Array){
                     const subAccountInfoBalancesCalcsObj = accountUsernameToTheirDetailsObj[subAccount.sub_account_username];
                     if(subAccountInfoBalancesCalcsObj && subAccountInfoBalancesCalcsObj.difference>0 && Number(subAccountInfoBalancesCalcsObj.difference.toFixed(2))>0.0){
-                        // await bybit.clients.bybit_RestClientV5.enableUniversalTransferForSubAccountsWithUIDs([String(getMasterAccountAPIKeyInfo_Res.result.userID),String(subAccount.sub_account_uid)]);
-                        const createUniversalTransfer_Res = await bybit.clients.bybit_RestClientV5.createUniversalTransfer({
+                        
+                        await performUniversalTransfer({
                             amount: String(subAccountInfoBalancesCalcsObj.difference.toFixed(2)),
-                            coin:"USDT",
-                            fromAccountType:"CONTRACT",
-                            toAccountType:"CONTRACT",
                             toMemberId: Number(getMasterAccountAPIKeyInfo_Res.result.userID),
                             fromMemberId: Number(subAccount.sub_account_uid),
-                            transferId: require("../../Utils/generateUID").generateUID()
+                            bybit,
+                            masterBybit:bybit,
+                            subAccountsUids:[String(subAccount.sub_account_uid)]
                         });
-                        if(createUniversalTransfer_Res.retCode!==0)throw new Error(createUniversalTransfer_Res.retMsg);
                     }
                 }
                 console.log("No money transfers");
@@ -270,18 +265,15 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
             // Make transfers
             for(const transactionLedger of transactionsLedgersArray){
                 if(Number(transactionLedger.amount.toFixed(2))>0.00){
-                    // eneable universal transfer
-                    // await bybit.clients.bybit_RestClientV5.enableUniversalTransferForSubAccountsWithUIDs([String(transactionLedger.toUid),String(transactionLedger.fromUid)]);
-                    const createUniversalTransfer_Res = await bybit.clients.bybit_RestClientV5.createUniversalTransfer({
+                    await performUniversalTransfer({
                         amount: String(transactionLedger.amount.toFixed(2)),
-                        coin:"USDT",
-                        fromAccountType:"CONTRACT",
-                        toAccountType:"CONTRACT",
                         toMemberId: Number(transactionLedger.toUid),
                         fromMemberId: Number(transactionLedger.fromUid),
-                        transferId: require("../../Utils/generateUID").generateUID()
+                        bybit,
+                        masterBybit:bybit,
+                        subAccountsUids:[String(transactionLedger.toUid),String(transactionLedger.fromUid)].filter((uid)=>uid!==String(getMasterAccountAPIKeyInfo_Res.result.userID))
                     });
-                    if(createUniversalTransfer_Res.retCode!==0)throw new Error(createUniversalTransfer_Res.retMsg);
+
 
                 }
             }

@@ -122,20 +122,20 @@ process.env.TZ = dotEnvObj.TZ;
                 logger.error(`user.onCreateDocument ${e.message}`);
             }
         });
-        usersCollectionStateDetector.onUpdateDocument(async (user)=>{
-            try{
-                logger.info(`user.onUpdateDocument ${user.tg_user_id}`);
-                if(!mongoDatabase)return;
-                await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
-                    mongoDatabase,
-                    onError: (error)=>{
-                        logger.error(error.message);
-                    }
-                });
-            }catch(e){
-                logger.error(`user.onUpdateDocument ${e.message}`);
-            }
-        });
+        // usersCollectionStateDetector.onUpdateDocument(async (user)=>{
+        //     try{
+        //         logger.info(`user.onUpdateDocument ${user.tg_user_id}`);
+        //         if(!mongoDatabase)return;
+        //         await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
+        //             mongoDatabase,
+        //             onError: (error)=>{
+        //                 logger.error(error.message);
+        //             }
+        //         });
+        //     }catch(e){
+        //         logger.error(`user.onUpdateDocument ${e.message}`);
+        //     }
+        // });
 
         
         usersCollectionStateDetector.listenToUsersCollection();

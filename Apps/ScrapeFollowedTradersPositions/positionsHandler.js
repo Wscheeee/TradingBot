@@ -1,4 +1,11 @@
 //@ts-check
+/**
+ * Update on:
+ * : Position size increase
+ * : Position size decrease : Partial close
+ * : Leverage change
+ * : Update other values e.g Markprice and roe
+ */
 const {DecimalMath} = require("../../DecimalMath/DecimalMath");
 
 const {calculateRoiFromPosition} = require("./calculateRoiFromPosition");
@@ -39,7 +46,7 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                     const isPositionRunning = position_.pnl !== savedPosition_.pnl;
                     let currentPositionsTotalParts = savedPosition_.total_parts;
                     if(isPositionRunning){
-                        if(savedPosition_.size > position_.amount){
+                        if(savedPosition_.size > position_.amount){// A partial was closed
                             currentPositionsTotalParts = savedPosition_.total_parts+1;
                             // means that a partial position was closed
                             const partialPositionsSize = new DecimalMath(Math.abs(savedPosition_.size)).subtract(Math.abs(position_.amount)).getResult();
@@ -88,11 +95,58 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                                 total_parts: currentPositionsTotalParts,
 
                             });
+                        }else if(savedPosition_.size < position_.amount){// The size was increased
+                            // so update the position 
+                            await mongoDatabase.collection.openTradesCollection.updateDocument(savedPosition_._id,{
+                                // trader_id: savedPosition_.trader_id,
+                                // trader_uid: savedPosition_.trader_uid,
+                                // // close_datetime: null,
+                                // direction: savedPosition_.direction,
+                                // entry_price: position_.entryPrice,
+                                // followed: savedPosition_.followed,
+                                // copied: savedPosition_.copied,
+                                // leverage: savedPosition_.leverage,
+                                // mark_price: position_.markPrice,
+                                // open_datetime: savedPosition_.open_datetime,
+                                // original_size: position_.amount, // Adjust original size for size increase
+                                // pair: savedPosition_.pair,
+                                // part: savedPosition_.part,
+                                // pnl:position_.pnl,
+                                // roi: position_.roe,
+                                // roi_percentage: position_.roe*100,
+                                size: position_.amount,
+                                previous_size_before_partial_close: position_.amount,//(position_.amount!=savedPosition_.size?position_.amount:savedPosition_.previous_size_before_partial_close),
+                                // status: savedPosition_.status,
+                                // total_parts: currentPositionsTotalParts,
+                                // document_created_at_datetime: savedPosition_.document_created_at_datetime,
+                                // document_last_edited_at_datetime: new Date(),
+                                // server_timezone: process.env.TZ
+                            });
+                                
+                        }else { // size did not change
+                            console.log("Size did not change");
                         }
 
-                        
+                        // Check for leaverage change
+                        if(savedPosition_.leverage!=position_.leverage){
+                            // update leverage incase of change
+                            await mongoDatabase.collection.openTradesCollection.updateDocument(savedPosition_._id,{
+                                leverage: savedPosition_.leverage,
+                            });
+                        }
 
-                    }
+                        // Update other details
+
+                        await mongoDatabase.collection.openTradesCollection.updateDocument(savedPosition_._id,{
+                            mark_price: position_.markPrice,
+                            pnl:position_.pnl,
+                            roi: position_.roe,
+                            roi_percentage: position_.roe*100,
+                            document_last_edited_at_datetime: new Date(),
+                            server_timezone: process.env.TZ
+                        });
+
+                    }// End of isPositionRunning
 
                     // if(savedPosition_.size<position_.amount){
                     // means that a size was added :: might happen even when posiition is not running
@@ -109,7 +163,7 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                         leverage: savedPosition_.leverage,
                         mark_price: position_.markPrice,
                         open_datetime: savedPosition_.open_datetime,
-                        original_size: savedPosition_.original_size,
+                        original_size: savedPosition_.original_size<position_.amount?position_.amount:savedPosition_.original_size, // Adjust original size incase of size increase
                         pair: savedPosition_.pair,
                         part: savedPosition_.part,
                         pnl:position_.pnl,

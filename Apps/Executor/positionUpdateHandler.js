@@ -88,6 +88,7 @@ async function handler({
             trader_uid: trader.uid,
             testnet: user.testnet 
         });
+        console.log({trader});
         if(!subAccountDocument) throw new Error(`No SubAccount found in subAccountDocument for trader :${trader.username}) and user :(${user.tg_user_id}) `);
         console.log({subAccountDocument});
         const bybitSubAccount = new Bybit({

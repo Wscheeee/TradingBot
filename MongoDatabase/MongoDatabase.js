@@ -10,7 +10,8 @@ const {
     TradedPositionsCollection,
     PerformanceCollection,
     SubAccountsCollection,
-    SubAccountsConfigCollection
+    SubAccountsConfigCollection,
+    PreviousOpenTradesBeforeUpdate
 } = require("./collections/");
 
 /**
@@ -22,7 +23,8 @@ const {
  *      tradedPositionsCollection: TradedPositionsCollection,
  *      performanceCollection: PerformanceCollection,
  *      subAccountsCollection: SubAccountsCollection,
- *      subAccountsConfigCollection: SubAccountsConfigCollection
+ *      subAccountsConfigCollection: SubAccountsConfigCollection,
+ *      previousOpenTradesBeforeUpdate: PreviousOpenTradesBeforeUpdate
  * }} Collections_Interface
  */
 
@@ -96,6 +98,7 @@ module.exports.MongoDatabase =  class MongoDatabase{
                 // this.#session = this.#client.startSession();// what is this ?
                 this.#dbIsConnected = true;
                 this.#database = this.#client.db(databaseName);
+                const previousOpenTradesBeforeUpdate = new PreviousOpenTradesBeforeUpdate(this.#database);
                 this.collection = {
                     usersCollection: new UsersCollection(this.#database),
                     oldTradesCollection: new OldTradesCollection(this.#database),
@@ -104,7 +107,8 @@ module.exports.MongoDatabase =  class MongoDatabase{
                     tradedPositionsCollection: new TradedPositionsCollection(this.#database),
                     performanceCollection: new PerformanceCollection(this.#database),
                     subAccountsCollection: new SubAccountsCollection(this.#database),
-                    subAccountsConfigCollection: new SubAccountsConfigCollection(this.#database)
+                    subAccountsConfigCollection: new SubAccountsConfigCollection(this.#database),
+                    previousOpenTradesBeforeUpdate: previousOpenTradesBeforeUpdate,
                 };
                 console.log("Database connected...");
                 // Ping the DB every 30 min

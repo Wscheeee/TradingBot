@@ -47,11 +47,28 @@ console.log(process.env);
         }); 
  
         positionsStateDetector.onUpdatePosition(async (previousPosition,position,trader) => {
-            if(!previousPosition)return;
-            if(previousPosition.size>position.size) return;// Its a resize
-            if(position.size<position.previous_size_before_partial_close)return;// Its a resize
+            console.log("positionsStateDetector.onUpdatePosition");
+            if(!previousPosition){
+                console.log("Previous Position not passed in.");
+                return;
+            }else {
+                console.log("Previous Position passed");
+            }
+            if(previousPosition.size>position.size){
+                console.log("previousPosition.size>position.size: It''s a resize");
+                return;// Its a resize
+            }else {
+                console.log("Pass");
+            }
+            if(position.size<position.previous_size_before_partial_close){
+                console.log("position.size<position.previous_size_before_partial_close: It''s a resize");
+                return;// Its a resize
+            }else {
+                console.log("Pass");
+            }
             console.log("Position updated"); 
             if(previousPosition.size<position.size){
+                console.log("previousPosition.size<position.size");
                 // size increased
                 let sizeChange = new DecimalMath(position.size).subtract(position.previous_size_before_partial_close).getResult();
                 if(sizeChange===0)return;
@@ -145,7 +162,9 @@ console.log(process.env);
         if(mongoDatabase){
             await mongoDatabase.disconnect();
         }
-        logger.error(JSON.stringify(error.message));
+        const newErrorMessage = `${error.message}`;
+        error.message = newErrorMessage;
+        logger.error(error.message);
         await sleepAsync(5000);
         throw error;
     }

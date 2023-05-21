@@ -6,6 +6,7 @@ const {TradedPositionsCollection} = require("./traded_positions");
 const {PerformanceCollection} = require("./performance");
 const {SubAccountsCollection} = require("./sub_accounts");
 const {SubAccountsConfigCollection} = require("./sub_accounts_config");
+const {PreviousOpenTradesBeforeUpdate} = require("./previous_open_trades_before_update");
 
 module.exports =  {
     UsersCollection,
@@ -15,5 +16,6 @@ module.exports =  {
     TradedPositionsCollection,
     PerformanceCollection,
     SubAccountsCollection,
-    SubAccountsConfigCollection
+    SubAccountsConfigCollection,
+    PreviousOpenTradesBeforeUpdate
 };

@@ -23,7 +23,7 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
     #onNewPositionCallbacks = [];
     /**
   * @typedef {(
-  *      previousPositionDocument: import("../collections/open_trades/types").OpenTrades_Collection_Document_Interface,
+  *      previousPositionDocument: import("../collections/previous_open_trades_before_update/types").Previous_OpenTrades_Before_Update_Collection_Document_Interface,
   *      position:import("../collections/open_trades/types").OpenTrades_Collection_Document_Interface,
   *      trader:import("../collections/top_traders/types").TopTraderCollection_Document_Interface
   * )=>any} OnUpdatePositionCb_Interface
@@ -89,19 +89,21 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
                 let hasRealChange = false;
                 for (const key in updatedFields) {
                     const keysToDetectAsUpdates = ["size","leverage"];
+                    console.log({keysToDetectAsUpdates,key:key.toLocaleLowerCase()});
                     // if(key.toLocaleLowerCase().includes("datetime")===false){
                     if(keysToDetectAsUpdates.includes(key.toLocaleLowerCase())){
                         hasRealChange = true;
                         break;
                     }
                 } 
-
+                console.log({hasRealChange});
 
                 if (hasRealChange && fullDocumentAfterUpdate.copied) {
-                    const previousDoc = this.#mongoDatabase.collection.openTradesCollection.previousDocumentsForUpdates_Object[fullDocumentAfterUpdate._id.toString()];
+                    // const previousDoc = this.#mongoDatabase.collection.openTradesCollection.previousDocumentsForUpdates_Object[fullDocumentAfterUpdate._id.toString()];
+                    const previousDocBeforeUpdate = this.#mongoDatabase.collection.openTradesCollection.previousOpenTradesBeforeUpdate_Collection.findOne({original_document_id: fullDocumentAfterUpdate._id});
                     console.log("OpenTrades Document has real changes!");
                     this.#onUpdatePositionCallbacks.forEach((cb) => {
-                        cb(previousDoc,fullDocumentAfterUpdate, trader);
+                        cb(previousDocBeforeUpdate,fullDocumentAfterUpdate, trader);
                     });
                 } else {
                     // console.log("OpenTrades Document has no real changes.");

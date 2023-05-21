@@ -37,8 +37,9 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                 //:: Check if position is saved
                 if(
                     savedPosition_.pair===position_.symbol &&
-                    savedPosition_.direction===position_.direction &&
-                    savedPosition_.leverage===position_.leverage
+                    savedPosition_.direction===position_.direction
+                    //  &&
+                    // savedPosition_.leverage===position_.leverage
                 ){
                     positionIsSaved = true;
 

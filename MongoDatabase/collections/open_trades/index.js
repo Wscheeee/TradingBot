@@ -123,13 +123,14 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
                 // get previousDocument
                 const previousDocumentBeforeUpdate = await this.findOne({_id:typeof documentId==="string"?new ObjectId(documentId):documentId});
                 if(!previousDocumentBeforeUpdate)throw new Error(`previousDocumentBeforeUpdate not found previousDocumentBeforeUpdate:${previousDocumentBeforeUpdate}`);
-    
+                console.log({previousDocumentBeforeUpdate});
                 // Delete the previous saved document before update
                 const previous_previousDocumentBeforeUpdate = await this.previousOpenTradesBeforeUpdate_Collection.findOne({original_document_id: documentId});
+                console.log({previous_previousDocumentBeforeUpdate});
                 if(previous_previousDocumentBeforeUpdate){
                     console.log("Deleting previous_previousDocumentBeforeUpdate");
-                    await this.previousOpenTradesBeforeUpdate_Collection.deleteManyDocumentsByIds([previous_previousDocumentBeforeUpdate._id]);
-                    console.log("Deleted previous_previousDocumentBeforeUpdate");
+                    const deleteManyDocumentsByIds_Result = await this.previousOpenTradesBeforeUpdate_Collection.deleteManyDocumentsByIds([previous_previousDocumentBeforeUpdate._id]);
+                    console.log("Deleted previous_previousDocumentBeforeUpdate",{deleteManyDocumentsByIds_Result});
                 }
                 // Save the previousDocumentBeforeUpdate
                 /**
@@ -137,10 +138,11 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
                  */
                 const previousDocumentBeforeUpdate_payloadDoc = {
                     ...previousDocumentBeforeUpdate,
-                    original_document_id: documentId
+                    original_document_id: typeof documentId==="string"?new ObjectId(documentId):documentId
                 }; 
                 //@ts-ignore
                 delete previousDocumentBeforeUpdate_payloadDoc._id;
+                console.log({previousDocumentBeforeUpdate_payloadDoc});
                 const insertResult = await this.previousOpenTradesBeforeUpdate_Collection.createNewDocument(previousDocumentBeforeUpdate_payloadDoc);
                 console.log("Inserted: insertResult",{insertResult});
             

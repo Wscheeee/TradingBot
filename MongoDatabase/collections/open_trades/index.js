@@ -125,7 +125,7 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
                 if(!previousDocumentBeforeUpdate)throw new Error(`previousDocumentBeforeUpdate not found previousDocumentBeforeUpdate:${previousDocumentBeforeUpdate}`);
                 console.log({previousDocumentBeforeUpdate});
                 // Delete the previous saved document before update
-                const previous_previousDocumentBeforeUpdate = await this.previousOpenTradesBeforeUpdate_Collection.findOne({original_document_id: documentId});
+                const previous_previousDocumentBeforeUpdate = await this.previousOpenTradesBeforeUpdate_Collection.findOne({original_document_id: typeof documentId==="string"?new ObjectId(documentId):documentId});
                 console.log({previous_previousDocumentBeforeUpdate});
                 if(previous_previousDocumentBeforeUpdate){
                     console.log("Deleting previous_previousDocumentBeforeUpdate");

@@ -97,6 +97,7 @@ process.env.TZ = dotEnvObj.TZ;
             logger,
             mongoDatabase,
             positionsStateDetector,
+            
             onErrorCb:(error)=>{
                 logger.error(error.message);
             }

@@ -1,3 +1,5 @@
+//@ts-check
+
 const { ObjectId } = require("mongodb");
 
 
@@ -11,7 +13,7 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
      */
     #database;
     /**
-     * @type {import("mongodb").Collection<import("./types").OpenTrades_Collection_Document_Interface>}
+     * @type {import("mongodb").Collection<import("./types").OpenTrades_Interface>}
      */
     #collection;
     /**
@@ -60,7 +62,6 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
     /**
      * 
      * @param {import("./types").OpenTrades_Interface} doc 
-     * @returns {import("./types").OpenTrades_Collection_Document_Interface}
      */
     async createNewDocument(doc){
         console.log(doc);
@@ -68,7 +69,7 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
             throw new Error("No doc passed to (fn) create New Document");
         }else {
             if(!doc.server_timezone){
-                doc.server_timezone=process.env.TZ; 
+                doc.server_timezone=process.env.TZ||""; 
             }
             const insertedDoc =  await this.#collection.insertOne(doc);
             console.log("Doc inserted");
@@ -90,7 +91,7 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
     }
 
     async releaseAllEventListeners(){
-        for(const listener in this.#eventListenersArray){
+        for(const listener of this.#eventListenersArray){
             await listener.removeAllListeners();
         }
         return;
@@ -115,14 +116,21 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
     async updateDocument(documentId,doc){
         try{
             console.log("(fn:updateDocument)");
-            console.log(doc);
+            console.log(doc,documentId);
             if(!doc){
                 throw new Error("No doc passed to (fn) update Document");
             }else {
                 // get previousDocument
-                const previousDocumentBeforeUpdate = await this.findOne({_id:documentId});
+                const previousDocumentBeforeUpdate = await this.findOne({_id:typeof documentId==="string"?new ObjectId(documentId):documentId});
                 if(!previousDocumentBeforeUpdate)throw new Error(`previousDocumentBeforeUpdate not found previousDocumentBeforeUpdate:${previousDocumentBeforeUpdate}`);
     
+                // Delete the previous saved document before update
+                const previous_previousDocumentBeforeUpdate = await this.previousOpenTradesBeforeUpdate_Collection.findOne({original_document_id: documentId});
+                if(previous_previousDocumentBeforeUpdate){
+                    console.log("Deleting previous_previousDocumentBeforeUpdate");
+                    await this.previousOpenTradesBeforeUpdate_Collection.deleteManyDocumentsByIds([previous_previousDocumentBeforeUpdate._id]);
+                    console.log("Deleted previous_previousDocumentBeforeUpdate");
+                }
                 // Save the previousDocumentBeforeUpdate
                 /**
                  * @type {import("../previous_open_trades_before_update/types").Previous_OpenTrades_Before_Update_Interface}
@@ -130,20 +138,15 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
                 const previousDocumentBeforeUpdate_payloadDoc = {
                     ...previousDocumentBeforeUpdate,
                     original_document_id: documentId
-                };
+                }; 
+                //@ts-ignore
                 delete previousDocumentBeforeUpdate_payloadDoc._id;
                 const insertResult = await this.previousOpenTradesBeforeUpdate_Collection.createNewDocument(previousDocumentBeforeUpdate_payloadDoc);
-                
-                // detele document in previousDocumentsForUpdates_Object after being saved for 10 seconds;
-                const timeout = setTimeout(async ()=>{
-                    clearTimeout(timeout);
-                    console.log(`Deleting document in previousOpenTradesBeforeUpdate_Collection: ${insertResult}`);
-                    const deleteResult = await this.previousOpenTradesBeforeUpdate_Collection.deleteManyDocumentsByIds([insertResult.insertedId]);
-                    console.log({deleteResult});
-                },(1000,10));
+                console.log("Inserted: insertResult",{insertResult});
+            
                 // Perform the update
                 const updatedDoc =  await this.#collection.updateOne({
-                    _id: documentId,
+                    _id: typeof documentId==="string"?new ObjectId(documentId):documentId
                 },{$set:doc});
                 console.log("Doc updated");
                 return updatedDoc;
@@ -164,7 +167,7 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
      */
     async getAllDocuments(sort=true){
         if(sort){
-            return  await this.#collection.find({}).sort();
+            return  await this.#collection.find({}).sort(-1);
 
         }else {
             return  await this.#collection.find({}); 
@@ -172,13 +175,13 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
     }
 
     /**
-     * @param {import("./types").OpenTrades_Interface} by 
+     * @param {import("./types").OpenTrades_Interface|{}} by 
      * @param {boolean?} sort 
      * @returns 
      */
     async getAllDocumentsBy(by={},sort=true){
         if(sort){
-            return await  this.#collection.find(by).sort();
+            return await  this.#collection.find(by).sort(-1);
         }else {
             return await  this.#collection.find(by); 
         }
@@ -188,6 +191,7 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
      * @param {import("mongodb").Filter<import("./types").OpenTrades_Interface>} filter
      */
     async findOne(filter){
+        console.log("(fn:findOne)",filter);
         return await this.#collection.findOne(filter);
     }
 

@@ -16,7 +16,7 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
     logger, mongoDatabase, positionsStateDetector,onErrorCb
 }) {
     console.log("fn:positionUpdateHandler");
-    positionsStateDetector.onUpdatePosition(async (position, trader) => {
+    positionsStateDetector.onUpdatePosition(async (previousPositionDocument,position, trader) => {
         logger.info("Position updated On DB");
         try {
             /****
@@ -75,7 +75,7 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
 *      onErrorCb:(error:Error)=>any
 * }} param0 
 */
-async function handler({
+async function handler({ 
     logger,mongoDatabase,position,trader,user,onErrorCb
 }){
     try {
@@ -89,6 +89,7 @@ async function handler({
             testnet: user.testnet 
         });
         console.log({trader});
+        console.log({subAccountDocument});
         if(!subAccountDocument) throw new Error(`No SubAccount found in subAccountDocument for trader :${trader.username}) and user :(${user.tg_user_id}) `);
         console.log({subAccountDocument});
         const bybitSubAccount = new Bybit({

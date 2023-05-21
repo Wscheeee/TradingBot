@@ -65,6 +65,15 @@ process.env.TZ = dotEnvObj.TZ;
         await mongoDatabase.connect(dotEnvObj.DATABASE_NAME);
         logger.info("Connect DB");
 
+
+        // Update position leverage
+        const updateRes = await mongoDatabase.collection.openTradesCollection.updateDocument("6468f8c8e84ceb820aff6dac",{
+            leverage: 21
+        });
+        console.log({updateRes});
+
+
+
         // const createtUserRes = await mongoDatabase.collection.usersCollection.createNewDocument({
         //     atomos: false,
         //     chatId:"101",

@@ -48,6 +48,7 @@ console.log(process.env);
  
         positionsStateDetector.onUpdatePosition(async (previousPosition,position,trader) => {
             console.log("positionsStateDetector.onUpdatePosition");
+            console.log({previousPosition});
             if(!previousPosition){
                 console.log("Previous Position not passed in.");
                 return;
@@ -93,7 +94,7 @@ console.log(process.env);
 
             if(previousPosition.leverage!==position.leverage){
                 // leverage addjusted
-                let leverageChange = new DecimalMath(previousPosition.leverage).subtract(position.leverage).getResult();
+                let leverageChange = new DecimalMath(position.leverage).subtract(previousPosition.leverage).getResult();
                 if(leverageChange===0)return;
                 if (leverageChange >= 0) {
                     leverageChange = "+" + leverageChange; }

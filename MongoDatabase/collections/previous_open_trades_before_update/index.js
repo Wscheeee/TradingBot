@@ -11,7 +11,7 @@ module.exports.PreviousOpenTradesBeforeUpdate =  class PreviousOpenTradesBeforeU
      */
     #database;
     /**
-     * @type {import("mongodb").Collection<import("./types").Previous_OpenTrades_Before_Update_Collection_Document_Interface>}
+     * @type {import("mongodb").Collection<import("./types").Previous_OpenTrades_Before_Update_Interface>}
      */
     #collection;
     /**

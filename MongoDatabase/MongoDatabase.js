@@ -102,7 +102,7 @@ module.exports.MongoDatabase =  class MongoDatabase{
                 this.collection = {
                     usersCollection: new UsersCollection(this.#database),
                     oldTradesCollection: new OldTradesCollection(this.#database),
-                    openTradesCollection: new OpenTradesCollection(this.#database),
+                    openTradesCollection: new OpenTradesCollection(this.#database,previousOpenTradesBeforeUpdate),
                     topTradersCollection: new TopTradersCollection(this.#database),
                     tradedPositionsCollection: new TradedPositionsCollection(this.#database),
                     performanceCollection: new PerformanceCollection(this.#database),

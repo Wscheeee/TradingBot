@@ -53,6 +53,7 @@ module.exports.Bybit_AccountAssetClientV3 = class Bybit_AccountAssetClientV3 {
     }
 
     async getUSDTDerivativesAccountWalletBalance(){
+        console.log("(fn:getUSDTDerivativesAccountWalletBalance)");
         const COIN = "USDT";//position.pair.toLowerCase().replace("usdt","").toUpperCase();
         const accountBalance_Resp = await this.getDerivativesCoinBalance({
             accountType: "CONTRACT",

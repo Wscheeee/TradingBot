@@ -68,7 +68,7 @@ process.env.TZ = dotEnvObj.TZ;
 
         // Update position leverage
         const updateRes = await mongoDatabase.collection.openTradesCollection.updateDocument("6468f8c8e84ceb820aff6dac",{
-            leverage: 25
+            leverage: 2
 
         });
         console.log({updateRes});

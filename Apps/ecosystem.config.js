@@ -25,6 +25,10 @@ module.exports = {
             name   : "SendSignalsToTelegram",
             script : "./SendSignalsToTelegram/app.js"
         },
+        {
+            name   : "SubAcccountConfigStates_Handler",
+            script : "./SubAccountConfigStates_Handler/app.js"
+        },
        
         {
             name : "UpdateSavedTradersStats",

@@ -95,16 +95,14 @@ process.env.TZ = dotEnvObj.TZ;
         //     username:"Speet"
         // });
         // console.log({createtUserRes});
-        // const speetUser = await mongoDatabase.collection.usersCollection.findOne({username:"Speet"});
-        // console.log({speetUser});
-        // if(speetUser){
-        //     const updateRes = await mongoDatabase.collection.usersCollection.updateDocument(speetUser._id,{
-        //         totalPnl:102,
-        //         privateKey:"",
-        //         publicKey:"",
-        //     });
-        //     console.log({updateRes});
-        // }
+        const speetUser = await mongoDatabase.collection.usersCollection.findOne({username:"Speet"});
+        console.log({speetUser});
+        if(speetUser){
+            const updateRes = await mongoDatabase.collection.usersCollection.updateDocument(speetUser._id,{
+                tg_user_id: 101
+            });
+            console.log({updateRes});
+        }
         // const allSubbAccountConfigs = await(await mongoDatabase.collection.subAccountsConfigCollection.getAllDocuments()).toArray();
         // // delete emm all
         // const deleteRes = await mongoDatabase.collection.subAccountsConfigCollection.deleteManyDocumentsByIds(allSubbAccountConfigs.map((doc)=>doc._id));

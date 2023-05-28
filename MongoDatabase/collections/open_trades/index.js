@@ -60,10 +60,13 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
             while(await allDocuments_Cursor.hasNext()){
                 const document = await allDocuments_Cursor.next();
                 if(!document)return;
-
+                console.log({document});
                 // If document is not saved in previousSubAccountConfigBeforeUpdate_Collection: create
-                const documentInPreviousSubAccountConfigBeforeUpdateCollection = this.previousOpenTradesBeforeUpdate_Collection.findOne({original_document_id:document._id});
-                delete document._id;
+                const documentInPreviousSubAccountConfigBeforeUpdateCollection = await this.previousOpenTradesBeforeUpdate_Collection.findOne({original_document_id:document._id});
+                console.log({documentInPreviousSubAccountConfigBeforeUpdateCollection});
+                if(document._id){
+                    delete document._id;
+                }
                 const payload = {
                     ...document,
                     original_document_id:document._id

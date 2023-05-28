@@ -48,17 +48,20 @@ module.exports.SubAccountsConfigCollection =  class SubAccountsConfigCollection{
             const allDocuments_Cursor  = await this.getAllDocuments();
             while(await allDocuments_Cursor.hasNext()){
                 const document = await allDocuments_Cursor.next();
+                console.log({document});
                 if(!document)return;
                 // If document is not saved in previousSubAccountConfigBeforeUpdate_Collection: create
-                const documentInPreviousSubAccountConfigBeforeUpdateCollection = this.previousSubAccountConfigBeforeUpdate_Collection.findOne({original_document_id:document._id});
+                const documentInPreviousSubAccountConfigBeforeUpdateCollection = await this.previousSubAccountConfigBeforeUpdate_Collection.findOne({original_document_id:document._id});
+                console.log({documentInPreviousSubAccountConfigBeforeUpdateCollection});
                 if(!documentInPreviousSubAccountConfigBeforeUpdateCollection){
-                    this.previousSubAccountConfigBeforeUpdate_Collection.createNewDocument({
+                    const createResult = await this.previousSubAccountConfigBeforeUpdate_Collection.createNewDocument({
                         original_document_id:document._id,
                         sub_link_name: document.sub_link_name,
                         trader_uid: document.trader_uid,
                         trader_username: document.trader_username,
                         weight: document.weight
                     });
+                    console.log("previousSubAccountConfigBeforeUpdate_Collection.createNewDocument createResult:",createResult);
                 }
             }
         }catch(error){

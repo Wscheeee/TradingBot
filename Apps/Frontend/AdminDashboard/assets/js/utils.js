@@ -11,9 +11,9 @@ async function performJSONFetch(url){
         const headers = new Headers();
         headers.append("Access-Control-Allow-Origin","*");
         headers.append("Content-Type","application/json");
-        const response = await fetch("http://localhost:30003/users",{
+        const response = await fetch(url,{
             headers: headers,
-            mode:"no-cors",
+            // mode:"no-cors",
 
         });
         respClone = response.clone();
@@ -36,7 +36,7 @@ async function fetchTemplateHTML(url) {//url:"/components/user_content_component
     headers.append("Access-Control-Allow-Origin","*");
     const response = await fetch(url,{
         headers:headers,
-        mode:"no-cors"
+        // mode:"no-cors"
 
     });
    
@@ -53,10 +53,10 @@ async function fetchTemplateHTML(url) {//url:"/components/user_content_component
 async function fetchUsersJSON() {
     const headers = new Headers();
     headers.append("Access-Control-Allow-Origin","*");
-    const response = await performJSONFetch("http://localhost:30003/users");
     /**
-   * @type {import("../../../../API_AdminDashboard/routes/users/types").Users_Routes_Payload_Interface}
-   */
+     * @type {import("../../../../API_AdminDashboard/routes/users/types").Users_Routes_Payload_Interface}
+    */
+    const respJson = await performJSONFetch("http://localhost:30003/users");
     // const resp = {
     //    data:{
     //     users:[
@@ -125,26 +125,31 @@ async function fetchUsersJSON() {
     //    message:"",
     //    success:true
     // };
-    const resp = await response.json();
   
-    return resp.data.users;
+    return respJson.data.users;
 }
 
 /***
 * Fetch sub accounts
 */
 // fetch the sub accounts
-async function fetchSubAccounts() {
+/**
+ * 
+ * @param {{tg_user_id:number}} param0 
+ */
+async function fetchSubAccounts({
+    tg_user_id
+}) {
     const headers = new Headers();
     headers.append("Access-Control-Allow-Origin","*");
     // const response = await fetch("http://localhost:30003/subaccounts?tg_user_id=101",{
     //     headers:headers,
     //     mode:"no-cors"
     // });
-    const response = await performJSONFetch("http://localhost:30003/subaccounts?tg_user_id=101");
     /**
      * @type {import("../../../../API_AdminDashboard/routes/subaccounts/types").SubAccounts_Routes_Payload_Interface}
     */
+    const respJson = await performJSONFetch("http://localhost:30003/subaccounts?tg_user_id="+tg_user_id);
     // const resp = {
     //     data:{
     //         sub_accounts:[{
@@ -158,7 +163,27 @@ async function fetchSubAccounts() {
     //     message:"",
     //     success:true
     // };
-    const resp = await response.json();
-    console.log({resp});
-    return resp.data.sub_accounts;//.data.users;
+    // const resp = await response.json();
+    console.log({respJson});
+    return respJson.data.sub_accounts;//.data.users;
+}
+
+
+/**
+ * 
+ * @param {{
+ *      sub_account_uid:number
+ * }} param0
+ */
+async function fetchSubAccountOpenPositionsJSON({sub_account_uid}){
+    const headers = new Headers();
+    headers.append("Access-Control-Allow-Origin","*");
+
+    /**
+     * @type {import("../../../../API_AdminDashboard/routes/open_positions/types").GetOpenPositions_ResponsePayload_Interface}
+    */
+    const respJson = await performJSONFetch("http://localhost:30003/open-positions?sub_account_uid="+sub_account_uid);
+
+    console.log({respJson});
+    return respJson.data.orders;//.data.users;
 }

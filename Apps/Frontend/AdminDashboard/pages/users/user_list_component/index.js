@@ -59,7 +59,7 @@ class UserList_Component extends HTMLElement {
                     //Show as active
                     li.classList.add("active");
                     // Submit the click for other components to detect it
-                    
+                    appStore.dispatchActionForSelectUser_InUsersList(user);
                 });
                 li.appendChild(p1);
                 li.appendChild(p2);

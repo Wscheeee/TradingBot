@@ -19,6 +19,7 @@ module.exports.usersRoutes = async function usersRoutes({method,url,mongoDatabas
         console.log("(fn:usersRoutes)");
         if(url==="/users"){
             if(method==="GET"){
+                console.log({method,url});
                 // return a list of users
                 // Get the users from the db
                 const users = await mongoDatabase.collection.usersCollection.getAllDocuments();
@@ -34,10 +35,13 @@ module.exports.usersRoutes = async function usersRoutes({method,url,mongoDatabas
                     },
                     message:""
                 };
+                console.log({payload});
                 res.write(JSON.stringify(payload));
                 console.log("Returning from route:",req.url);
                 res.end();
                 
+            }else {
+                res.end();
             }
         }
     }catch(error){

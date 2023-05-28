@@ -70,7 +70,7 @@ module.exports.UsersCollection =  class UsersCollection{
 
     /**
      * @param {import("mongodb").ObjectId} documentId
-     * @param {import("mongodb").UpdateFilter<import("./types").User_Interface>} doc 
+     * @param {import("./types").User_Interface} doc 
      * @returns {import("./types").Users_Collection_Document_Interface}
      */
     async updateDocument(documentId,doc){
@@ -123,6 +123,7 @@ module.exports.UsersCollection =  class UsersCollection{
      * @returns 
      */
     async getAllDocuments(sort=true){
+        console.log("(method:getAllDocuments)");
         if(sort){
             return await this.#collection.find({}).sort();
         }else {
@@ -144,7 +145,7 @@ module.exports.UsersCollection =  class UsersCollection{
     }
 
     /**
-     * @param {import("./types").User_Interface} filter
+     * @param {import("mongodb").Filter<import("./types").User_Interface>} filter
      */
     async findOne(filter){
         return await this.#collection.findOne(filter);

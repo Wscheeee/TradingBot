@@ -22,14 +22,18 @@ module.exports.routes = async function routes({port,mongoDatabase}){
         const server = http.createServer(async (req,res)=>{
             const method = req.method||"";
             const url = req.url||"";
-            console.log({url,method,origin:req.headers});
+            console.log({url,method,
+                // origin:req.headers
+            });
             
             res.writeHead(200,{
                 "Content-Type":"application/json",
-                "Access-Control-Allow-Origin":`${"localhost:30002"}`,
+                "Access-Control-Allow-Origin":`${" http://localhost:30002"}`,
+                // "Access-Control-Allow-Origin":"*",//`${"localhost:30002"}`,
                 "Vary":"Origin,Accept-Encoding",
-                "Access-Control-Allow-Methods":"*",
-                "Origin":`${"localhost:30002"}`,
+                "Access-Control-Allow-Headers":"access-control-allow-origin,Content-Type"
+                // "Access-Control-Allow-Methods":"*",
+                // "Origin":`${"localhost:30002"}`,
             });
             // if(method==="GET"||"POST"){
             //     res.writeHead(200,{

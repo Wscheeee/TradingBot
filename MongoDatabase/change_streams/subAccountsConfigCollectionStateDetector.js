@@ -1,4 +1,5 @@
 
+//@ts-check
 // ================================
 
 module.exports.SubAccountsConfigCollectionStateDetector = class SubAccountsConfigCollectionStateDetector {
@@ -38,7 +39,7 @@ module.exports.SubAccountsConfigCollectionStateDetector = class SubAccountsConfi
  
     /**
    * @constructor
-   * @param {{mongoDatabase:MongoDatabase}} param0 
+   * @param {{mongoDatabase:import("../MongoDatabase").MongoDatabase}} param0 
    */
     constructor({ mongoDatabase }) {
         this.#mongoDatabase = mongoDatabase;
@@ -52,14 +53,23 @@ module.exports.SubAccountsConfigCollectionStateDetector = class SubAccountsConfi
                 console.log("(subAccountsConfigCollection):INSERT event");
                 const documentId = change.documentKey._id;
                 const fullDocument = await this.#mongoDatabase.collection.subAccountsConfigCollection.getDocumentById(documentId);
+                if(!fullDocument)return;
                 this.#onCreateDocumentCallbacks.forEach((cb) => {
                     cb(fullDocument);
                 });
             } else if (change.operationType === "update") {
                 console.log("(subAccountsConfigCollection):UPDATE event");
                 const documentId = change.documentKey._id;
-                const fullDocumentAfterChange =  change.fullDocument;
-                const documentBeforeUpdate = this.#mongoDatabase.collection.subAccountsConfigCollection.previousSubAccountConfigBeforeUpdate_Collection.findOne({original_document_id:documentId});
+                // let fullDocumentAfterChange =  change.fullDocument;
+                const fullDocumentAfterChange = await this.#mongoDatabase.collection.subAccountsConfigCollection.findOne({_id:documentId});
+                console.log({fullDocumentAfterChange});
+                if(!fullDocumentAfterChange){
+                    return;
+                }
+                if(!fullDocumentAfterChange)return;
+                const documentBeforeUpdate = await this.#mongoDatabase.collection.previousSubAccountConfigBeforeUpdate.findOne({original_document_id:documentId});
+                console.log({documentBeforeUpdate});
+                if(!documentBeforeUpdate)return;
                 this.#onUpdateDocumentCallbacks.forEach((cb) => {
                     cb(documentBeforeUpdate,fullDocumentAfterChange);
                 });
@@ -67,7 +77,8 @@ module.exports.SubAccountsConfigCollectionStateDetector = class SubAccountsConfi
                 console.log("(subAccountsConfigCollection):DELETE event");
                 const documentId = change.documentKey._id;
                 // const fullDocumentAfterChange =  change.fullDocument;
-                const documentBeforedDelete = this.#mongoDatabase.collection.subAccountsConfigCollection.previousSubAccountConfigBeforeUpdate_Collection.findOne({original_document_id:documentId});
+                const documentBeforedDelete = await this.#mongoDatabase.collection.subAccountsConfigCollection.previousSubAccountConfigBeforeUpdate_Collection.findOne({original_document_id:documentId});
+                if(!documentBeforedDelete)return;
                 this.#onDeleteDocumentCallbacks.forEach((cb) => {
                     cb(documentBeforedDelete);
                 });

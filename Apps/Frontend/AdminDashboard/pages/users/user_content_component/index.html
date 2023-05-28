@@ -29,6 +29,40 @@
         .sub_account_tile:hover {
             opacity: 1;
         }
+        .sub_account_tile.active {
+            opacity: 1;
+            background-color: #ffc1c1;
+        }
+        .sub_acccount_ul {
+            display: flex;
+            flex-direction: column;
+            text-decoration: none;
+            list-style: none;
+            flex-wrap: wrap;
+        }
+        .sub_account_details_div {
+            border: 1px solid black;
+        }
+        .sub_accounts_container {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+        }
+        .sub_account_details_div {
+            width: 300px;
+            margin: 20px auto;
+            padding: 10px;
+            background-color: #f5f5f5;
+        }
+
+        .sub_account_details_div div {
+            margin-bottom: 10px;
+        }
+
+        .sub_account_details_div div span {
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
     </style>
     <div>
         <section class="menubar">
@@ -49,35 +83,33 @@
         <section class="user_content_section">
             <!-- User content -->
             <div>
+                <div>Username: <span id="username"></span></div>
                 <div>Sub Accounts</div>
-                <div>
+                <div class="sub_accounts_container">
                     <!-- sub accounts list -->
-                    <ul id="sub_account_ul">
+                    <ul id="sub_account_ul" class="sub_acccount_ul">
                         <!-- <li>Sub Account 1</li>
                         <li>Sub Account 2</li>
                         <li>Sub Account 3</li> -->
                     </ul>
+                    <!-- Sub Account details -->
+                    <div class="sub_account_details_div">
+                        <div>Sub Account Username: <span id="sub_account_username"></span></div>
+                        <div>Sub Account UID: <span id="sub_account_uid"></span></div>
+                        <div>Sub Link Name: <span id="sub_link_name"></span></div>
+                        <div>Sub Uid: <span id="sub_uid"></span></div>
+                        <div>Trader Username: <span id="trader_username"></span></div>
+                        <div>Trader Uid: <span id="trader_uid"></span></div>
+                        <div>Weight: <span id="weight"></span></div>
+                        <div>testnet: <span id="testnet"></span></div>
+                    </div>
+
                 </div>
-                <!-- positions -->
-                <div class="positions_table">
-                    <!-- Headers -->
-                    <div>Symbol</div>
-                    <div>Leverage</div>
-                    <div>Quantity</div>
-                    <div>Entry Price</div>
-                    <div>Mark Price</div>
-                    <div>P & L</div>
-                   
+                <div id="account_positions_table_container">
+
                 </div>
-                <div class="positions_table">
-                     <!-- body -->
-                     <div>BTCUSDT</div>
-                     <div>2x</div>
-                     <div>0.001</div>
-                     <div>20000</div>
-                     <div>200001</div>
-                     <div>$100</div>
-                </div>
+                <!-- <table-component headers="symbols" body='[["BTCUSDT",2,1,2],["SOLUSDT",3,10,3]]'/> -->
+                
             </div>
     
         </section>

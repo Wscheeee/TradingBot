@@ -26,7 +26,8 @@ module.exports.subAccountsRoutes = async function subAccountsRoutes({method,url,
              */
             const params = querystring.parse(url.split("?")[1]);
             console.log({params,tg_user_id:params.tg_user_id});
-            const {tg_user_id} = params;
+            const {tg_user_id:tg_user_id_String} = params;
+            const tg_user_id = Number(tg_user_id_String);
             if(!tg_user_id){
                 //error;
                 res.write(JSON.stringify({
@@ -39,7 +40,10 @@ module.exports.subAccountsRoutes = async function subAccountsRoutes({method,url,
                 res.end();
             }else {
                 // get the user
-                const user = await mongoDatabase.collection.usersCollection.findOne({tg_user_id});
+                const user = await mongoDatabase.collection.usersCollection.findOne({
+                    tg_user_id
+                });
+                console.log({user});
                 if(!user){
                     res.write(JSON.stringify({
                         success: false,
@@ -54,6 +58,7 @@ module.exports.subAccountsRoutes = async function subAccountsRoutes({method,url,
                     // login to user's bybit account and get subaccounts details
                     const subAccountsInDb = await mongoDatabase.collection.subAccountsCollection.getAllDocumentsBy({tg_user_id});
                     const subAccountsArray = await subAccountsInDb.toArray();
+                    console.log({subAccountsArray});
                     /**
                      * @type {import("./types").SubAccounts_Routes_Payload_Interface}
                      */

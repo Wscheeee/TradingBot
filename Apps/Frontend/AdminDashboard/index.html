@@ -7,20 +7,31 @@
     <title>Atomos Dashboard</title>
     <link rel="stylesheet" href="./assets/css/presets.css"/>
     <!-- scripts -->
-    <script src="./components/app-sidenav/index.js"></script>
-    <script src="./components/app-listbar/index.js"></script>
-    <script src="./components/app-content/index.js"></script>
+    <script src="./assets/js/utils.js"></script>
+    <script src="./components/sidenav_component/index.js"></script>
+    <script src="./pages/users/user_list_component/index.js"></script>
+    <script src="./pages/users/user_content_component/index.js"></script>
     <style>
         body{
-            display: flex;
-            flex-direction: row;
+            /* display: flex;
+            flex-direction: row; */
+        }
+        main {
+            height: 100vh;
+            display: grid;
+            grid-template-columns: 1fr 2.1fr 3fr;
+            
         }
     </style>
+    
 </head>
 <body>
-    <!-- A side nav to the left and main content to the right -->
-    <sp-sidenavbar></sp-sidenavbar>
-    <s-listbar></s-listbar>
-    <sp-content></sp-content>
+    <main>
+        <!-- A side nav to the left and main content to the right -->
+        <sidenav-component></sidenav-component>
+        <users-list-component></users-list-component>
+        <user-content-component></user-content-component>
+
+    </main>
 </body>
 </html>

@@ -1,3 +1,4 @@
+//@ts-check
 const luxon = require("luxon");
 
 

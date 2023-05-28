@@ -57,7 +57,7 @@ module.exports.Bybit_AccountAssetClientV3 = class Bybit_AccountAssetClientV3 {
         const COIN = "USDT";//position.pair.toLowerCase().replace("usdt","").toUpperCase();
         const accountBalance_Resp = await this.getDerivativesCoinBalance({
             accountType: "CONTRACT",
-            coin: COIN
+            coin: COIN,
         });
         if (!accountBalance_Resp.result || !accountBalance_Resp.result.balance) {
             console.log({ accountBalance_Resp });
@@ -67,6 +67,7 @@ module.exports.Bybit_AccountAssetClientV3 = class Bybit_AccountAssetClientV3 {
         return totalUSDT_balance;
     }
 
+    
     // SUB ACCOUNTS
     /**
      * @param {import("bybit-api").CreateSubMemberRequestV3} createSubMemberRequestV3

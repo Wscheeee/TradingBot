@@ -17,13 +17,24 @@ module.exports.SubAccountsConfigCollectionStateDetector = class SubAccountsConfi
     #onCreateDocumentCallbacks = [];
     /**
   * @typedef {(
-  *      configDocument:import("../collections/sub_accounts_config/types").Sub_Account_Config_Collection_Document_Interface,
+  *      configDocumentBeforeUpdate: import("../collections/previous_sub_account_config_before_update/types/").Previous_SubAccountConfig_Before_Update_Collection_Document_Interface,
+  *      configDocumentAfterUpdate:import("../collections/sub_accounts_config/types").Sub_Account_Config_Collection_Document_Interface,
   * )=>any} OnUpdateDocumentCb_Interface
   */
     /**
     * @type {OnUpdateDocumentCb_Interface[]}
     */
     #onUpdateDocumentCallbacks = [];
+
+    /**
+  * @typedef {(
+  *      configDocumentBeforeDelete: import("../collections/previous_sub_account_config_before_update/types/").Previous_SubAccountConfig_Before_Update_Collection_Document_Interface,
+  * )=>any} OnDeleteDocumentCb_Interface
+  */
+    /**
+    * @type {OnDeleteDocumentCb_Interface[]}
+    */
+    #onDeleteDocumentCallbacks = [];
  
     /**
    * @constructor
@@ -46,9 +57,19 @@ module.exports.SubAccountsConfigCollectionStateDetector = class SubAccountsConfi
                 });
             } else if (change.operationType === "update") {
                 console.log("(subAccountsConfigCollection):UPDATE event");
+                const documentId = change.documentKey._id;
                 const fullDocumentAfterChange =  change.fullDocument;
+                const documentBeforeUpdate = this.#mongoDatabase.collection.subAccountsConfigCollection.previousSubAccountConfigBeforeUpdate_Collection.findOne({original_document_id:documentId});
                 this.#onUpdateDocumentCallbacks.forEach((cb) => {
-                    cb(fullDocumentAfterChange);
+                    cb(documentBeforeUpdate,fullDocumentAfterChange);
+                });
+            } else if(change.operationType==="delete"){
+                console.log("(subAccountsConfigCollection):DELETE event");
+                const documentId = change.documentKey._id;
+                // const fullDocumentAfterChange =  change.fullDocument;
+                const documentBeforedDelete = this.#mongoDatabase.collection.subAccountsConfigCollection.previousSubAccountConfigBeforeUpdate_Collection.findOne({original_document_id:documentId});
+                this.#onDeleteDocumentCallbacks.forEach((cb) => {
+                    cb(documentBeforedDelete);
                 });
             }
         });
@@ -69,5 +90,12 @@ module.exports.SubAccountsConfigCollectionStateDetector = class SubAccountsConfi
    */
     onUpdateDocument(onUpdateDocumentCb) {
         this.#onUpdateDocumentCallbacks.push(onUpdateDocumentCb);
+    }
+
+    /**
+     * @param {OnDeleteDocumentCb_Interface} onDeleteDocumentCb
+     */
+    onDeleteDocumentCallbacks(onDeleteDocumentCb){
+        this.#onDeleteDocumentCallbacks.push(onDeleteDocumentCb);
     }
 };

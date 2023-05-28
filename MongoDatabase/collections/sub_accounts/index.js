@@ -131,7 +131,6 @@ module.exports.SubAccountsCollection =  class SubAccountsCollection{
     /**
      * @param {import("mongodb").Filter<import("./types").Sub_Account_Document_Interface>} by 
      * @param {boolean?} sort 
-     * @returns 
      */
     async getAllDocumentsBy(by={},sort=true){
         if(sort){

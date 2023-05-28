@@ -48,14 +48,14 @@ module.exports.createSubAccountsAndAllocateCapital_forAllUsers_InParalell =  asy
                 });
 
             }catch(error){
-                const nwErrorMessage = `(fn:createSubAccountsAndAllocateCapital) ${error.message}`;
+                const nwErrorMessage = `(fn:createSubAccountsAndAllocateCapital_forAllUsers_InParalell) ${error.message}`;
                 error.message = nwErrorMessage;
                 onError(error);
             }
         }
         return;
     }catch(error){
-        const nwErrorMessage = `(fn:createSubAccountsAndAllocateCapital) ${error.message}`;
+        const nwErrorMessage = `(fn:createSubAccountsAndAllocateCapital_forAllUsers_InParalell) ${error.message}`;
         error.message = nwErrorMessage;
         onError(error);
         // throw error;

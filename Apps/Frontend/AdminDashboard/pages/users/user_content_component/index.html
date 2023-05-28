@@ -1,0 +1,86 @@
+<div>
+    <style>
+        .user_content_section{
+            padding-left: 0.5em;
+        }
+        .menubar {
+            height: 50px;
+            display: flex;
+            background-color: aliceblue;
+            justify-content: center;
+            align-items: center;
+            padding-left: 0.5em;
+        }
+
+
+        .positions_table, .positions_table_body {
+            display: flex;
+            flex: 1fr 1fr 1fr 1fr 1fr 1fr;
+        }
+
+        .sub_account_tile {
+            background-color: antiquewhite;
+            margin: 2px;
+            padding: 2px;
+            width:fit-content;
+            cursor: pointer;
+            opacity: 0.9;
+        }
+        .sub_account_tile:hover {
+            opacity: 1;
+        }
+    </style>
+    <div>
+        <section class="menubar">
+            <!-- Menu -->
+            <div>
+                <!-- search button -->
+                <input placeholder="Search"/>
+            </div>
+            <div>
+                <button>
+                   + Search
+                </button>
+                <div>
+                    <!-- Dashboard user looged in dp -->
+                </div>
+            </div>
+        </section>
+        <section class="user_content_section">
+            <!-- User content -->
+            <div>
+                <div>Sub Accounts</div>
+                <div>
+                    <!-- sub accounts list -->
+                    <ul id="sub_account_ul">
+                        <!-- <li>Sub Account 1</li>
+                        <li>Sub Account 2</li>
+                        <li>Sub Account 3</li> -->
+                    </ul>
+                </div>
+                <!-- positions -->
+                <div class="positions_table">
+                    <!-- Headers -->
+                    <div>Symbol</div>
+                    <div>Leverage</div>
+                    <div>Quantity</div>
+                    <div>Entry Price</div>
+                    <div>Mark Price</div>
+                    <div>P & L</div>
+                   
+                </div>
+                <div class="positions_table">
+                     <!-- body -->
+                     <div>BTCUSDT</div>
+                     <div>2x</div>
+                     <div>0.001</div>
+                     <div>20000</div>
+                     <div>200001</div>
+                     <div>$100</div>
+                </div>
+            </div>
+    
+        </section>
+
+    </div>
+</div>

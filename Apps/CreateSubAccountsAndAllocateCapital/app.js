@@ -81,9 +81,9 @@ process.env.TZ = dotEnvObj.TZ;
                 logger.error(`subAcccountConfig.onCreateDocument ${e.message}`);
             }
         });
-        subAccountsConfigCollectionStateDetector.onUpdateDocument(async (configDocument)=>{
+        subAccountsConfigCollectionStateDetector.onUpdateDocument(async (configDocumentBeforeUpdate, configDocumentAfterUpdate)=>{
             try{
-                logger.info(`subAcccountConfig.onUpdateDocument ${configDocument.sub_link_name}`);
+                logger.info(`subAcccountConfig.onUpdateDocument ${configDocumentAfterUpdate.sub_link_name}`);
                 if(!mongoDatabase)return;
                 await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
                     mongoDatabase,
@@ -150,7 +150,7 @@ process.env.TZ = dotEnvObj.TZ;
         interval = setInterval(async()=>{
             const dateTIme = new DateTime();
             const nowHours = dateTIme.now().hours;
-            if (previousHourRun!== nowHours) { // run each hour
+            if (previousHourRun!== nowHours && nowHours===2) { 
                 console.log("(=>Run At 2am)");
                 if(!mongoDatabase)return;
                 await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({

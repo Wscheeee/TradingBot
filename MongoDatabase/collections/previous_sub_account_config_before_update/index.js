@@ -4,14 +4,14 @@ const { ObjectId } = require("mongodb");
 
 
 
-module.exports.PreviousOpenTradesBeforeUpdate =  class PreviousOpenTradesBeforeUpdate{
-    #COLLECTION_NAME = "Previous_Open_Trades_Before_Update";
+module.exports.PreviousSubAccountConfigBeforeUpdate =  class PreviousSubAccountConfigBeforeUpdate{
+    #COLLECTION_NAME = "Previous_Sub_Account_Config_Before_Update";
     /**
      * @type {import("mongodb").Db}
      */
     #database;
     /**
-     * @type {import("mongodb").Collection<import("./types").Previous_OpenTrades_Before_Update_Interface>}
+     * @type {import("mongodb").Collection<import("./types").Previous_SubAccountConfig_Before_Update_Document_Interface>}
      */
     #collection;
     /**
@@ -30,6 +30,8 @@ module.exports.PreviousOpenTradesBeforeUpdate =  class PreviousOpenTradesBeforeU
         this.#collection = this.#database.collection(this.#COLLECTION_NAME);
 
         
+
+        
     }
     
     async createIndexes(){
@@ -41,7 +43,7 @@ module.exports.PreviousOpenTradesBeforeUpdate =  class PreviousOpenTradesBeforeU
     
     /**
      * 
-     * @param {(string|import("mongodb").ObjectId)[]} documentIds 
+     * @param {string[]|import("mongodb").ObjectId[]} documentIds 
      * @returns {Promise<import("mongodb").DeleteResult>}
      */
     async deleteManyDocumentsByIds(documentIds){
@@ -54,10 +56,10 @@ module.exports.PreviousOpenTradesBeforeUpdate =  class PreviousOpenTradesBeforeU
 
     /**
      * 
-     * @param {import("./types").Previous_OpenTrades_Before_Update_Interface} doc 
+     * @param {import("./types").Previous_SubAccountConfig_Before_Update_Document_Interface} doc 
      */
     async createNewDocument(doc){
-        console.log("[class: PreviousOpenTradesBeforeUpdate](createNewDocument)")
+        console.log("[class: PreviousOpenTradesBeforeUpdate](createNewDocument)");
         console.log(doc);
         if(!doc){
             throw new Error("No doc passed to (fn) create New Document");
@@ -105,7 +107,7 @@ module.exports.PreviousOpenTradesBeforeUpdate =  class PreviousOpenTradesBeforeU
 
     /**
      * @param {import("mongodb").ObjectId} documentId
-     * @param {import("mongodb").UpdateFilter<import("./types").Previous_OpenTrades_Before_Update_Interface>} doc 
+     * @param {import("mongodb").UpdateFilter<import("./types").Previous_SubAccountConfig_Before_Update_Document_Interface>} doc 
      */
     async updateDocument(documentId,doc){
         console.log(doc);
@@ -114,7 +116,6 @@ module.exports.PreviousOpenTradesBeforeUpdate =  class PreviousOpenTradesBeforeU
         }else {
             // get previousDocument
             const previousDocument = await this.findOne({_id:documentId});
-
             if(!previousDocument)throw new Error(`(fn:updateDocument) previousDocument not found: documentId: ${documentId} previousDocument:${previousDocument}`);
             const updatedDoc =  await this.#collection.updateOne({
                 _id: documentId,
@@ -139,7 +140,7 @@ module.exports.PreviousOpenTradesBeforeUpdate =  class PreviousOpenTradesBeforeU
     }
 
     /**
-     * @param {import("./types").Previous_OpenTrades_Before_Update_Interface} by 
+     * @param {import("mongodb").Filter<import("./types").Previous_SubAccountConfig_Before_Update_Document_Interface>} by 
      * @param {boolean?} sort 
      * @returns 
      */
@@ -152,7 +153,7 @@ module.exports.PreviousOpenTradesBeforeUpdate =  class PreviousOpenTradesBeforeU
     }
   
     /**
-     * @param {import("mongodb").Filter<import("./types").Previous_OpenTrades_Before_Update_Interface>} filter
+     * @param {import("mongodb").Filter<import("./types").Previous_SubAccountConfig_Before_Update_Document_Interface>} filter
      */
     async findOne(filter){
         return await this.#collection.findOne(filter);
@@ -173,8 +174,6 @@ module.exports.PreviousOpenTradesBeforeUpdate =  class PreviousOpenTradesBeforeU
      * 
      * @param {string} trader_uid 
      */
-    // * @returns {FindCursor<>} 
-    //* @returns {.Previous_OpenTrades_Before_Update_Collection_Document_Interface[]|null}
     async getDocumentsByTraderUid(trader_uid){
         try {
             return await this.#collection.find({
@@ -190,3 +189,7 @@ module.exports.PreviousOpenTradesBeforeUpdate =  class PreviousOpenTradesBeforeU
 
 
 };
+
+
+
+

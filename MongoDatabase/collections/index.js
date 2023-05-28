@@ -7,6 +7,7 @@ const {PerformanceCollection} = require("./performance");
 const {SubAccountsCollection} = require("./sub_accounts");
 const {SubAccountsConfigCollection} = require("./sub_accounts_config");
 const {PreviousOpenTradesBeforeUpdate} = require("./previous_open_trades_before_update");
+const {PreviousSubAccountConfigBeforeUpdate} = require("./previous_sub_account_config_before_update");
 
 module.exports =  {
     UsersCollection,
@@ -17,5 +18,6 @@ module.exports =  {
     PerformanceCollection,
     SubAccountsCollection,
     SubAccountsConfigCollection,
-    PreviousOpenTradesBeforeUpdate
+    PreviousOpenTradesBeforeUpdate,
+    PreviousSubAccountConfigBeforeUpdate
 };

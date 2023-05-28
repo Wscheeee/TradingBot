@@ -11,7 +11,8 @@ const {
     PerformanceCollection,
     SubAccountsCollection,
     SubAccountsConfigCollection,
-    PreviousOpenTradesBeforeUpdate
+    PreviousOpenTradesBeforeUpdate,
+    PreviousSubAccountConfigBeforeUpdate
 } = require("./collections/");
 
 /**
@@ -24,7 +25,8 @@ const {
  *      performanceCollection: PerformanceCollection,
  *      subAccountsCollection: SubAccountsCollection,
  *      subAccountsConfigCollection: SubAccountsConfigCollection,
- *      previousOpenTradesBeforeUpdate: PreviousOpenTradesBeforeUpdate
+ *      previousOpenTradesBeforeUpdate: PreviousOpenTradesBeforeUpdate,
+ *      previousSubAccountConfigBeforeUpdate: PreviousSubAccountConfigBeforeUpdate
  * }} Collections_Interface
  */
 
@@ -63,7 +65,8 @@ module.exports.MongoDatabase =  class MongoDatabase{
         tradedPositionsCollection: null,
         performanceCollection: null,
         subAccountsCollection: null,
-        subAccountsConfigCollection: null
+        subAccountsConfigCollection: null,
+        previousSubAccountConfigBeforeUpdate: null,
     };
     /**
      * @type {null|import("mongodb").ClientSession}
@@ -99,6 +102,7 @@ module.exports.MongoDatabase =  class MongoDatabase{
                 this.#dbIsConnected = true;
                 this.#database = this.#client.db(databaseName);
                 const previousOpenTradesBeforeUpdate = new PreviousOpenTradesBeforeUpdate(this.#database);
+                const previousSubAccountConfigBeforeUpdate =  new PreviousSubAccountConfigBeforeUpdate(this.#database);
                 this.collection = {
                     usersCollection: new UsersCollection(this.#database),
                     oldTradesCollection: new OldTradesCollection(this.#database),
@@ -107,8 +111,9 @@ module.exports.MongoDatabase =  class MongoDatabase{
                     tradedPositionsCollection: new TradedPositionsCollection(this.#database),
                     performanceCollection: new PerformanceCollection(this.#database),
                     subAccountsCollection: new SubAccountsCollection(this.#database),
-                    subAccountsConfigCollection: new SubAccountsConfigCollection(this.#database),
+                    subAccountsConfigCollection: new SubAccountsConfigCollection(this.#database,previousSubAccountConfigBeforeUpdate),
                     previousOpenTradesBeforeUpdate: previousOpenTradesBeforeUpdate,
+                    previousSubAccountConfigBeforeUpdate:previousSubAccountConfigBeforeUpdate
                 };
                 console.log("Database connected...");
                 // Ping the DB every 30 min

@@ -135,12 +135,12 @@ module.exports.TopTradersCollection =  class TopTradersCollection{
 
 
     /**
-     * 
      * @param {boolean} sort 
      * @returns 
      */
     async getAllDocuments(sort=true){
         if(sort){
+            
             return  await this.#collection.find({}).sort();
 
         }else {

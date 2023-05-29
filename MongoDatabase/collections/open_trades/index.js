@@ -252,7 +252,7 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
      */
     async getAllDocumentsBy(by={},sort=true){
         if(sort){
-            return await  this.#collection.find(by).sort(-1);
+            return await  this.#collection.find(by).sort();
         }else {
             return await  this.#collection.find(by); 
         }

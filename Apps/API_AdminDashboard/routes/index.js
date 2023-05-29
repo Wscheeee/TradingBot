@@ -7,6 +7,7 @@ const http = require("http");
 const {usersRoutes} = require("./users/index");
 const {subAccountsRoutes} = require("./subaccounts/index");
 const {openPositionsRoutes} = require("./open_positions/index");
+const {topTradersRoutes} = require("./top_traders");
 
 /**
  * @param {{
@@ -56,6 +57,7 @@ module.exports.routes = async function routes({port,mongoDatabase}){
             await usersRoutes({method,url,mongoDatabase,req,res});
             await subAccountsRoutes({method,url,mongoDatabase,req,res});
             await openPositionsRoutes({method,url,mongoDatabase,req,res});
+            await topTradersRoutes({method,url,mongoDatabase,req,res});
 
 
 

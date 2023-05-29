@@ -17,11 +17,14 @@ const {Logger} = require("../../Logger");
 const {Telegram} = require("../../Telegram");
 
 // local
+const {closeAllPositionsInASubAccount} = require("./closeAllPositionsInASubAccount");
+const {transferAllUSDTBalanceFromSubAccountToMainAccount} = require("./transferAllUSDTBalanceFromSubAccountToMainAccount");
 
 const APP_NAME = "App:SubAccountConfigStates_Handler";
 const logger = new Logger({app_name:APP_NAME});
 const {IS_LIVE} = require("../../appConfig");
 const { DateTime } = require("../../DateTime");
+const { Bybit } = require("../../Trader");
 const dotEnvObj = readAndConfigureDotEnv(IS_LIVE);
 process.env.TZ = dotEnvObj.TZ;
 
@@ -70,77 +73,14 @@ process.env.TZ = dotEnvObj.TZ;
                 
                 // Check if the trader uid has changed
                 // If trader uid has changed : close the trader's positions for each trader
-                if(configDocumentBeforeUpdate.trader_uid!==configDocumentAfterUpdate.trader_uid){
+                if(configDocumentBeforeUpdate.trader_uid!==configDocumentAfterUpdate.trader_uid && !!configDocumentBeforeUpdate.sub_link_name && !!configDocumentBeforeUpdate.trader_uid){
                     //trader uid changed
-                    // loop through all users
-                    const users_Cursor = await mongoDatabase.collection.usersCollection.getAllDocuments();
-                    while(await users_Cursor.hasNext()){
-                        const userDocument = await users_Cursor.next();
-                        if(!userDocument)return;
-                        // Get the sub acccount
-                        const subAccountDocument = await mongoDatabase.collection.subAccountsCollection.findOne({
-                            sub_link_name:configDocumentBeforeUpdate.sub_link_name,
-                            tg_user_id: userDocument.tg_user_id,
-                            testnet: userDocument.testnet,
-                            trader_uid: configDocumentBeforeUpdate.trader_uid
-                        });
-                        if(!subAccountDocument){
-                            logger.info(`subAccount not found for configDocumentBeforeUpdate:${JSON.stringify(configDocumentBeforeUpdate)} `);
-                            return;
-                        }
-
-                        // Get all the open positions of the trader uid
-                        const openPositions_ofTheTrader_Cursor = await mongoDatabase.collection.openTradesCollection.getAllDocumentsBy({
-                            status:"OPEN",
-                            trader_uid: configDocumentBeforeUpdate.trader_uid,
-                        });
-
-                        while(await openPositions_ofTheTrader_Cursor.hasNext()){
-                            const positionToClose_ = await openPositions_ofTheTrader_Cursor.next();
-                            if(!positionToClose_)return;
-                            /**
-                             * Close a position By sendiing an event to executor
-                             */
-                        
-                            const datetimeNow = new Date();
-                            await mongoDatabase.collection.oldTradesCollection.createNewDocument({
-                                original_position_id: positionToClose_._id,
-                                close_datetime: new Date(),
-                                direction:positionToClose_.direction,
-                                entry_price: positionToClose_.entry_price,
-                                close_price: positionToClose_.mark_price,
-                                followed: positionToClose_.followed,
-                                copied: positionToClose_.copied,
-                                leverage: positionToClose_.leverage,
-                                mark_price: positionToClose_.mark_price,
-                                open_datetime: positionToClose_.open_datetime,
-                                original_size: positionToClose_.original_size,
-                                pair:positionToClose_.pair,
-                                part: positionToClose_.part,
-                                pnl: positionToClose_.pnl,
-                                roi: positionToClose_.roi,
-                                roi_percentage: positionToClose_.roi_percentage,
-                                size: positionToClose_.size,
-                                previous_size_before_partial_close: positionToClose_.previous_size_before_partial_close,
-                                status: "CLOSED",
-                                total_parts: positionToClose_.total_parts,
-                                trader_id: positionToClose_.trader_id,
-                                trader_uid: positionToClose_.trader_uid ,
-                                document_created_at_datetime: datetimeNow,
-                                document_last_edited_at_datetime: datetimeNow,
-                                server_timezone: process.env.TZ||"",
-                                
-                            });
-                            // delete from openPositions collections
-                            await mongoDatabase.collection.openTradesCollection.deleteManyDocumentsByIds([positionToClose_._id]);
-
-                            /***
-                             * ===================
-                             */
-                        }
-
-                        
-                    }
+                    await closeAllPositionsInAnAccountAndTransferTheBalanceToMainAccount({
+                        mongoDatabase,
+                        sub_link_name:configDocumentBeforeUpdate.sub_link_name,
+                        trader_uid:configDocumentBeforeUpdate.trader_uid
+                    });
+                   
                     
                 }
             }catch(e){
@@ -151,76 +91,15 @@ process.env.TZ = dotEnvObj.TZ;
             try{
                 logger.info(`subAcccountConfig.onDeleteDocumentCallbacks deletedConfigDocument:${JSON.stringify(deletedConfigDocument)}`);
                 if(!mongoDatabase)return;
-                
-                // loop through all users
-                const users_Cursor = await mongoDatabase.collection.usersCollection.getAllDocuments();
-                while(await users_Cursor.hasNext()){
-                    const userDocument = await users_Cursor.next();
-                    if(!userDocument)return;
-                    // Get the sub acccount
-                    const subAccountDocument = await mongoDatabase.collection.subAccountsCollection.findOne({
+                if(!!deletedConfigDocument.sub_link_name && !!deletedConfigDocument.trader_uid){
+                    await closeAllPositionsInAnAccountAndTransferTheBalanceToMainAccount({
+                        mongoDatabase,
                         sub_link_name:deletedConfigDocument.sub_link_name,
-                        tg_user_id: userDocument.tg_user_id,
-                        testnet: userDocument.testnet,
-                        trader_uid: deletedConfigDocument.trader_uid
-                    });
-                    if(!subAccountDocument){
-                        logger.info(`subAccount not found for deletedConfigDocument:${JSON.stringify(deletedConfigDocument)} `);
-                        return;
-                    }
-
-                    // Get all the open positions of the trader uid
-                    const openPositions_ofTheTrader_Cursor = await mongoDatabase.collection.openTradesCollection.getAllDocumentsBy({
-                        status:"OPEN",
-                        trader_uid: deletedConfigDocument.trader_uid,
+                        trader_uid:deletedConfigDocument.trader_uid
                     });
 
-                    while(await openPositions_ofTheTrader_Cursor.hasNext()){
-                        const positionToClose_ = await openPositions_ofTheTrader_Cursor.next();
-                        if(!positionToClose_)return;
-                        /**
-                         * Close a position By sendiing an event to executor
-                         */
-                    
-                        const datetimeNow = new Date();
-                        await mongoDatabase.collection.oldTradesCollection.createNewDocument({
-                            original_position_id: positionToClose_._id,
-                            close_datetime: new Date(),
-                            direction:positionToClose_.direction,
-                            entry_price: positionToClose_.entry_price,
-                            close_price: positionToClose_.mark_price,
-                            followed: positionToClose_.followed,
-                            copied: positionToClose_.copied,
-                            leverage: positionToClose_.leverage,
-                            mark_price: positionToClose_.mark_price,
-                            open_datetime: positionToClose_.open_datetime,
-                            original_size: positionToClose_.original_size,
-                            pair:positionToClose_.pair,
-                            part: positionToClose_.part,
-                            pnl: positionToClose_.pnl,
-                            roi: positionToClose_.roi,
-                            roi_percentage: positionToClose_.roi_percentage,
-                            size: positionToClose_.size,
-                            previous_size_before_partial_close: positionToClose_.previous_size_before_partial_close,
-                            status: "CLOSED",
-                            total_parts: positionToClose_.total_parts,
-                            trader_id: positionToClose_.trader_id,
-                            trader_uid: positionToClose_.trader_uid ,
-                            document_created_at_datetime: datetimeNow,
-                            document_last_edited_at_datetime: datetimeNow,
-                            server_timezone: process.env.TZ||"",
-                            
-                        });
-                        // delete from openPositions collections
-                        await mongoDatabase.collection.openTradesCollection.deleteManyDocumentsByIds([positionToClose_._id]);
-
-                        /***
-                         * ===================
-                         */
-                    }
-
-                    
                 }
+                
 
             }catch(e){
                 logger.error(`subAcccountConfig.onDeleteDocumentCallbacks ${e.message}`);
@@ -246,3 +125,84 @@ process.env.TZ = dotEnvObj.TZ;
         // throw error;
     }  
 })();
+
+
+
+
+/**
+ * 
+ * @param {{
+ *   mongoDatabase: import("../../MongoDatabase").MongoDatabase
+ *   sub_link_name:string,
+ *    trader_uid: string
+* }} param0 
+ */
+async function closeAllPositionsInAnAccountAndTransferTheBalanceToMainAccount({mongoDatabase,sub_link_name,trader_uid}){
+    try{
+        console.log("(fn:deletedConfigDocument)");
+        // loop through all users
+        const users_Cursor = await mongoDatabase.collection.usersCollection.getAllDocuments();
+        while(await users_Cursor.hasNext()){
+            const userDocument = await users_Cursor.next();
+            if(!userDocument)return;
+            console.log({username:userDocument.username});
+            // if(userDocument.username!="Speet") continue;
+            // console.log("IIs Speet continue:");
+            // Get the sub acccount
+            const subAccountDocument_Cursor = await mongoDatabase.collection.subAccountsCollection.getAllDocumentsBy({
+                sub_link_name:sub_link_name,
+                testnet: userDocument.testnet,
+                tg_user_id: userDocument.tg_user_id,
+                trader_uid: trader_uid
+            });
+            while(await subAccountDocument_Cursor.hasNext()){
+                const subAccountDocument = await subAccountDocument_Cursor.next();
+                console.log({subAccountDocument});
+                if(!subAccountDocument){
+                    logger.info(`subAccount not found for configDocumentBeforeUpdate: ${JSON.stringify({sub_link_name,trader_uid})}`);
+                    return;
+                }
+
+    
+                const masterBybit = new Bybit({
+                    millisecondsToDelayBetweenRequests: 5000,
+                    privateKey: userDocument.privateKey,
+                    publicKey: userDocument.publicKey,
+                    testnet: userDocument.testnet===true?true:false
+                });
+                const subAccountBybit  = new Bybit({
+                    millisecondsToDelayBetweenRequests: 5000,
+                    privateKey: subAccountDocument.private_api,
+                    publicKey: subAccountDocument.public_api,
+                    testnet: subAccountDocument.testnet===true?true:false
+                });
+                await closeAllPositionsInASubAccount({
+                    bybit: subAccountBybit
+                });
+    
+    
+                // Get master account info
+                const getMasterAccountAPIKeyInfo_Res = await masterBybit.clients.bybit_AccountAssetClientV3.getAPIKeyInformation();
+                // console.log(getMasterAccountAPIKeyInfo_Res);
+                //@ts-ignore
+                if(getMasterAccountAPIKeyInfo_Res.retCode!==0)throw new Error("getMasterAccountAPIKeyInfo_Res: "+getMasterAccountAPIKeyInfo_Res.retMsg);
+        
+                await transferAllUSDTBalanceFromSubAccountToMainAccount({
+                    master_acccount_uid: Number(getMasterAccountAPIKeyInfo_Res.result.userID),
+                    masterAccount_bybit: masterBybit,
+                    sub_account_uid: subAccountDocument.sub_account_uid,
+                    subAccount_bybit: subAccountBybit,
+    
+                });
+            }
+
+            
+        }
+    }catch(error){
+        const newErrorMessage = `(fn:deletedConfigDocument) ${error.message}`;
+        error.message = newErrorMessage;
+        console.log(error);
+        logger.error(error.message);
+    }
+}
+

@@ -48,11 +48,11 @@ module.exports.SubAccountsConfigCollection =  class SubAccountsConfigCollection{
             const allDocuments_Cursor  = await this.getAllDocuments();
             while(await allDocuments_Cursor.hasNext()){
                 const document = await allDocuments_Cursor.next();
-                console.log({document});
+                // console.log({document});
                 if(!document)return;
                 // If document is not saved in previousSubAccountConfigBeforeUpdate_Collection: create
                 const documentInPreviousSubAccountConfigBeforeUpdateCollection = await this.previousSubAccountConfigBeforeUpdate_Collection.findOne({original_document_id:document._id});
-                console.log({documentInPreviousSubAccountConfigBeforeUpdateCollection});
+                // console.log({documentInPreviousSubAccountConfigBeforeUpdateCollection});
                 if(!documentInPreviousSubAccountConfigBeforeUpdateCollection){
                     const createResult = await this.previousSubAccountConfigBeforeUpdate_Collection.createNewDocument({
                         original_document_id:document._id,

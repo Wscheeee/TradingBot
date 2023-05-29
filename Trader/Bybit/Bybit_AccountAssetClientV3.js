@@ -136,11 +136,18 @@ module.exports.Bybit_AccountAssetClientV3 = class Bybit_AccountAssetClientV3 {
      * }}} createSubAccountTransferRequestV3
      */
     async createSubAccountTransfer(createSubAccountTransferRequestV3){
+        console.log("(method:createSubAccountTransfer): ",{createSubAccountTransferRequestV3});
         await this.#rateLimiter.addJob();
         const res = await this.#accountAssetClientV3.createSubAccountTransfer(createSubAccountTransferRequestV3);
         return res;
     }
 
 
-  
+    // async createransferFromSelfToMaster(){
+    //     await this.#rateLimiter.addJob();
+    //     console.log("[method: createUniversalTransfer]");
+    //     console.log(universalTransferParamsV5);
+    //     const res = await this.#accountAssetClientV3.enableUniversalTransfer(universalTransferParamsV5);
+    //     return res;
+    // }
 };

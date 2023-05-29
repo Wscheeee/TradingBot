@@ -57,8 +57,8 @@ module.exports.PreviousOpenTradesBeforeUpdate =  class PreviousOpenTradesBeforeU
      * @param {import("./types").Previous_OpenTrades_Before_Update_Interface} doc 
      */
     async createNewDocument(doc){
-        console.log("[class: PreviousOpenTradesBeforeUpdate](createNewDocument)")
-        console.log(doc);
+        console.log("[class: PreviousOpenTradesBeforeUpdate](createNewDocument)");
+        // console.log(doc);
         if(!doc){
             throw new Error("No doc passed to (fn) create New Document");
         }else {

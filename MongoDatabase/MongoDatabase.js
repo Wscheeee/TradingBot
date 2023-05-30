@@ -115,7 +115,16 @@ module.exports.MongoDatabase =  class MongoDatabase{
                     previousOpenTradesBeforeUpdate: previousOpenTradesBeforeUpdate,
                     previousSubAccountConfigBeforeUpdate:previousSubAccountConfigBeforeUpdate
                 };
+                // this.runOnInitImmediatelyAfterDBConnect = [
+                // ];
                 console.log("Database connected...");
+                /**
+                 * Run Initilizers
+                */
+                //1. Inititialize previous docs ccollections
+                await this.collection.subAccountsCollection.runOnInitImmediatelyAfterDBConnect();
+                await this.collection.openTradesCollection.runOnInitImmediatelyAfterConnect();
+                
                 // Ping the DB every 30 min
                 // Set an interval for sending a ping message every 30 minutes (1800000 ms)
                 console.log("Setting database ping");

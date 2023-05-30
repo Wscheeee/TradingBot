@@ -169,6 +169,7 @@ async function closeAllPositionsInAnAccountAndTransferTheBalanceToMainAccount({m
             console.log({username:userDocument.username});
             // if(userDocument.username!="Speet") continue;
             // console.log("IIs Speet continue:");
+            
             // Get the sub acccount
             const subAccountDocument_Cursor = await mongoDatabase.collection.subAccountsCollection.getAllDocumentsBy({
                 sub_link_name:sub_link_name,

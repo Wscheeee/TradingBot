@@ -30,13 +30,20 @@ module.exports.SubAccountsConfigCollection =  class SubAccountsConfigCollection{
         this.#database = database;
         this.#collection = this.#database.collection(this.#COLLECTION_NAME);
         this.previousSubAccountConfigBeforeUpdate_Collection = previousSubAccountConfigBeforeUpdate_Collection;
+ 
 
-        this.#initPreviousSubAcccountConfigBeforeUpdateCollection().then(_=>{
+    }
+    async runOnInitImmediatelyAfterConnect(){
+        const FUNCTION_NAME="(class:SubAccountsConfig)(method:runOnInitImmediatelyAfterConnect)";
+        console.log(FUNCTION_NAME);
+        try{
+            await this.#initPreviousSubAcccountConfigBeforeUpdateCollection();
             console.log("Finished executing::: #initPreviousSubAcccountConfigBeforeUpdateCollection");
-        }).catch(error=>{
-            console.log("Error:",error);
-        });
-
+        }catch(error){
+            const newErrorMessage = `${FUNCTION_NAME}: ${error.message}`;
+            error.message = newErrorMessage;
+            throw error;
+        }
     }
     
     async #initPreviousSubAcccountConfigBeforeUpdateCollection(){
@@ -229,6 +236,8 @@ module.exports.SubAccountsConfigCollection =  class SubAccountsConfigCollection{
             throw error;
         }
     }
+
+    
 
 
     /**

@@ -36,12 +36,20 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
         this.#database = database;
         this.#collection = this.#database.collection(this.#COLLECTION_NAME);
         this.previousOpenTradesBeforeUpdate_Collection = previousOpenTradesBeforeUpdate_Collection;
-        this.#initPreviousOpenTradesBeforeUpdateCollection().then(_=>{
+       
+    }
+
+    async runOnInitImmediatelyAfterConnect(){
+        const FUNCTION_NAME="(class:OpenTrades)(method:runOnInitImmediatelyAfterConnect)";
+        console.log(FUNCTION_NAME);
+        try{
+            await this.#initPreviousOpenTradesBeforeUpdateCollection();
             console.log("Finished executing::: #initPreviousOpenTradesBeforeUpdateCollection");
-        }).catch(error=>{
-            console.log("Error:",error);
-        });
-        
+        }catch(error){
+            const newErrorMessage = `${FUNCTION_NAME}: ${error.message}`;
+            error.message = newErrorMessage;
+            throw error;
+        }
     }
     
     async createIndexes(){

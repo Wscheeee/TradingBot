@@ -117,12 +117,12 @@ module.exports.MongoDatabase =  class MongoDatabase{
                 };
                 // this.runOnInitImmediatelyAfterDBConnect = [
                 // ];
-                console.log("Database connected...");
+                console.log("Database connected..."); 
                 /**
                  * Run Initilizers
                 */
                 //1. Inititialize previous docs ccollections
-                await this.collection.subAccountsCollection.runOnInitImmediatelyAfterDBConnect();
+                await this.collection.subAccountsConfigCollection.runOnInitImmediatelyAfterConnect();
                 await this.collection.openTradesCollection.runOnInitImmediatelyAfterConnect();
                 
                 // Ping the DB every 30 min

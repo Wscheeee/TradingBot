@@ -69,7 +69,7 @@ module.exports.SubAccountsCollection =  class SubAccountsCollection{
 
     /**
      * @param {import("mongodb").ObjectId} documentId
-     * @param {import("mongodb").UpdateFilter<import("./types").Sub_Account_Document_Interface>} doc 
+     * @param {import("mongodb").Filter<import("./types").Sub_Account_Document_Interface>} doc 
      */
     async updateDocument(documentId,doc){
         console.log(doc);

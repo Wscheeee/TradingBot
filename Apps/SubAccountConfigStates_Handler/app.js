@@ -26,6 +26,7 @@ const {IS_LIVE} = require("../../appConfig");
 const { DateTime } = require("../../DateTime");
 const { Bybit } = require("../../Trader");
 const { closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig } = require("./closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig");
+const { updateSubAccountDocumentsToUpdatedSubAccountConfigData } = require("./updateSubAccountDocumentsToUpdatedSubAccountConfigData");
 const dotEnvObj = readAndConfigureDotEnv(IS_LIVE);
 process.env.TZ = dotEnvObj.TZ;
 
@@ -86,6 +87,12 @@ process.env.TZ = dotEnvObj.TZ;
                         mongoDatabase,
                         trader_uid:configDocumentBeforeUpdate.trader_uid
                     });
+
+                    await updateSubAccountDocumentsToUpdatedSubAccountConfigData({
+                        mongoDatabase,
+                        previous_trader_uid:configDocumentBeforeUpdate.trader_uid,
+                        updatedSubAccountConfigDocument:configDocumentAfterUpdate
+                    });
                    
                     
                 }
@@ -107,7 +114,11 @@ process.env.TZ = dotEnvObj.TZ;
                         mongoDatabase,
                         trader_uid:deletedConfigDocument.trader_uid
                     });
-
+                    await updateSubAccountDocumentsToUpdatedSubAccountConfigData({
+                        mongoDatabase,
+                        previous_trader_uid:deletedConfigDocument.trader_uid,
+                        updatedSubAccountConfigDocument:null
+                    });
                 }
                 
 

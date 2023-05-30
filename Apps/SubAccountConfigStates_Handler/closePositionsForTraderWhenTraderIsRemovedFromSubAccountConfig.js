@@ -68,6 +68,8 @@ module.exports.closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig = 
             await mongoDatabase.collection.openTradesCollection.deleteManyDocumentsByIds([positionToClose_._id]);
         }
 
+      
+
     }catch(error){
         const newErrorMessage = `${FUNCTION_NAME}: ${error.message}`;
         error.message = newErrorMessage;

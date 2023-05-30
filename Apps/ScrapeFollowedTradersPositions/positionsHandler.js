@@ -236,7 +236,7 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                 }
                 if(positionStillOpen===false){
                     positionsToClose.push(savedPosition_);
-                }
+                } 
             }
             // loop through the closed positions and close them andd delete them from openPositions collection
             for(const positionToClose_ of positionsToClose){

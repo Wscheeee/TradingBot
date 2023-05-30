@@ -25,6 +25,7 @@ const logger = new Logger({app_name:APP_NAME});
 const {IS_LIVE} = require("../../appConfig");
 const { DateTime } = require("../../DateTime");
 const { Bybit } = require("../../Trader");
+const { closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig } = require("./closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig");
 const dotEnvObj = readAndConfigureDotEnv(IS_LIVE);
 process.env.TZ = dotEnvObj.TZ;
 
@@ -75,9 +76,14 @@ process.env.TZ = dotEnvObj.TZ;
                 // If trader uid has changed : close the trader's positions for each trader
                 if(configDocumentBeforeUpdate.trader_uid!==configDocumentAfterUpdate.trader_uid && !!configDocumentBeforeUpdate.sub_link_name && !!configDocumentBeforeUpdate.trader_uid){
                     //trader uid changed
-                    await closeAllPositionsInAnAccountAndTransferTheBalanceToMainAccount({
+                    // await closeAllPositionsInAnAccountAndTransferTheBalanceToMainAccount({
+                    //     mongoDatabase,
+                    //     sub_link_name:configDocumentBeforeUpdate.sub_link_name,
+                    //     trader_uid:configDocumentBeforeUpdate.trader_uid
+                    // });
+
+                    await closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig({
                         mongoDatabase,
-                        sub_link_name:configDocumentBeforeUpdate.sub_link_name,
                         trader_uid:configDocumentBeforeUpdate.trader_uid
                     });
                    
@@ -92,9 +98,13 @@ process.env.TZ = dotEnvObj.TZ;
                 logger.info(`subAcccountConfig.onDeleteDocumentCallbacks deletedConfigDocument:${JSON.stringify(deletedConfigDocument)}`);
                 if(!mongoDatabase)return;
                 if(!!deletedConfigDocument.sub_link_name && !!deletedConfigDocument.trader_uid){
-                    await closeAllPositionsInAnAccountAndTransferTheBalanceToMainAccount({
+                    // await closeAllPositionsInAnAccountAndTransferTheBalanceToMainAccount({
+                    //     mongoDatabase,
+                    //     sub_link_name:deletedConfigDocument.sub_link_name,
+                    //     trader_uid:deletedConfigDocument.trader_uid
+                    // });
+                    await closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig({
                         mongoDatabase,
-                        sub_link_name:deletedConfigDocument.sub_link_name,
                         trader_uid:deletedConfigDocument.trader_uid
                     });
 

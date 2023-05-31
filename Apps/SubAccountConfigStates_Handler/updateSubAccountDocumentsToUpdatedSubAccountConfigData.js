@@ -19,14 +19,17 @@ module.exports.updateSubAccountDocumentsToUpdatedSubAccountConfigData = async fu
         /**
         * Remove Trader details from the previously associated id
         */
-        const subAccountsAssociatedToTheTrader_Documents_Cursor = await mongoDatabase.collection.subAccountsCollection.getAllDocumentsBy({trader_uid:previous_trader_uid});
+        const subAccountsAssociatedToTheTrader_Documents_Cursor = await mongoDatabase.collection.subAccountsCollection.getAllDocumentsBy({
+            trader_uid:previous_trader_uid
+        });
         while(await subAccountsAssociatedToTheTrader_Documents_Cursor.hasNext() ){
             const subAccount_document = await subAccountsAssociatedToTheTrader_Documents_Cursor.next();
             if(!subAccount_document)return;
             // Remove trader details from sub account
             await mongoDatabase.collection.subAccountsCollection.updateDocument(subAccount_document._id,{
                 trader_uid:updatedSubAccountConfigDocument?updatedSubAccountConfigDocument.trader_uid:"",
-                trader_username:updatedSubAccountConfigDocument?updatedSubAccountConfigDocument.trader_username:""
+                trader_username:updatedSubAccountConfigDocument?updatedSubAccountConfigDocument.trader_username:"",
+                weight: updatedSubAccountConfigDocument?Number(updatedSubAccountConfigDocument.weight):0
             });
         }
 

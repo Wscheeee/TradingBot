@@ -1,6 +1,7 @@
 //@ts-check
 
 const { ObjectId } = require("mongodb");
+const { sleepAsync } = require("../../../Utils/sleepAsync");
 
 
 
@@ -32,7 +33,7 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
      * @param {import("mongodb").Db} database 
      * @param {import("../previous_open_trades_before_update").PreviousOpenTradesBeforeUpdate } previousOpenTradesBeforeUpdate_Collection 
      */
-    constructor(database,previousOpenTradesBeforeUpdate_Collection){
+    constructor(database,previousOpenTradesBeforeUpdate_Collection){ 
         this.#database = database;
         this.#collection = this.#database.collection(this.#COLLECTION_NAME);
         this.previousOpenTradesBeforeUpdate_Collection = previousOpenTradesBeforeUpdate_Collection;
@@ -96,21 +97,23 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
      * @param {string[]|import("mongodb").ObjectId[]} documentIds 
      * @returns {Promise<import("mongodb").DeleteResult>}
      */
-    async deleteManyDocumentsByIds(documentIds){
+    async deleteManyDocumentsByIds(documentIds){ 
         for(const id of documentIds){
             await this.#saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(id);
-
+            await sleepAsync(5000);
+            const deleteResult =await this.previousOpenTradesBeforeUpdate_Collection.deleteManyDocumentsByIds([id]);
+            console.log({deleteResult});
             // delete the previousDocumentBeforeUpdateCollection document after some time
-            const timeout = setTimeout(async ()=>{
-                try{
-                    clearTimeout(timeout);
-                    const deleteResult =await this.previousOpenTradesBeforeUpdate_Collection.deleteManyDocumentsByIds([id]);
-                    console.log({deleteResult});
-                }catch(error){
-                    const newErrorMessage = `(method:deleteManyDocumentsByIds): ${error.message}`;
-                    console.log(newErrorMessage);
-                }
-            },(1000*60));// 1 min
+            // const timeout = setTimeout(async ()=>{
+            //     try{
+            //         clearTimeout(timeout);
+            //         const deleteResult =await this.previousOpenTradesBeforeUpdate_Collection.deleteManyDocumentsByIds([id]);
+            //         console.log({deleteResult});
+            //     }catch(error){
+            //         const newErrorMessage = `(method:deleteManyDocumentsByIds): ${error.message}`;
+            //         console.log(newErrorMessage);
+            //     }
+            // },(1000*60));// 1 min
         }
         // delete many
         const newObjectIds = documentIds.map((str)=>new ObjectId(str));
@@ -212,14 +215,14 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
      */
     async updateDocument(documentId,doc){
         try{
-            console.log("(fn:updateDocument)");
+            console.log("(fn:updateDocument)"); 
             console.log(doc,documentId);
             if(!doc){
                 throw new Error("No doc passed to (fn) update Document");
             }else {
                 const documentId_as_ObjectId = typeof documentId==="string"?new ObjectId(documentId):documentId;
                 // save ccurrent document before update
-                this.#saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(documentId_as_ObjectId);
+                await this.#saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(documentId_as_ObjectId);
             
             
                 // Perform the update

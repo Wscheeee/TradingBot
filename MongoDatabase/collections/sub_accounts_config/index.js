@@ -1,5 +1,6 @@
 //@ts-check
 const { ObjectId } = require("mongodb");
+const { sleepAsync } = require("../../../Utils/sleepAsync");
 
 module.exports.SubAccountsConfigCollection =  class SubAccountsConfigCollection{
     #COLLECTION_NAME = "Sub_Accounts_Config";
@@ -94,18 +95,20 @@ module.exports.SubAccountsConfigCollection =  class SubAccountsConfigCollection{
     async deleteManyDocumentsByIds(ids){
         for(const id of ids){
             await this.#saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(id);
-
             // delete the previousDocumentBeforeUpdateCollection document after some time
-            const timeout = setTimeout(async ()=>{
-                try{
-                    clearTimeout(timeout);
-                    const deleteResult =await this.previousSubAccountConfigBeforeUpdate_Collection.deleteManyDocumentsByIds([id]);
-                    console.log({deleteResult});
-                }catch(error){
-                    const newErrorMessage = `(method:deleteManyDocumentsByIds): ${error.message}`;
-                    console.log(newErrorMessage);
-                }
-            },(1000*60));// 1 min
+            await sleepAsync(5000);
+            const deleteResult = await this.previousSubAccountConfigBeforeUpdate_Collection.deleteManyDocumentsByIds([new ObjectId(id)]);
+            console.log({deleteResult});
+            // const timeout = setTimeout(async ()=>{
+            //     try{
+            //         clearTimeout(timeout);
+            //         const deleteResult =await this.previousSubAccountConfigBeforeUpdate_Collection.deleteManyDocumentsByIds([id]);
+            //         console.log({deleteResult});
+            //     }catch(error){
+            //         const newErrorMessage = `(method:deleteManyDocumentsByIds): ${error.message}`;
+            //         console.log(newErrorMessage);
+            //     }
+            // },(1000*60));// 1 min
         }
         // delete many
         const newObjectIds = ids.map((str)=>new ObjectId(str));
@@ -253,7 +256,7 @@ module.exports.SubAccountsConfigCollection =  class SubAccountsConfigCollection{
             }else {
                 const documentId_as_ObjectId = typeof documentId==="string"?new ObjectId(documentId):documentId;
                 // get previousDocument b4 update
-                this.#saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(documentId_as_ObjectId);
+                await this.#saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(documentId_as_ObjectId);
             
                 // Perform the update
                 const updatedDoc =  await this.#collection.updateOne({

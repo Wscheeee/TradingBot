@@ -5,25 +5,27 @@
 
 /**
  * @param {{
-*      previous_trader_uid: string,
+ *      sub_link_name: string,
 *      mongoDatabase: import("../../MongoDatabase").MongoDatabase,
 *      updatedSubAccountConfigDocument: import("../../MongoDatabase/collections/sub_accounts_config/types").Sub_Account_Config_Collection_Document_Interface|null
 * }} param0
 */
+// *      previous_trader_uid: string,
+// *      subAccountConfigDocumentBeforeUpdate: import("../../MongoDatabase/collections/previous_sub_account_config_before_update/types").Previous_SubAccountConfig_Before_Update_Collection_Document_Interface,
 module.exports.updateSubAccountDocumentsToUpdatedSubAccountConfigData = async function updateSubAccountDocumentsToUpdatedSubAccountConfigData({
-    mongoDatabase,previous_trader_uid,updatedSubAccountConfigDocument
+    mongoDatabase,sub_link_name,updatedSubAccountConfigDocument
 }){
     const FUNCTION_NAME = "(fn:updateSubAccountDocumentsToUpdatedSubAccountConfigData)";
     try{
        
         /**
-        * Remove Trader details from the previously associated id
-        */
-        const subAccountsAssociatedToTheTrader_Documents_Cursor = await mongoDatabase.collection.subAccountsCollection.getAllDocumentsBy({
-            trader_uid:previous_trader_uid
+         * Get sub accounts with sub link name
+         */
+        const subAccountsAssociatedToTheSubLinkNameAndTestnetValue_Documents_Cursor = await mongoDatabase.collection.subAccountsCollection.getAllDocumentsBy({
+            sub_link_name
         });
-        while(await subAccountsAssociatedToTheTrader_Documents_Cursor.hasNext() ){
-            const subAccount_document = await subAccountsAssociatedToTheTrader_Documents_Cursor.next();
+        while(await subAccountsAssociatedToTheSubLinkNameAndTestnetValue_Documents_Cursor.hasNext() ){
+            const subAccount_document = await subAccountsAssociatedToTheSubLinkNameAndTestnetValue_Documents_Cursor.next();
             if(!subAccount_document)return;
             // Remove trader details from sub account
             await mongoDatabase.collection.subAccountsCollection.updateDocument(subAccount_document._id,{

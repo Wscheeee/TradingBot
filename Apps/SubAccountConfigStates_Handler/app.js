@@ -75,22 +75,20 @@ process.env.TZ = dotEnvObj.TZ;
                 
                 // Check if the trader uid has changed
                 // If trader uid has changed : close the trader's positions for each trader
-                if(configDocumentBeforeUpdate.trader_uid!==configDocumentAfterUpdate.trader_uid && !!configDocumentBeforeUpdate.sub_link_name && !!configDocumentBeforeUpdate.trader_uid){
-                    //trader uid changed
-                    // await closeAllPositionsInAnAccountAndTransferTheBalanceToMainAccount({
-                    //     mongoDatabase,
-                    //     sub_link_name:configDocumentBeforeUpdate.sub_link_name,
-                    //     trader_uid:configDocumentBeforeUpdate.trader_uid
-                    // });
+                if(configDocumentBeforeUpdate.trader_uid!==configDocumentAfterUpdate.trader_uid && !!configDocumentBeforeUpdate.sub_link_name){
+                    // NOTE: That the previousDocument b4 update might have empty trader details and weight.
+                    if(configDocumentBeforeUpdate.trader_uid){
+                        await closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig({
+                            mongoDatabase,
+                            trader_uid:configDocumentBeforeUpdate.trader_uid
+                        });
 
-                    await closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig({
-                        mongoDatabase,
-                        trader_uid:configDocumentBeforeUpdate.trader_uid
-                    });
+                    }
+                    
 
                     await updateSubAccountDocumentsToUpdatedSubAccountConfigData({
                         mongoDatabase,
-                        previous_trader_uid:configDocumentBeforeUpdate.trader_uid,
+                        sub_link_name: configDocumentBeforeUpdate.sub_link_name,
                         updatedSubAccountConfigDocument:configDocumentAfterUpdate
                     });
                    
@@ -104,21 +102,21 @@ process.env.TZ = dotEnvObj.TZ;
             try{
                 logger.info(`subAcccountConfig.onDeleteDocumentCallbacks deletedConfigDocument:${JSON.stringify(deletedConfigDocument)}`);
                 if(!mongoDatabase)return;
-                if(!!deletedConfigDocument.sub_link_name && !!deletedConfigDocument.trader_uid){
-                    // await closeAllPositionsInAnAccountAndTransferTheBalanceToMainAccount({
-                    //     mongoDatabase,
-                    //     sub_link_name:deletedConfigDocument.sub_link_name,
-                    //     trader_uid:deletedConfigDocument.trader_uid
-                    // });
+                if(deletedConfigDocument.trader_uid){
                     await closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig({
                         mongoDatabase,
                         trader_uid:deletedConfigDocument.trader_uid
                     });
+
+                }
+
+                if(deletedConfigDocument.sub_link_name ){
                     await updateSubAccountDocumentsToUpdatedSubAccountConfigData({
                         mongoDatabase,
-                        previous_trader_uid:deletedConfigDocument.trader_uid,
+                        sub_link_name: deletedConfigDocument.sub_link_name,
                         updatedSubAccountConfigDocument:null
                     });
+
                 }
                 
 
@@ -150,81 +148,81 @@ process.env.TZ = dotEnvObj.TZ;
 
 
 
-/**
- * 
- * @param {{
- *   mongoDatabase: import("../../MongoDatabase").MongoDatabase
- *   sub_link_name:string,
- *    trader_uid: string
-* }} param0 
- */
-async function closeAllPositionsInAnAccountAndTransferTheBalanceToMainAccount({mongoDatabase,sub_link_name,trader_uid}){
-    try{
-        console.log("(fn:deletedConfigDocument)");
-        // loop through all users
-        const users_Cursor = await mongoDatabase.collection.usersCollection.getAllDocuments();
-        while(await users_Cursor.hasNext()){
-            const userDocument = await users_Cursor.next();
-            if(!userDocument)return;
-            console.log({username:userDocument.username});
-            // if(userDocument.username!="Speet") continue;
-            // console.log("IIs Speet continue:");
+// /**
+//  * 
+//  * @param {{
+//  *   mongoDatabase: import("../../MongoDatabase").MongoDatabase
+//  *   sub_link_name:string,
+//  *    trader_uid: string
+// * }} param0 
+//  */
+// async function closeAllPositionsInAnAccountAndTransferTheBalanceToMainAccount({mongoDatabase,sub_link_name,trader_uid}){
+//     try{
+//         console.log("(fn:deletedConfigDocument)");
+//         // loop through all users
+//         const users_Cursor = await mongoDatabase.collection.usersCollection.getAllDocuments();
+//         while(await users_Cursor.hasNext()){
+//             const userDocument = await users_Cursor.next();
+//             if(!userDocument)return;
+//             console.log({username:userDocument.username});
+//             // if(userDocument.username!="Speet") continue;
+//             // console.log("IIs Speet continue:");
             
-            // Get the sub acccount
-            const subAccountDocument_Cursor = await mongoDatabase.collection.subAccountsCollection.getAllDocumentsBy({
-                sub_link_name:sub_link_name,
-                testnet: userDocument.testnet,
-                tg_user_id: userDocument.tg_user_id,
-                trader_uid: trader_uid
-            });
-            while(await subAccountDocument_Cursor.hasNext()){
-                const subAccountDocument = await subAccountDocument_Cursor.next();
-                console.log({subAccountDocument});
-                if(!subAccountDocument){
-                    logger.info(`subAccount not found for configDocumentBeforeUpdate: ${JSON.stringify({sub_link_name,trader_uid})}`);
-                    return;
-                }
+//             // Get the sub acccount
+//             const subAccountDocument_Cursor = await mongoDatabase.collection.subAccountsCollection.getAllDocumentsBy({
+//                 sub_link_name:sub_link_name,
+//                 testnet: userDocument.testnet,
+//                 tg_user_id: userDocument.tg_user_id,
+//                 trader_uid: trader_uid
+//             });
+//             while(await subAccountDocument_Cursor.hasNext()){
+//                 const subAccountDocument = await subAccountDocument_Cursor.next();
+//                 console.log({subAccountDocument});
+//                 if(!subAccountDocument){
+//                     logger.info(`subAccount not found for configDocumentBeforeUpdate: ${JSON.stringify({sub_link_name,trader_uid})}`);
+//                     return;
+//                 }
 
     
-                const masterBybit = new Bybit({
-                    millisecondsToDelayBetweenRequests: 5000,
-                    privateKey: userDocument.privateKey,
-                    publicKey: userDocument.publicKey,
-                    testnet: userDocument.testnet===true?true:false
-                });
-                const subAccountBybit  = new Bybit({
-                    millisecondsToDelayBetweenRequests: 5000,
-                    privateKey: subAccountDocument.private_api,
-                    publicKey: subAccountDocument.public_api,
-                    testnet: subAccountDocument.testnet===true?true:false
-                });
-                await closeAllPositionsInASubAccount({
-                    bybit: subAccountBybit
-                });
+//                 const masterBybit = new Bybit({
+//                     millisecondsToDelayBetweenRequests: 5000,
+//                     privateKey: userDocument.privateKey,
+//                     publicKey: userDocument.publicKey,
+//                     testnet: userDocument.testnet===true?true:false
+//                 });
+//                 const subAccountBybit  = new Bybit({
+//                     millisecondsToDelayBetweenRequests: 5000,
+//                     privateKey: subAccountDocument.private_api,
+//                     publicKey: subAccountDocument.public_api,
+//                     testnet: subAccountDocument.testnet===true?true:false
+//                 });
+//                 await closeAllPositionsInASubAccount({
+//                     bybit: subAccountBybit
+//                 });
     
     
-                // Get master account info
-                const getMasterAccountAPIKeyInfo_Res = await masterBybit.clients.bybit_AccountAssetClientV3.getAPIKeyInformation();
-                // console.log(getMasterAccountAPIKeyInfo_Res);
-                //@ts-ignore
-                if(getMasterAccountAPIKeyInfo_Res.retCode!==0)throw new Error("getMasterAccountAPIKeyInfo_Res: "+getMasterAccountAPIKeyInfo_Res.retMsg);
+//                 // Get master account info
+//                 const getMasterAccountAPIKeyInfo_Res = await masterBybit.clients.bybit_AccountAssetClientV3.getAPIKeyInformation();
+//                 // console.log(getMasterAccountAPIKeyInfo_Res);
+//                 //@ts-ignore
+//                 if(getMasterAccountAPIKeyInfo_Res.retCode!==0)throw new Error("getMasterAccountAPIKeyInfo_Res: "+getMasterAccountAPIKeyInfo_Res.retMsg);
         
-                await transferAllUSDTBalanceFromSubAccountToMainAccount({
-                    master_acccount_uid: Number(getMasterAccountAPIKeyInfo_Res.result.userID),
-                    masterAccount_bybit: masterBybit,
-                    sub_account_uid: subAccountDocument.sub_account_uid,
-                    subAccount_bybit: subAccountBybit,
+//                 await transferAllUSDTBalanceFromSubAccountToMainAccount({
+//                     master_acccount_uid: Number(getMasterAccountAPIKeyInfo_Res.result.userID),
+//                     masterAccount_bybit: masterBybit,
+//                     sub_account_uid: subAccountDocument.sub_account_uid,
+//                     subAccount_bybit: subAccountBybit,
     
-                });
-            }
+//                 });
+//             }
 
             
-        }
-    }catch(error){
-        const newErrorMessage = `(fn:deletedConfigDocument) ${error.message}`;
-        error.message = newErrorMessage;
-        console.log(error);
-        logger.error(error.message);
-    }
-}
+//         }
+//     }catch(error){
+//         const newErrorMessage = `(fn:deletedConfigDocument) ${error.message}`;
+//         error.message = newErrorMessage;
+//         console.log(error);
+//         logger.error(error.message);
+//     }
+// }
 

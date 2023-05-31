@@ -1,3 +1,4 @@
+//@ts-check
 /**
  * A class for performing arithmetic operations on decimal and number values.
  */
@@ -7,7 +8,7 @@ class DecimalMath {
      * @param {number|string} value - The initial value to use.
      */
     constructor(value) {
-      this.result = Number(value);
+        this.result = Number(value);
     }
   
     /**
@@ -16,8 +17,8 @@ class DecimalMath {
      * @returns {DecimalMath} The current DecimalMath instance.
      */
     add(value) {
-      this.result = Number((this.result + Number(value)).toFixed(10));
-      return this;
+        this.result = Number((this.result + Number(value)).toFixed(10));
+        return this;
     }
   
     /**
@@ -26,8 +27,8 @@ class DecimalMath {
      * @returns {DecimalMath} The current DecimalMath instance.
      */
     subtract(value) {
-      this.result = Number((this.result - Number(value)).toFixed(10));
-      return this;
+        this.result = Number((this.result - Number(value)).toFixed(10));
+        return this;
     }
   
     /**
@@ -36,8 +37,8 @@ class DecimalMath {
      * @returns {DecimalMath} The current DecimalMath instance.
      */
     multiply(value) {
-      this.result = Number((this.result * Number(value)).toFixed(10));
-      return this;
+        this.result = Number((this.result * Number(value)).toFixed(10));
+        return this;
     }
   
     /**
@@ -46,8 +47,8 @@ class DecimalMath {
      * @returns {DecimalMath} The current DecimalMath instance.
      */
     divide(value) {
-      this.result = Number((this.result / Number(value)).toFixed(10));
-      return this;
+        this.result = Number((this.result / Number(value)).toFixed(10));
+        return this;
     }
   
     /**
@@ -56,21 +57,33 @@ class DecimalMath {
      * @returns {DecimalMath} The current DecimalMath instance.
      */
     round(decimalPlaces) {
-      this.result = Number(this.result.toFixed(decimalPlaces));
-      return this;
+        this.result = Number(this.result.toFixed(decimalPlaces));
+        return this;
     }
+
+    /**
+     * rancates a decimal number to specified decimal places 
+     * @param {number} decimalPlaces 
+     * @returns {DecimalMath}
+     */
+    truncateToDecimalPlaces(decimalPlaces) {
+        const factor = Math.pow(10, decimalPlaces);
+        this.result = Math.trunc(this.result * factor) / factor;
+        return this;
+    }
+    
   
     /**
      * Gets the current result of the arithmetic operations.
      * @returns {number} The current result.
      */
     getResult() {
-      return this.result;
+        return this.result;
     }
-  }
+}
   
 module.exports.DecimalMath = DecimalMath;
-  // Example usage
+// Example usage
 //   const result = new DecimalMath(0.1)
 //     .add(0.2)
 //     .subtract(0.05)

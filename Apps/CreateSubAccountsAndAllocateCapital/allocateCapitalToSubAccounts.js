@@ -154,7 +154,8 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                     if(subAccountInfoBalancesCalcsObj && subAccountInfoBalancesCalcsObj.difference>0 && Number(subAccountInfoBalancesCalcsObj.difference.toFixed(2))>0.0){
                         
                         await performUniversalTransfer({
-                            amount: String(subAccountInfoBalancesCalcsObj.difference.toFixed(2)),
+                            // amount: String(subAccountInfoBalancesCalcsObj.difference.toFixed(2)),
+                            amount: String(subAccountInfoBalancesCalcsObj.difference),
                             toMemberId: Number(getMasterAccountAPIKeyInfo_Res.result.userID),
                             fromMemberId: Number(subAccount.sub_account_uid),
                             bybit,
@@ -266,7 +267,8 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
             for(const transactionLedger of transactionsLedgersArray){
                 if(Number(transactionLedger.amount.toFixed(2))>0.00){
                     await performUniversalTransfer({
-                        amount: String(transactionLedger.amount.toFixed(2)),
+                        // amount: String(transactionLedger.amount.toFixed(2)),
+                        amount: String(transactionLedger.amount),
                         toMemberId: Number(transactionLedger.toUid),
                         fromMemberId: Number(transactionLedger.fromUid),
                         bybit,

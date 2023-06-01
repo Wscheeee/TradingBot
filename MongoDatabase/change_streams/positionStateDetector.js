@@ -76,7 +76,9 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
                         cb(fullDocument, trader);
                     });
                 }
-                // this.#openTradesCollection_previousUpdatedDocs[documentId.toString("base64")] = fullDocument;
+                // Save in previous open trades before update
+                await this.#mongoDatabase.collection.openTradesCollection.saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(documentId);
+               
             } else if (change.operationType === "update") {
                 console.log("(openTradesCollection):UPDATE event");
                 const documentId = change.documentKey._id;
@@ -109,7 +111,15 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
                     // console.log("OpenTrades Document has no real changes.");
                 }
 
-                // this.#openTradesCollection_previousUpdatedDocs[documentId.toString("base64")] = fullDocument; 
+                // Save in previous open trades before update
+                await this.#mongoDatabase.collection.openTradesCollection.saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(documentId);
+               
+
+            }else if(change.operationType === "delete"){
+                const documentId = change.documentKey._id;
+                // Delete from previous open trades before update
+                await this.#mongoDatabase.collection.openTradesCollection.previousOpenTradesBeforeUpdate_Collection.deleteManyDocumentsByIds([documentId]);
+               
             }
         });
     }

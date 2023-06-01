@@ -1,0 +1,89 @@
+<section class="user_list_component">
+    <style>
+        .user_list_component {
+            height: 100vh;
+            overflow-y:scroll;
+        }
+        .menubar {
+            height: 50px;
+            display: flex;
+            background-color: #444444;
+            /* justify-content: center; */
+            align-items: center;
+            position: fixed;
+            z-index: 1;
+            
+        }
+        .titleDiv {
+            color:white;
+            padding:0px 2em;
+        }
+    
+        .create_new_user_button_div {
+            background-color: blue;
+            margin:0 2em;
+        }
+        .listbar {
+    
+            padding-top:2em;
+            grid-area: span;
+            /* background-color:#121212; */
+            /* width: 30em; */
+            /* height: 100vh; */
+            /* height: 100%; */
+            color: white;
+            box-shadow: -1px 1px 6px 1px black;
+            /* padding: 2em 2em; */
+            /* overflow-y: scroll; */
+        }
+        .nav-item {
+            background-color: white;
+            width: 100%;
+            color: black;
+            cursor: pointer;
+            padding: 2em;
+        }
+        ul {
+            text-decoration: none;
+        }
+        .user_tile {
+            text-decoration: none;
+            background-color:gray;
+            cursor: pointer;
+            opacity: 0.9
+        }
+        .user_tile:hover {
+            opacity: 1
+        }
+        .user_tile.active {
+            background-color: #5c5c5a;
+            opacity: 1;
+        }
+        
+    </style>
+    <section class="menubar">
+        <!-- Menu -->
+        <div class="titleDiv">
+            <p>Users</p>
+        </div>
+        <div>
+            <!-- search button -->
+            <input placeholder="Search"/>
+        </div>
+        <div>
+            <button>
+               Search
+            </button>
+        </div>
+        <div class="create_new_user_button_div">
+            <!-- Create New User -->
+            <button>+ Create</button>
+        </div>
+    </section>
+    <div class="listbar">
+        <div class="user">Users</div>
+        <ul id="list-ul"></ul>
+    </div>
+    </section>
+    
+    

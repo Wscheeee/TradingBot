@@ -57,6 +57,8 @@ module.exports.SubAccountsConfigCollectionStateDetector = class SubAccountsConfi
                 this.#onCreateDocumentCallbacks.forEach((cb) => {
                     cb(fullDocument);
                 });
+                // Save it to previous sub account config before update
+                await this.#mongoDatabase.collection.subAccountsConfigCollection.saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(documentId);
             } else if (change.operationType === "update") {
                 console.log("(subAccountsConfigCollection):UPDATE event");
                 const documentId = change.documentKey._id;
@@ -73,6 +75,9 @@ module.exports.SubAccountsConfigCollectionStateDetector = class SubAccountsConfi
                 this.#onUpdateDocumentCallbacks.forEach((cb) => {
                     cb(documentBeforeUpdate,fullDocumentAfterChange);
                 });
+                // Save it to previous sub account config before update
+                await this.#mongoDatabase.collection.subAccountsConfigCollection.saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(documentId);
+
             } else if(change.operationType==="delete"){
                 console.log("(subAccountsConfigCollection):DELETE event");
                 const documentId = change.documentKey._id;
@@ -82,6 +87,8 @@ module.exports.SubAccountsConfigCollectionStateDetector = class SubAccountsConfi
                 this.#onDeleteDocumentCallbacks.forEach((cb) => {
                     cb(documentBeforedDelete);
                 });
+                // Delete document from sub account config before update
+                await this.#mongoDatabase.collection.subAccountsConfigCollection.previousSubAccountConfigBeforeUpdate_Collection.deleteManyDocumentsByIds([documentId]);
             }
         });
     }

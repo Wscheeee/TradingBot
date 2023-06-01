@@ -27,6 +27,13 @@ class AppStore {
      * @type {TableDataEventDispatchlisteners_Callback}
      */
     #tableDataEventsDispatchlisteners_Object= {};
+
+    /**
+     * @typedef {(pageUid:string)=>any} NavigationPageListenerCallback_Interface
+     * @type {NavigationPageListenerCallback_Interface[]}
+     */
+    #navigationPageListeners = [];
+
     constructor(){
         // Retrieve data from storage
         const appDataFromLocalStorage = localStorage.getItem(this.APP_STORE_DATA_KEY);
@@ -115,6 +122,29 @@ class AppStore {
         return tableData;
     }
 
+    // PAGES
+    /**
+     * @param {string} pageUid 
+     */
+    dispatchSelectedNavigationPage(pageUid){
+        console.log("(method:dispatchSelectedNavigationPage)");
+        console.log({pageUid});
+        this.#dispatch("page",pageUid);
+        const listeners = this.#navigationPageListeners;
+        if(listeners ){
+            listeners.forEach(cb=>{
+                cb(pageUid);
+            });
+        }
+    }
+
+    /**
+     * 
+     * @param {NavigationPageListenerCallback_Interface} cb 
+     */
+    listenToPageSelectionNavigationDispatch(cb){
+        this.#navigationPageListeners.push(cb);
+    }
 }
 
 const appStore = new AppStore();

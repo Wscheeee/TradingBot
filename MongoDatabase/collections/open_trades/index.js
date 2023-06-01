@@ -98,23 +98,23 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
      * @returns {Promise<import("mongodb").DeleteResult>}
      */
     async deleteManyDocumentsByIds(documentIds){ 
-        for(const id of documentIds){
-            await this.#saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(id);
-            await sleepAsync(5000);
-            const deleteResult =await this.previousOpenTradesBeforeUpdate_Collection.deleteManyDocumentsByIds([id]);
-            console.log({deleteResult});
-            // delete the previousDocumentBeforeUpdateCollection document after some time
-            // const timeout = setTimeout(async ()=>{
-            //     try{
-            //         clearTimeout(timeout);
-            //         const deleteResult =await this.previousOpenTradesBeforeUpdate_Collection.deleteManyDocumentsByIds([id]);
-            //         console.log({deleteResult});
-            //     }catch(error){
-            //         const newErrorMessage = `(method:deleteManyDocumentsByIds): ${error.message}`;
-            //         console.log(newErrorMessage);
-            //     }
-            // },(1000*60));// 1 min
-        }
+        // for(const id of documentIds){
+        //     await this.#saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(id);
+        //     await sleepAsync(5000);
+        //     const deleteResult =await this.previousOpenTradesBeforeUpdate_Collection.deleteManyDocumentsByIds([id]);
+        //     console.log({deleteResult});
+        //     // delete the previousDocumentBeforeUpdateCollection document after some time
+        //     // const timeout = setTimeout(async ()=>{
+        //     //     try{
+        //     //         clearTimeout(timeout);
+        //     //         const deleteResult =await this.previousOpenTradesBeforeUpdate_Collection.deleteManyDocumentsByIds([id]);
+        //     //         console.log({deleteResult});
+        //     //     }catch(error){
+        //     //         const newErrorMessage = `(method:deleteManyDocumentsByIds): ${error.message}`;
+        //     //         console.log(newErrorMessage);
+        //     //     }
+        //     // },(1000*60));// 1 min
+        // }
         // delete many
         const newObjectIds = documentIds.map((str)=>new ObjectId(str));
         const deleteResults = await this.#collection.deleteMany({_id:{$in: newObjectIds}});
@@ -173,8 +173,8 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
 
     /**
      * @param {import("mongodb").ObjectId|string} documentId
-     */
-    async #saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(documentId){
+     */ 
+    async saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(documentId){
         try{
             if(!documentId)throw new Error("documentId mustt be passed in");
             const documentId_as_ObjectId = typeof documentId==="string"?new ObjectId(documentId):documentId;
@@ -221,10 +221,7 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
                 throw new Error("No doc passed to (fn) update Document");
             }else {
                 const documentId_as_ObjectId = typeof documentId==="string"?new ObjectId(documentId):documentId;
-                // save ccurrent document before update
-                await this.#saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(documentId_as_ObjectId);
-            
-            
+             
                 // Perform the update
                 const updatedDoc =  await this.#collection.updateOne({
                     _id: documentId_as_ObjectId

@@ -1,10 +1,10 @@
 //@ts-check
-class UserList_Component extends HTMLElement {
+class UsersList_Component extends HTMLElement {
     constructor(){
         super();
         this.attachShadow({mode:"open"});
         const template = document.createElement("template");
-        fetchTemplateHTML("/pages/users/user_list_component/index.html").then((html)=>{
+        fetchTemplateHTML("/pages/users/users_list_component/index.html").then((html)=>{
             console.log({html});
             template.innerHTML = html;
             if(!this.shadowRoot){
@@ -27,13 +27,13 @@ class UserList_Component extends HTMLElement {
         fetchUsersJSON().then(users => {
             console.log({users}); // fetched users
             if(!this.shadowRoot){
-                console.error("[class:UserList_Component=>listUsers (fn:fetchUsersJSON)]this.shadowRoot:",this.shadowRoot);
+                console.error("[class:UsersList_Component=>listUsers (fn:fetchUsersJSON)]this.shadowRoot:",this.shadowRoot);
                 return;
             }
             // show the users in the gui
             const ul = this.shadowRoot.querySelector("#list-ul");
             if(!ul){
-                console.error("[class:UserList_Component=>listUsers (fn:fetchUsersJSON)]ul:",ul);
+                console.error("[class:UsersList_Component=>listUsers (fn:fetchUsersJSON)]ul:",ul);
                 return;
             }
             for(const user of users){
@@ -45,7 +45,7 @@ class UserList_Component extends HTMLElement {
                 p2.textContent = String(user.tg_user_id);
                 li.addEventListener("click",(e)=>{
                     if(!this.shadowRoot){
-                        console.log("[class:UserList_Component=>listUsers (fn:fetchUsersJSON) users loop] this.shadowRoot:",this.shadowRoot);
+                        console.log("[class:UsersList_Component=>listUsers (fn:fetchUsersJSON) users loop] this.shadowRoot:",this.shadowRoot);
                     }
                     // remove active from the previous active list element
                     const li_NodeList = this.shadowRoot.querySelectorAll("li.user_tile");
@@ -82,4 +82,4 @@ class UserList_Component extends HTMLElement {
 }
 
 
-customElements.define("users-list-component",UserList_Component);
+customElements.define("users-list-component",UsersList_Component);

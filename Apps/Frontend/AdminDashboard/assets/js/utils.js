@@ -187,3 +187,18 @@ async function fetchSubAccountOpenPositionsJSON({sub_account_uid}){
     console.log({respJson});
     return respJson.data.orders;//.data.users;
 }
+
+
+
+async function fetchTopTradersJSON({limit,skip}){
+    const headers = new Headers();
+    headers.append("Access-Control-Allow-Origin","*");
+ 
+    /**
+     * @type {import("../../../../API_AdminDashboard/routes/top_traders/types").GetAllTopTraders_Routes_Payload_Interface}
+    */
+    const respJson = await performJSONFetch(`http://localhost:30003/top-traders?limit=${limit}&skip=${skip}`);
+
+    console.log({respJson});
+    return respJson.data.top_traders;//.data.users;
+}

@@ -1,12 +1,12 @@
 //@ts-check
-class UserContentComponent extends HTMLElement {
+class UsersContentComponent extends HTMLElement {
     constructor(){
         super();
         this.attachShadow({mode:"open"});
         this.controller = new AbortController();
         this.signal = this.controller.signal;
 
-        fetchTemplateHTML("/pages/users/user_content_component/index.html").then(componentHtml => {
+        fetchTemplateHTML("/pages/users/users_content_component/index.html").then(componentHtml => {
             if(!this.shadowRoot)return;
             console.log({componentHtml}); // fetched componentHtml
             // const t = document.createDocumentFragment();
@@ -159,4 +159,4 @@ class UserContentComponent extends HTMLElement {
 }
 
 
-customElements.define("user-content-component",UserContentComponent);
+customElements.define("users-content-component",UsersContentComponent);

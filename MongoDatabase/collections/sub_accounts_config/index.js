@@ -93,23 +93,23 @@ module.exports.SubAccountsConfigCollection =  class SubAccountsConfigCollection{
      * @returns {Promise<import("mongodb").DeleteResult>}
      */
     async deleteManyDocumentsByIds(ids){
-        for(const id of ids){
-            await this.#saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(id);
-            // delete the previousDocumentBeforeUpdateCollection document after some time
-            await sleepAsync(5000);
-            const deleteResult = await this.previousSubAccountConfigBeforeUpdate_Collection.deleteManyDocumentsByIds([new ObjectId(id)]);
-            console.log({deleteResult});
-            // const timeout = setTimeout(async ()=>{
-            //     try{
-            //         clearTimeout(timeout);
-            //         const deleteResult =await this.previousSubAccountConfigBeforeUpdate_Collection.deleteManyDocumentsByIds([id]);
-            //         console.log({deleteResult});
-            //     }catch(error){
-            //         const newErrorMessage = `(method:deleteManyDocumentsByIds): ${error.message}`;
-            //         console.log(newErrorMessage);
-            //     }
-            // },(1000*60));// 1 min
-        }
+        // for(const id of ids){
+        //     // await this.#saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(id);
+        //     // delete the previousDocumentBeforeUpdateCollection document after some time
+        //     await sleepAsync(5000);
+        //     const deleteResult = await this.previousSubAccountConfigBeforeUpdate_Collection.deleteManyDocumentsByIds([new ObjectId(id)]);
+        //     console.log({deleteResult});
+        //     // const timeout = setTimeout(async ()=>{
+        //     //     try{
+        //     //         clearTimeout(timeout);
+        //     //         const deleteResult =await this.previousSubAccountConfigBeforeUpdate_Collection.deleteManyDocumentsByIds([id]);
+        //     //         console.log({deleteResult});
+        //     //     }catch(error){
+        //     //         const newErrorMessage = `(method:deleteManyDocumentsByIds): ${error.message}`;
+        //     //         console.log(newErrorMessage);
+        //     //     }
+        //     // },(1000*60));// 1 min
+        // }
         // delete many
         const newObjectIds = ids.map((str)=>new ObjectId(str));
         const deleteResults = await this.#collection.deleteMany({_id:{$in: newObjectIds}});
@@ -202,10 +202,10 @@ module.exports.SubAccountsConfigCollection =  class SubAccountsConfigCollection{
         return await this.#collection.findOne(filter);
     }
 
-    /**
+    /** 
      * @param {import("mongodb").ObjectId|string} documentId
      */
-    async #saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(documentId){
+    async saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(documentId){
         try{
             if(!documentId)throw new Error("documentId mustt be passed in");
             const documentId_as_ObjectId = typeof documentId==="string"?new ObjectId(documentId):documentId;
@@ -255,10 +255,7 @@ module.exports.SubAccountsConfigCollection =  class SubAccountsConfigCollection{
                 throw new Error("No doc passed to (fn) update Document");
             }else {
                 const documentId_as_ObjectId = typeof documentId==="string"?new ObjectId(documentId):documentId;
-                // get previousDocument b4 update
-                await this.#saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(documentId_as_ObjectId);
-            
-                // Perform the update
+              
                 const updatedDoc =  await this.#collection.updateOne({
                     _id: documentId_as_ObjectId
                 },{$set:doc});

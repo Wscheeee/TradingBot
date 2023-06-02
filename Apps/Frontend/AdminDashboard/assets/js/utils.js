@@ -202,3 +202,19 @@ async function fetchTopTradersJSON({limit,skip}){
     console.log({respJson});
     return respJson.data.top_traders;//.data.users;
 }
+
+  
+async function fetchTopTradersOpenPositionsJSON({limit,skip,trader_uid}){
+    const headers = new Headers();
+    headers.append("Access-Control-Allow-Origin","*");
+ 
+    /**
+     * @type {import("../../../../API_AdminDashboard/routes/top_traders/types").GetTraderOpenPositions_Routes_Payload_Interface}
+    */
+    const respJson = await performJSONFetch(`http://localhost:30003/trader-open-positions?limit=${limit}&skip=${skip}&trader_uid=${trader_uid}`);
+
+    console.log({respJson});
+    return respJson.data.trader_open_positions;
+}
+
+

@@ -14,6 +14,7 @@ module.exports.closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig = 
 }){
     const FUNCTION_NAME = "(fn:closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig)";
     try{
+        console.log(FUNCTION_NAME);
         /**
          * Get the traders open positions documents
          */

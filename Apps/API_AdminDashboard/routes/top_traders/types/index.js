@@ -1,5 +1,8 @@
 //@ts-check
 /**
+* @typedef {import("../../../../../MongoDatabase/collections/top_traders/types").TopTraderCollection_Document_Interface} TopTrader_Interface
+ * /
+/**
  * @typedef {{
  *      success: boolean,
  *      message: string,

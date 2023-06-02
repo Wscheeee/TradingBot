@@ -1,0 +1,107 @@
+<div>
+    <style>
+        .user_content_section{
+            padding-left: 0.5em;
+        }
+        .menubar {
+            height: 50px;
+            display: flex;
+            background-color: aliceblue;
+            justify-content: center;
+            align-items: center;
+            padding-left: 0.5em;
+        }
+
+
+        .positions_table, .positions_table_body {
+            display: flex;
+            flex: 1fr 1fr 1fr 1fr 1fr 1fr;
+        }
+
+        .sub_account_tile {
+            background-color: antiquewhite;
+            margin: 2px;
+            padding: 2px;
+            width:fit-content;
+            cursor: pointer;
+            opacity: 0.9;
+        }
+        .sub_account_tile:hover {
+            opacity: 1;
+        }
+        .sub_account_tile.active {
+            opacity: 1;
+            background-color: #ffc1c1;
+        }
+        .sub_acccount_ul {
+            display: flex;
+            flex-direction: column;
+            text-decoration: none;
+            list-style: none;
+            flex-wrap: wrap;
+        }
+        .sub_account_details_div {
+            border: 1px solid black;
+        }
+        .sub_accounts_container {
+            display: grid;
+            grid-template-columns: 1fr 2fr;
+        }
+        .sub_account_details_div {
+            width: 300px;
+            margin: 20px auto;
+            padding: 10px;
+            background-color: #f5f5f5;
+        }
+
+        .sub_account_details_div div {
+            margin-bottom: 10px;
+        }
+
+        .sub_account_details_div div span {
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+    </style>
+    <div>
+        <section class="menubar">
+            <!-- Menu -->
+            <div>
+                <!-- search button -->
+                <input placeholder="Search"/>
+            </div>
+            <div>
+                <button>
+                   + Search
+                </button>
+                <div>
+                    <!-- Dashboard user looged in dp -->
+                </div>
+            </div>
+        </section>
+        <section class="user_content_section">
+            <!-- User content -->
+            <div>
+                <div>Username: <span id="username"></span></div>
+                <div>Uid: <span id="uid"></span></div>
+                <div>Followed: <span id="followed"></span></div>
+                <div>All pnl: <span id="all_pnl"></span></div>
+                <div>Al Roi: <span id="all_roi"></span></div>
+                <div>Daily Pnl: <span id="daily_pnl"></span></div>
+                <div>Daily Roi: <span id="daily_roi"></span></div>
+                <div>Past Day Pnl: <span id="past_day_pnl"></span></div>
+                <div>Past Day Roi: <span id="past_day_roi"></span></div>
+                <div>Last Edited On: <span id="document_last_edited_at_datetime"></span></div>
+               
+                <div id="top_trader_open_positions_table_container">
+
+                </div>
+                <!-- <table-component headers="symbols" body='[["BTCUSDT",2,1,2],["SOLUSDT",3,10,3]]'/> -->
+                
+            </div>
+    
+        </section>
+
+    </div>
+</div>

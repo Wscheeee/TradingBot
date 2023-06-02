@@ -35,7 +35,7 @@ class TopTradersList_Component extends HTMLElement {
             // show the users in the gui
             const ul = this.shadowRoot.querySelector("#list-ul");
             if(!ul){
-                console.error("[class:UsersList_Component=>listTopraders (fn:fetchUsersJSON)]ul:",ul);
+                console.error("[class:"+this.CLASS_NAME+"=>listTopraders (fn:fetchUsersJSON)]ul:",ul);
                 return;
             }
             for(const trader of traders){
@@ -47,7 +47,7 @@ class TopTradersList_Component extends HTMLElement {
                 p2.textContent = String(trader.uid);
                 li.addEventListener("click",(e)=>{
                     if(!this.shadowRoot){
-                        console.log(`[class:UsersList_Component=>listUsers (fn:${FUNCTION_NAME}) users loop] this.shadowRoot:`,this.shadowRoot);
+                        console.log(`[class:${this.CLASS_NAME}=>listUsers (fn:${FUNCTION_NAME}) users loop] this.shadowRoot:`,this.shadowRoot);
                     }
                     // remove active from the previous active list element
                     const li_NodeList = this.shadowRoot.querySelectorAll("li.user_tile");
@@ -61,7 +61,7 @@ class TopTradersList_Component extends HTMLElement {
                     //Show as active
                     li.classList.add("active");
                     // Submit the click for other components to detect it
-                    appStore.dispatchActionForSelectUser_InUsersList(trader);
+                    appStore.dispatchActionForSelectTopTrader_InTopTradersList(trader);
                 });
                 li.appendChild(p1);
                 li.appendChild(p2);

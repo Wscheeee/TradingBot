@@ -109,7 +109,7 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
                     });
                 } else {
                     // console.log("OpenTrades Document has no real changes.");
-                }
+                } 
 
                 // Save in previous open trades before update
                 await this.#mongoDatabase.collection.openTradesCollection.saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(documentId);

@@ -13,6 +13,15 @@ class AppStore {
      */
     #userSelectionlisteners = [];
 
+    // TopTraders
+    /**
+     * @typedef {(selectedTopTrader:import("../../../../API_AdminDashboard/routes/top_traders/types").TopTrader_Interface)=>any} TopTraderSelectionlisteners_Callback
+     */
+    /**
+     * @type {TopTraderSelectionlisteners_Callback[]}
+     */
+    #topTraderSelectionlisteners = [];
+
     /**
      * @typedef {{
      *      headers: string[],
@@ -56,6 +65,7 @@ class AppStore {
         localStorage.setItem("app-store-data",JSON.stringify(this.data));
     }
 
+    // Users Page
     /**
      * 
      * @param {UserSelectionlisteners_Callback} userSelectionlisteners_Callback 
@@ -77,7 +87,29 @@ class AppStore {
         });
     }
 
-    
+    // Top Tradders Page
+    /**
+     * 
+     * @param {TopTraderSelectionlisteners_Callback} topTradersSelectionlisteners_Callback 
+     */
+    listenToTopTraderClick_InTopTradersList(topTradersSelectionlisteners_Callback){
+        console.log("(method:listenToTopTraderClick_InTopTradersList)");
+        this.#topTraderSelectionlisteners.push(topTradersSelectionlisteners_Callback);
+       
+    }
+
+    /**
+     * 
+     * @param {import("../../../../API_AdminDashboard/routes/top_traders/types").TopTrader_Interface} clickedTopTrader 
+     */
+    dispatchActionForSelectTopTrader_InTopTradersList(clickedTopTrader){
+        this.#dispatch("selectedTopTrader",clickedTopTrader);
+        this.#topTraderSelectionlisteners.forEach((cb)=>{
+            cb(clickedTopTrader);
+        });
+    }
+
+    // TABLES
     /**
      * @param {string} tableId
      * @param {TableDataListenerCb} tableDataEventDispatchlisteners_Callback

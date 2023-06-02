@@ -8,7 +8,7 @@
  *      public_api: string,
  *      private_api: string,
  *      testnet: boolean,
- *      sub_account_uid: number, 
+ *      sub_account_uid: string, 
  *      sub_link_name: string,
  *      server_timezone:string,
  *      document_created_at_datetime:Date

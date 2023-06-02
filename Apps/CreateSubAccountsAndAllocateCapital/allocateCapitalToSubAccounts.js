@@ -1,5 +1,7 @@
 //@ts-check
 const {DecimalMath} = require("../../DecimalMath");
+const { closeAllPositionsInASubAccount } = require("./closeAllPositionsInASubAccount");
+const { markPositionsInDB_asClosedForATrader } = require("./markPositionsInDB_asClosedForATrader");
 
 //locals
 const { performUniversalTransfer } = require("./performUniversalTransfer");
@@ -77,7 +79,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
         // Set disiredBalancce and difference
         // Retrieve the weight of each trader and calculate the correct capital for each account
         for (const subAccount of userSubAccounts_Array) {
-            const weight = subAccount.weight;
+            const weight = Number(subAccount.weight);
             const desiredBalance = totalAccountsBalance * weight;
             const accountBalance = accountUsernameToTheirDetailsObj[subAccount.sub_account_username].balance;
             // Calculate the difference between current and desired balances
@@ -86,6 +88,8 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
             // set
             accountUsernameToTheirDetailsObj[subAccount.sub_account_username].difference = accountDifference;
             accountUsernameToTheirDetailsObj[subAccount.sub_account_username].desiredBalance = desiredBalance;
+            // ut
+            // accountUsernameToTheirDetailsObj[subAccount.sub_account_username].uid = Number(subAccount.sub_account_uid);
             
         }
 
@@ -106,6 +110,36 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
         }
         console.log({adjustmentNeeded});
         if(adjustmentNeeded){
+            // Steep One: For all sub accounts with desired balance of 0: Close all their open orders/positions
+            const SubAccountBybit = bybit.createNewBybitSubClass();
+            for (const subUsername in accountUsernameToTheirDetailsObj){
+                if(accountUsernameToTheirDetailsObj[subUsername].desiredBalance===0){
+                    console.log("Closing open positions for subAccount:"+subUsername);
+                    const subAccountDoc = userSubAccounts_Array.find((sub)=>sub.sub_account_username===subUsername);
+                    if(!subAccountDoc) throw new Error(`sub username: ${subAccountDoc} not found`);
+                    const subAccountBybit =  new SubAccountBybit({
+                        millisecondsToDelayBetweenRequests: 5000,
+                        privateKey:subAccountDoc.private_api,
+                        publicKey:subAccountDoc.public_api,
+                        testnet: user.testnet
+                    });
+                    await closeAllPositionsInASubAccount({
+                        bybit:subAccountBybit
+                    });
+                    if(subAccountDoc.trader_uid){
+                        await markPositionsInDB_asClosedForATrader({
+                            mongoDatabase,
+                            trader_uid:subAccountDoc.trader_uid
+                        });
+                    }
+
+
+                }
+            }
+            // End of close open positions for subaccount with desired balance ===0
+
+
+
             /**
              * @typedef {{
              *      fromUid:number,
@@ -134,7 +168,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                 const subAccountInfoBalancesCalcsObj = accountUsernameToTheirDetailsObj[subAccount.sub_account_username];
                 const {difference} = subAccountInfoBalancesCalcsObj;
                 if(difference<0){//Means that the account needs some top up
-                    ledgerObj.toUid = subAccount.sub_account_uid;
+                    ledgerObj.toUid = Number(subAccount.sub_account_uid);
                     ledgerObj.amount = Math.abs(difference);
                     ledgerObj_Arrray.push(ledgerObj);
                     ledgerObj = {// reset
@@ -154,7 +188,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                     if(subAccountInfoBalancesCalcsObj && subAccountInfoBalancesCalcsObj.difference>0 && Number(subAccountInfoBalancesCalcsObj.difference.toFixed(2))>0.0){
                         
                         await performUniversalTransfer({
-                            amount: String(new DecimalMath(subAccountInfoBalancesCalcsObj.difference).truncateToDecimalPlaces(2).getResult()),
+                            amount: String(new DecimalMath(subAccountInfoBalancesCalcsObj.difference).truncateToDecimalPlaces(4).getResult()),
                             toMemberId: Number(getMasterAccountAPIKeyInfo_Res.result.userID),
                             fromMemberId: Number(subAccount.sub_account_uid),
                             bybit,
@@ -184,7 +218,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                                 // Create a trransaction ledger to send the whole remaining change to the to account still.
                                 transactionsLedgersArray.push({
                                     amount: remainingChange,
-                                    fromUid: subAccount.sub_account_uid,
+                                    fromUid: Number(subAccount.sub_account_uid),
                                     toUid: toUid
                                 });
                                 // move to next index
@@ -202,7 +236,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                                 remainingChange = new DecimalMath(remainingChange).subtract(amount).getResult();
                                 transactionsLedgersArray.push({
                                     amount: amount,
-                                    fromUid: subAccount.sub_account_uid,
+                                    fromUid: Number(subAccount.sub_account_uid),
                                     toUid: toUid
                                 });
                                 // Update the with the remaining change
@@ -266,7 +300,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
             for(const transactionLedger of transactionsLedgersArray){
                 if(Number(transactionLedger.amount.toFixed(2))>0.00){
                     await performUniversalTransfer({
-                        amount: String(new DecimalMath(transactionLedger.amount).truncateToDecimalPlaces(2).getResult()),
+                        amount: String(new DecimalMath(transactionLedger.amount).truncateToDecimalPlaces(4).getResult()),
                         toMemberId: Number(transactionLedger.toUid),
                         fromMemberId: Number(transactionLedger.fromUid),
                         bybit,

@@ -132,7 +132,7 @@ module.exports.UsersCollection =  class UsersCollection{
     }
 
     /**
-     * @param {import("./types").User_Interface} by 
+     * @param {import("mongodb").Filter<import("./types").User_Interface>} by 
      * @param {boolean?} sort 
      * @returns 
      */

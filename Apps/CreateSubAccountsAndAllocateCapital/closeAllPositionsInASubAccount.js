@@ -1,4 +1,3 @@
-//@ts-check
 // closeAnAccountAllOpenPositions.js.js
 
 
@@ -52,6 +51,7 @@ module.exports.closeAllPositionsInASubAccount = async function closeAllPositions
             console.log({closeAPositionRes});
             if(closeAPositionRes.retCode===0){
                 // successfull
+                // Close position in db
                 
             }
         }
@@ -62,3 +62,6 @@ module.exports.closeAllPositionsInASubAccount = async function closeAllPositions
         throw error;
     }
 };
+
+
+

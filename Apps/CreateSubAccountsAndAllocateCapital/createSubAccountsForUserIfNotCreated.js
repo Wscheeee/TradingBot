@@ -53,7 +53,7 @@ module.exports.createSubAccountsForUserIfNotCreated = async function createSubAc
                             await mongoDatabase.collection.subAccountsCollection.updateDocument(subAcccountWithSubLinkNameInConfigIsPresentInSubAccountsCollection._id,{
                                 trader_uid: traderSubAccountConfig.trader_uid,
                                 trader_username: traderSubAccountConfig.trader_username,
-                                weight: traderSubAccountConfig.weight,
+                                weight: traderSubAccountConfig.weight?Number(traderSubAccountConfig.weight):0,
                             });
                         }else {
                             console.log("Sub Accountt set and ready"); 
@@ -253,7 +253,7 @@ async function createSubAccount_itsApi_andSaveInDB({
         public_api: createSubAccountUIDAPIKey_Res.result.apiKey,
         trader_uid: trader?trader.uid:"",
         testnet: sub_account_testnet,
-        sub_account_uid: Number(createdAccount.uid),
+        sub_account_uid: String(createdAccount.uid),
         sub_link_name: sub_account_sub_link_name,
         document_created_at_datetime: new Date(),
         //@ts-ignore
@@ -331,7 +331,7 @@ async function createSubAccount_itsApi_andUpdateInDB({
             Wallet:["AccountTransfer","SubMemberTransferList"],
             Exchange:["ExchangeHistory"]
 
-        },
+        }, 
         //@ts-ignore
         readOnly: bybit.API_KEYS_READ_ONLY_MODES.READ_AND_WRITE,//Read and Write
         subuid: Number(createdAccount.uid),
@@ -356,7 +356,7 @@ async function createSubAccount_itsApi_andUpdateInDB({
         public_api: createSubAccountUIDAPIKey_Res.result.apiKey,
         trader_uid: trader?trader.uid:"",
         testnet: sub_account_document.testnet,
-        sub_account_uid: Number(createdAccount.uid),
+        sub_account_uid: String(createdAccount.uid),
         sub_link_name: sub_account_document.sub_link_name
     });
     if(updateDocument_Res.acknowledged===false)throw new Error(`Error updating to subAccountsCollection: update Sub Account saving name:${createdAccount.username} user:(${user.username})`);

@@ -85,6 +85,25 @@ process.env.TZ = dotEnvObj.TZ;
             try{
                 logger.info(`subAcccountConfig.onUpdateDocument ${configDocumentAfterUpdate.sub_link_name}`);
                 if(!mongoDatabase)return;
+                /**
+                 * If weight updated update the weights in all associated sub accouunts documents
+                 */
+                if(configDocumentBeforeUpdate && configDocumentBeforeUpdate.sub_link_name){
+
+                    const subAccountsDocuments_Cursor = await mongoDatabase.collection.subAccountsCollection.getAllDocumentsBy({
+                        sub_link_name: configDocumentBeforeUpdate.sub_link_name
+                    });
+                    while(await subAccountsDocuments_Cursor.hasNext()){
+                        const subAccountDocument = await subAccountsDocuments_Cursor.next();
+                        if(!subAccountDocument)break;
+
+                        //update sub account
+                        await mongoDatabase.collection.subAccountsCollection.updateDocument(subAccountDocument._id,{
+                            weight: configDocumentAfterUpdate.weight
+                        });
+                    }
+                }
+                // Handle allocations
                 await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
                     mongoDatabase,
                     onError: (error)=>{

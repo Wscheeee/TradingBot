@@ -34,7 +34,7 @@ module.exports.createSubAccountsAndAllocateCapital_forAllUsers_InParalell =  asy
                     try{
                         const bybit = new Bybit({
                             millisecondsToDelayBetweenRequests:5000,
-                            privateKey: user.privateKey,
+                            privateKey: user.privateKey, 
                             publicKey: user.publicKey,
                             testnet: user.testnet===true?true:false // Doing this incase testnet is undefined but it shouldn't
                         });

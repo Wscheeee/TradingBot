@@ -41,6 +41,7 @@ class DateTime {
             hours:  now_hours,
             minutes: now_minutes,
             seconds: now_seconds,
+            milliseconds: (now_seconds*1000),
             day_index: now.getDay(),
             month_index: now.getMonth(),
             year: now.getFullYear(),

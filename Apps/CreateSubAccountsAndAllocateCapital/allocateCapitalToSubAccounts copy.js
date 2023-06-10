@@ -200,62 +200,66 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                 console.log("No money transfers");
                 return;
             }
-            const gettingMoneyFromSubAccounts = async ()=>{
+            const gettingMoneyFromSubAccounts = ()=>{
                 console.log(">gettingMoneyFromSubAccounts");
-
-                for(const subAcccountToTakeMoneyFrom of userSubAccounts_Array){
-                    const subAcccountToTakeMoneyFrom_InfoBalancesCalcsObj = accountUsernameToTheirDetailsObj[subAcccountToTakeMoneyFrom.sub_account_username];
-                    const {difference: differenceOfSubAccountToTakeMoneyFrom} = subAcccountToTakeMoneyFrom_InfoBalancesCalcsObj;
-                    const subAcountToTakeMoneyFrom_HasMoneyToGive = differenceOfSubAccountToTakeMoneyFrom>0;
-                    if(subAcountToTakeMoneyFrom_HasMoneyToGive){
-                        let remainingChange = differenceOfSubAccountToTakeMoneyFrom;
-                        // Give out all tthe amount possible
-                        for(const ledgerObj_ of ledgerObj_Arrray){
-                            const {amount,toUid} = ledgerObj_;
-                            if(remainingChange>=1){
-                                if(remainingChange<=amount){
-                                    // transfer full amount
-                                    transactionsLedgersArray.push({
-                                        amount: remainingChange,
-                                        fromUid: Number(subAcccountToTakeMoneyFrom.sub_account_uid),
-                                        toUid: toUid
-                                    });
-                                    // Set remaining change to zero
-                                    remainingChange = 0;
-                                    //Update the ledger object
-                                    ledgerObj_.amount = new DecimalMath(amount).subtract(remainingChange).getResult();
-
-                                }else if(remainingChange>amount){
-                                    // remainingChange > amount 
-                                    const amountToTransfer = amount;
-                                    // transfer  amountToTransfer
-                                    transactionsLedgersArray.push({
-                                        amount: amountToTransfer,
-                                        fromUid: Number(subAcccountToTakeMoneyFrom.sub_account_uid),
-                                        toUid: toUid
-                                    });
-                                    //Update the ledger object
-                                    ledgerObj_.amount = 0;
-                                    // Set remaining change
-                                    remainingChange = new DecimalMath(remainingChange).subtract(amountToTransfer).getResult();
-
+                let indexCounter = 0;
+                let subAcccountToTakeMoneyFrom = userSubAccounts_Array[indexCounter];
+                let maxIndexOfSubAccountsArray = userSubAccounts_Array.length-1;
+                while(subAcccountToTakeMoneyFrom!==null){
+                    const subAccount = subAcccountToTakeMoneyFrom;
+                    // (const subAccount of userSubAccounts_Array)
+                    const subAccountInfoBalancesCalcsObj = accountUsernameToTheirDetailsObj[subAccount.sub_account_username];
+                    const {difference} = subAccountInfoBalancesCalcsObj;
+                    if(difference>0){//Means that the account needs some to top up another account with the excess
+                        let remainingChange = difference;
+                        ledgerObj_Arrray.forEach((ledgerObj_)=>{
+                            const {amount,toUid}  = ledgerObj_;
+                            if(remainingChange<=amount){// Meaning the difference in account cannot fill in the required in "subAcccount to"
+                                // Create a trransaction ledger to send the whole remaining change to the to account still.
+                                transactionsLedgersArray.push({
+                                    amount: remainingChange,
+                                    fromUid: Number(subAccount.sub_account_uid),
+                                    toUid: toUid
+                                });
+                                // move to next index
+                                indexCounter++;
+                                if(indexCounter>maxIndexOfSubAccountsArray){
+                                    //@ts-ignore
+                                    subAcccountToTakeMoneyFrom = null;
                                 }else {
-                                    console.log("Passed",{remainingChange,amount});
+                                    subAcccountToTakeMoneyFrom = userSubAccounts_Array[indexCounter];
+    
                                 }
                             }else {
-                                console.log("remainingChange<$1 : so skipping",{remainingChange,amount});
-
+                                // the remainingChange > amount needed to "subAccount to"
+                                // Take only what is needed
+                                remainingChange = new DecimalMath(remainingChange).subtract(amount).getResult();
+                                transactionsLedgersArray.push({
+                                    amount: amount,
+                                    fromUid: Number(subAccount.sub_account_uid),
+                                    toUid: toUid
+                                });
+                                // Update the with the remaining change
+                                accountUsernameToTheirDetailsObj[subAccount.sub_account_username].difference = remainingChange;
+                                subAcccountToTakeMoneyFrom = subAccount;
                             }
+                        });
+    
+                    }else {
+                        // move to next index
+                        indexCounter++;
+                        if(indexCounter>maxIndexOfSubAccountsArray){
+                            //@ts-ignore
+                            subAcccountToTakeMoneyFrom = null;
+                        }else {
+                            subAcccountToTakeMoneyFrom = userSubAccounts_Array[indexCounter];
+    
                         }
                     }
-
                 }
 
-
-
-
             };
-            await gettingMoneyFromSubAccounts();
+            gettingMoneyFromSubAccounts();
             const gettingMoneyFromMasterAccounts = ()=>{
                 console.log(">gettingMoneyFromMasterAccounts");
                 let remainingChange = masterAccountWalletBalance;
@@ -292,7 +296,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
             console.log(transactionsLedgersArray);
 
 
-            // // Make transfers
+            // Make transfers
             for(const transactionLedger of transactionsLedgersArray){
                 if(Number(transactionLedger.amount.toFixed(2))>0.00){
                     await performUniversalTransfer({

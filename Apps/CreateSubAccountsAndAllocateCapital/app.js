@@ -15,8 +15,11 @@ const { MongoDatabase , SubAccountsConfigCollectionStateDetector,UsersCollection
 
 const {sleepAsync} = require("../../Utils/sleepAsync");
 const { readAndConfigureDotEnv } = require("../../Utils/readAndConfigureDotEnv");
+const {generateUID} = require("../../Utils/generateUID")
 const {Logger} = require("../../Logger");
 const {Telegram} = require("../../Telegram");
+const {IntervalLastInStackTaskRunner} = require("../../TaskRunner");
+const intervalLastInStackTaskRunner = new IntervalLastInStackTaskRunner({intervalMs:10000,uid:generateUID()});
 
 // local
 const {createSubAccountsAndAllocateCapital_forAllUsers_InParalell} = require("./createSubAccountsAndAllocateCapital_forAllUsers_InParalell");
@@ -29,14 +32,35 @@ const dotEnvObj = readAndConfigureDotEnv(IS_LIVE);
 process.env.TZ = dotEnvObj.TZ;
 
 
+// let lastAllocationRunTimeInMs = 0;
+
+// function update_lastAllocationRunTimeInMs(){
+//     console.log("(fn:update_lastAllocationRunTimeInMs)");
+//     lastAllocationRunTimeInMs = new DateTime().now().milliseconds;
+// }
+
+// /**
+//  * @param {number} numberOfSeconds
+//  */
+// function isMsOfLasAllocationMoreThanSeconds(numberOfSeconds){
+//     console.log("(fn:isMsOfLasAllocationMoreThanSeconds)");
+//     const sms = (numberOfSeconds*1000);
+//     const deltaMs =  new DateTime().now().milliseconds - lastAllocationRunTimeInMs;
+//     if(deltaMs>=sms) {
+//         console.log("(fn:isMsOfLasAllocationMoreThanSeconds): true");
+//         return true;
+//     }
+//     console.log("(fn:isMsOfLasAllocationMoreThanSeconds): false");
+//     return false;
+// }
 
 
 
 (async () => {
     /**
-     * @type {MongoDatabase|null}
+     * @type {MongoDatabase}
      */ 
-    let mongoDatabase = null;
+    let mongoDatabase = new MongoDatabase(dotEnvObj.DATABASE_URI);
     let interval = null;
     try {
         
@@ -56,7 +80,7 @@ process.env.TZ = dotEnvObj.TZ;
         logger.info("Create Bybit Client");
       
         console.log(dotEnvObj);
-        mongoDatabase = new MongoDatabase(dotEnvObj.DATABASE_URI);
+        // mongoDatabase = new MongoDatabase(dotEnvObj.DATABASE_URI);
         if(!mongoDatabase)throw new Error("Error creating mongoDatabase");
         logger.info("Create DB");
         await mongoDatabase.connect(dotEnvObj.DATABASE_NAME);
@@ -70,13 +94,19 @@ process.env.TZ = dotEnvObj.TZ;
             try{
                 logger.info(`subAcccountConfig.onCreateDocument ${configDocument.sub_link_name}`);
                 if(!mongoDatabase)return;
-                await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
-                    mongoDatabase,
-                    onError: (error)=>{
-                        logger.error(error.message);
-                    }
-                });
+                // Run allocations in TaskRunner
+                intervalLastInStackTaskRunner.addJob(
+                    async function (){
+                        await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
+                            mongoDatabase,
+                            onError: (error)=>{
+                                logger.error(error.message);
+                            }
+                        });
 
+                    }
+                );
+           
             }catch(e){
                 logger.error(`subAcccountConfig.onCreateDocument ${e.message}`);
             }
@@ -103,13 +133,19 @@ process.env.TZ = dotEnvObj.TZ;
                         });
                     }
                 }
-                // Handle allocations
-                await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
-                    mongoDatabase,
-                    onError: (error)=>{
-                        logger.error(error.message);
+             
+                // Run allocations in TaskRunner
+                intervalLastInStackTaskRunner.addJob(
+                    async function (){
+                        await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
+                            mongoDatabase,
+                            onError: (error)=>{
+                                logger.error(error.message);
+                            }
+                        });
+
                     }
-                });
+                );
 
             }catch(e){
                 logger.error(`subAcccountConfig.onUpdateDocument ${e.message}`);
@@ -130,31 +166,23 @@ process.env.TZ = dotEnvObj.TZ;
             try{
                 logger.info(`user.onCreateDocument ${user.tg_user_id}`);
                 if(!mongoDatabase)return;
-                await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
-                    mongoDatabase,
-                    onError: (error)=>{
-                        logger.error(error.message);
+                // Run allocations in TaskRunner
+                intervalLastInStackTaskRunner.addJob(
+                    async function (){
+                        await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
+                            mongoDatabase,
+                            onError: (error)=>{
+                                logger.error(error.message);
+                            }
+                        });
+
                     }
-                });
+                );
 
             }catch(e){
                 logger.error(`user.onCreateDocument ${e.message}`);
             }
         });
-        // usersCollectionStateDetector.onUpdateDocument(async (user)=>{
-        //     try{
-        //         logger.info(`user.onUpdateDocument ${user.tg_user_id}`);
-        //         if(!mongoDatabase)return;
-        //         await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
-        //             mongoDatabase,
-        //             onError: (error)=>{
-        //                 logger.error(error.message);
-        //             }
-        //         });
-        //     }catch(e){
-        //         logger.error(`user.onUpdateDocument ${e.message}`);
-        //     }
-        // });
 
         
         usersCollectionStateDetector.listenToUsersCollection();
@@ -172,12 +200,24 @@ process.env.TZ = dotEnvObj.TZ;
             if (previousHourRun!== nowHours && nowHours===2) { 
                 console.log("(=>Run At 2am)");
                 if(!mongoDatabase)return;
-                await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
-                    mongoDatabase,
-                    onError: (error)=>{
-                        logger.error(error.message);
+                // Run allocations in TaskRunner
+                intervalLastInStackTaskRunner.addJob(
+                    async function (){
+                        await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
+                            mongoDatabase,
+                            onError: (error)=>{
+                                logger.error(error.message);
+                            }
+                        });
+
                     }
-                });
+                );
+                // await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
+                //     mongoDatabase,
+                //     onError: (error)=>{
+                //         logger.error(error.message);
+                //     }
+                // });
                 // If the target time has already passed, schedule the task for the next day
                 previousHourRun = nowHours;
 
@@ -186,15 +226,28 @@ process.env.TZ = dotEnvObj.TZ;
         
       
         // NONCE run
-        await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
-            mongoDatabase,
-            onError: (error)=>{
-                logger.error(error.message);
+        // Run allocations in TaskRunner
+        intervalLastInStackTaskRunner.addJob(
+            async function (){
+                await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
+                    mongoDatabase,
+                    onError: (error)=>{
+                        logger.error(error.message);
+                    }
+                });
+
             }
-        });
+        );
+        // await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
+        //     mongoDatabase,
+        //     onError: (error)=>{
+        //         logger.error(error.message);
+        //     }
+        // });
         //////////////////////////////////
       
     }catch(error){
+        intervalLastInStackTaskRunner.stop();
         if(interval){
             clearInterval(interval);
         }
@@ -202,6 +255,7 @@ process.env.TZ = dotEnvObj.TZ;
             await mongoDatabase.disconnect();
         }
         logger.error(JSON.stringify(error.message));
+        
         await sleepAsync(5000);
         // throw error;
     }  

@@ -49,7 +49,15 @@ module.exports.IntervalLastInStackTaskRunner = class IntervalLastInStackTaskRunn
                 this.#jobIsRunning = false;
 
             }else {
-                console.log("[Class:IntervalLastInStackTaskRunner => #jobRunner:] no job to run");
+                if(!jobInEndOfStack){
+                    console.log("[Class:IntervalLastInStackTaskRunner => #jobRunner:] no job to run");
+
+                }else if(!!jobInEndOfStack && this.#jobIsRunning===true){
+                    console.log("[Class:IntervalLastInStackTaskRunner => #jobRunner:] there is a job to run but there is a job next after the ccurrent running job is completed");
+                    
+                }else {
+                    console.log("[Class:IntervalLastInStackTaskRunner => #jobRunner:] not sure of this check");
+                }
             }
         },this.#intervalTimeInMs);
     }

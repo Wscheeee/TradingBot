@@ -71,12 +71,16 @@ module.exports.IntervalLastInStackTaskRunner = class IntervalLastInStackTaskRunn
         }
     }
 
+
     /**
      * ads a job in the task runner
      * @param {AsyncFunction} job
      */
     addJob(job){
         console.log("[Class:IntervalLastInStackTaskRunner => addJob:] adding a job");
+        clearInterval(this.#intervalId);
         this.#jobStack.push(job);
+        this.#jobRunner();
+
     }
 };

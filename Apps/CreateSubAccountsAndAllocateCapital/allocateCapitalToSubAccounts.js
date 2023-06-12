@@ -45,11 +45,12 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
 
         let totalAccountsBalance = masterAccountWalletBalance;
         /**
+         * If difference is negative means that the account needs some money : If positive means the account can give some money
          * @type {{
          *      [accountName:string]:{
          *          balance: number
          *          difference:number,
-         *          desiredBalance: number
+         *          desiredBalance: number 
          *      }
          * }}
          */
@@ -182,7 +183,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
             console.log(ledgerObj_Arrray);
             if(ledgerObj_Arrray.length==0){
                 // Meaning that no account has a negative balance
-                // Send the ecess change in subaccounts to master account
+                // Send the excess change in subaccounts to master account
                 for(const subAccount of userSubAccounts_Array){
                     const subAccountInfoBalancesCalcsObj = accountUsernameToTheirDetailsObj[subAccount.sub_account_username];
                     if(subAccountInfoBalancesCalcsObj && subAccountInfoBalancesCalcsObj.difference>0 && Number(subAccountInfoBalancesCalcsObj.difference.toFixed(2))>0.0){
@@ -207,6 +208,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                     const subAcccountToTakeMoneyFrom_InfoBalancesCalcsObj = accountUsernameToTheirDetailsObj[subAcccountToTakeMoneyFrom.sub_account_username];
                     const {difference: differenceOfSubAccountToTakeMoneyFrom} = subAcccountToTakeMoneyFrom_InfoBalancesCalcsObj;
                     const subAcountToTakeMoneyFrom_HasMoneyToGive = differenceOfSubAccountToTakeMoneyFrom>0;
+                    console.log({differenceOfSubAccountToTakeMoneyFrom});
                     if(subAcountToTakeMoneyFrom_HasMoneyToGive){
                         let remainingChange = differenceOfSubAccountToTakeMoneyFrom;
                         // Give out all tthe amount possible
@@ -214,6 +216,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                             const {amount,toUid} = ledgerObj_;
                             if(remainingChange>=1){
                                 if(remainingChange<=amount){
+                                    console.log("remainingChange<=amount",{remainingChange,amount});
                                     // transfer full amount
                                     transactionsLedgersArray.push({
                                         amount: remainingChange,
@@ -226,6 +229,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                                     ledgerObj_.amount = new DecimalMath(amount).subtract(remainingChange).getResult();
 
                                 }else if(remainingChange>amount){
+                                    console.log("remainingChange > amount",{remainingChange,amount});
                                     // remainingChange > amount 
                                     const amountToTransfer = amount;
                                     // transfer  amountToTransfer
@@ -259,6 +263,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
             const gettingMoneyFromMasterAccounts = ()=>{
                 console.log(">gettingMoneyFromMasterAccounts");
                 let remainingChange = masterAccountWalletBalance;
+                console.log({masterAccountWalletBalance});
                 ledgerObj_Arrray.forEach((ledgerObj_)=>{
                     if(remainingChange>0){
                         const {amount,toUid}  = ledgerObj_;
@@ -269,7 +274,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                                 fromUid: getMasterAccountAPIKeyInfo_Res.result.userID,
                                 toUid: toUid
                             });
-                        
+                            remainingChange = 0;
                         }else {
                             // the remainingChange > amount needed to "subAccount to"
                             // Take only what is needed

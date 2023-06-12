@@ -15,11 +15,11 @@ const { MongoDatabase , SubAccountsConfigCollectionStateDetector,UsersCollection
 
 const {sleepAsync} = require("../../Utils/sleepAsync");
 const { readAndConfigureDotEnv } = require("../../Utils/readAndConfigureDotEnv");
-const {generateUID} = require("../../Utils/generateUID")
+const {generateUID} = require("../../Utils/generateUID");
 const {Logger} = require("../../Logger");
 const {Telegram} = require("../../Telegram");
 const {IntervalLastInStackTaskRunner} = require("../../TaskRunner");
-const intervalLastInStackTaskRunner = new IntervalLastInStackTaskRunner({intervalMs:10000,uid:generateUID()});
+const intervalLastInStackTaskRunner = new IntervalLastInStackTaskRunner({intervalMs:30000,uid:generateUID()});
 
 // local
 const {createSubAccountsAndAllocateCapital_forAllUsers_InParalell} = require("./createSubAccountsAndAllocateCapital_forAllUsers_InParalell");
@@ -88,7 +88,7 @@ process.env.TZ = dotEnvObj.TZ;
 
         //////////////////////////////////
         // SUB ACCOUNTS CONFIG COLLECTION
-        const subAccountsConfigCollectionStateDetector = new SubAccountsConfigCollectionStateDetector({ mongoDatabase: mongoDatabase });
+        const subAccountsConfigCollectionStateDetector = new SubAccountsConfigCollectionStateDetector({ mongoDatabase: mongoDatabase ,update_collection_that_holds_previous_documents_before_update:true });
         logger.info("Create SubAccountsConfigCollectionStateDetector and set listeners");
         subAccountsConfigCollectionStateDetector.onCreateDocument(async (configDocument)=>{
             try{

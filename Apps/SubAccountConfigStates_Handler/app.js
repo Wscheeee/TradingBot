@@ -16,15 +16,11 @@ const { readAndConfigureDotEnv } = require("../../Utils/readAndConfigureDotEnv")
 const {Logger} = require("../../Logger");
 const {Telegram} = require("../../Telegram");
 
-// local
-const {closeAllPositionsInASubAccount} = require("./closeAllPositionsInASubAccount");
-const {transferAllUSDTBalanceFromSubAccountToMainAccount} = require("./transferAllUSDTBalanceFromSubAccountToMainAccount");
+
 
 const APP_NAME = "App:SubAccountConfigStates_Handler";
 const logger = new Logger({app_name:APP_NAME});
 const {IS_LIVE} = require("../../appConfig");
-const { DateTime } = require("../../DateTime");
-const { Bybit } = require("../../Trader");
 const { closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig } = require("./closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig");
 const { updateSubAccountDocumentsToUpdatedSubAccountConfigData } = require("./updateSubAccountDocumentsToUpdatedSubAccountConfigData");
 const dotEnvObj = readAndConfigureDotEnv(IS_LIVE);
@@ -66,7 +62,7 @@ process.env.TZ = dotEnvObj.TZ;
 
         //////////////////////////////////
         // SUB ACCOUNTS CONFIG COLLECTION
-        const subAccountsConfigCollectionStateDetector = new SubAccountsConfigCollectionStateDetector({ mongoDatabase: mongoDatabase });
+        const subAccountsConfigCollectionStateDetector = new SubAccountsConfigCollectionStateDetector({ mongoDatabase: mongoDatabase, update_collection_that_holds_previous_documents_before_update: true });
         logger.info("Create SubAccountsConfigCollectionStateDetector and set listeners");
         subAccountsConfigCollectionStateDetector.onUpdateDocument(async (configDocumentBeforeUpdate,configDocumentAfterUpdate)=>{
             try{

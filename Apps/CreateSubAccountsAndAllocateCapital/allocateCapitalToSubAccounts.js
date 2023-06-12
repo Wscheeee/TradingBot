@@ -134,6 +134,21 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                         });
                     }
 
+                    // Send their balancce to master account
+                    const subAccountInfoBalancesCalcsObj = accountUsernameToTheirDetailsObj[subUsername];
+                    if(subAccountInfoBalancesCalcsObj.balance>0.00001){
+                        console.log("Send amount to Master Account");
+                        await performUniversalTransfer({
+                            amount: String(new DecimalMath(subAccountInfoBalancesCalcsObj.balance).truncateToDecimalPlaces(4).getResult()),
+                            toMemberId: Number(getMasterAccountAPIKeyInfo_Res.result.userID),
+                            fromMemberId: Number(subAccountDoc.sub_account_uid),
+                            bybit,
+                            masterBybit:bybit,
+                            subAccountsUids:[String(subAccountDoc.sub_account_uid)]
+                        });
+
+                    }
+
 
                 }
             }

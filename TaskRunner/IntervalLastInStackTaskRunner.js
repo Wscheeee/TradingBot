@@ -66,7 +66,7 @@ module.exports.IntervalLastInStackTaskRunner = class IntervalLastInStackTaskRunn
         console.log("[Class:IntervalLastInStackTaskRunner => #stop:] stoping");
         if(this.#intervalId){
             clearInterval(this.#intervalId);
-            this.#jobStack = [];
+            // this.#jobStack = [];
 
         }
     }

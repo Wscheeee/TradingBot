@@ -176,7 +176,7 @@ module.exports.SubAccountsConfigCollection =  class SubAccountsConfigCollection{
      */
     async getAllDocuments(sort=true){
         if(sort){
-            return await this.#collection.find({}).sort(-1);
+            return await this.#collection.find({}).sort();
         }else {
             return  await this.#collection.find({}); 
         }
@@ -189,7 +189,7 @@ module.exports.SubAccountsConfigCollection =  class SubAccountsConfigCollection{
      */
     async getAllDocumentsBy(by={},sort=true){
         if(sort){
-            return await  this.#collection.find(by).sort(-1);
+            return await  this.#collection.find(by).sort();
         }else {
             return await  this.#collection.find(by); 
         }

@@ -1,6 +1,6 @@
 //@ts-check
 const { ObjectId } = require("mongodb");
-const { sleepAsync } = require("../../../Utils/sleepAsync");
+// const { sleepAsync } = require("../../../Utils/sleepAsync");
 
 module.exports.SubAccountsConfigCollection =  class SubAccountsConfigCollection{
     #COLLECTION_NAME = "Sub_Accounts_Config";
@@ -17,67 +17,85 @@ module.exports.SubAccountsConfigCollection =  class SubAccountsConfigCollection{
      */
     #eventListenersArray = [];
 
-    /**
-     * @type {import("../previous_sub_account_config_before_update").PreviousSubAccountConfigBeforeUpdate }
-     */
-    previousSubAccountConfigBeforeUpdate_Collection;
+    // /**
+    //  * @type {import("../previous_sub_account_config_before_update").PreviousSubAccountConfigBeforeUpdate }
+    //  */
+    // previousSubAccountConfigBeforeUpdate_Collection;
 
     /**
      * 
      * @param {import("mongodb").Db} database 
-     * @param {import("../previous_sub_account_config_before_update").PreviousSubAccountConfigBeforeUpdate } previousSubAccountConfigBeforeUpdate_Collection 
+     * 
      */
-    constructor(database,previousSubAccountConfigBeforeUpdate_Collection){
+    //@param {import("../previous_sub_account_config_before_update").PreviousSubAccountConfigBeforeUpdate } previousSubAccountConfigBeforeUpdate_Collection 
+    constructor(database){
         this.#database = database;
         this.#collection = this.#database.collection(this.#COLLECTION_NAME);
-        this.previousSubAccountConfigBeforeUpdate_Collection = previousSubAccountConfigBeforeUpdate_Collection;
+        // this.previousSubAccountConfigBeforeUpdate_Collection = previousSubAccountConfigBeforeUpdate_Collection;
  
 
     }
     async runOnInitImmediatelyAfterConnect(){
-        const FUNCTION_NAME="(class:SubAccountsConfig)(method:runOnInitImmediatelyAfterConnect)";
+        const FUNCTION_NAME="(class:OpenTrades)(method:runOnInitImmediatelyAfterConnect)";
         console.log(FUNCTION_NAME);
         try{
-            await this.#initPreviousSubAcccountConfigBeforeUpdateCollection();
-            console.log("Finished executing::: #initPreviousSubAcccountConfigBeforeUpdateCollection");
+            console.log("Creating collecion "+ this.#COLLECTION_NAME + " if not yet created");
+            await this.#database.createCollection(this.#COLLECTION_NAME,{changeStreamPreAndPostImages:{
+                enabled: true
+            }});
+            console.log("Created collecion "+ this.#COLLECTION_NAME);
         }catch(error){
+            console.log(`Collection ${this.#COLLECTION_NAME} already created`);
             const newErrorMessage = `${FUNCTION_NAME}: ${error.message}`;
             error.message = newErrorMessage;
-            throw error;
+            console.log(error.message);
+            // throw error;
         }
-    }
+    } 
+    // async runOnInitImmediatelyAfterConnect(){
+    //     const FUNCTION_NAME="(class:SubAccountsConfig)(method:runOnInitImmediatelyAfterConnect)";
+    //     console.log(FUNCTION_NAME);
+    //     try{
+    //         await this.#initPreviousSubAcccountConfigBeforeUpdateCollection();
+    //         console.log("Finished executing::: #initPreviousSubAcccountConfigBeforeUpdateCollection");
+    //     }catch(error){
+    //         const newErrorMessage = `${FUNCTION_NAME}: ${error.message}`;
+    //         error.message = newErrorMessage;
+    //         throw error;
+    //     }
+    // }
     
-    async #initPreviousSubAcccountConfigBeforeUpdateCollection(){
-        /**
-         * Read the Documents and create new document in previousSubAccountConfigBeforeUpdate_Collection if not exist
-         */
-        try{
-            console.log("executing::: #initPreviousSubAcccountConfigBeforeUpdateCollection");
-            const allDocuments_Cursor  = await this.getAllDocuments();
-            while(await allDocuments_Cursor.hasNext()){
-                const document = await allDocuments_Cursor.next();
-                // console.log({document});
-                if(!document)return;
-                // If document is not saved in previousSubAccountConfigBeforeUpdate_Collection: create
-                const documentInPreviousSubAccountConfigBeforeUpdateCollection = await this.previousSubAccountConfigBeforeUpdate_Collection.findOne({original_document_id:document._id});
-                // console.log({documentInPreviousSubAccountConfigBeforeUpdateCollection});
-                if(!documentInPreviousSubAccountConfigBeforeUpdateCollection){
-                    const createResult = await this.previousSubAccountConfigBeforeUpdate_Collection.createNewDocument({
-                        original_document_id:document._id,
-                        sub_link_name: document.sub_link_name,
-                        trader_uid: document.trader_uid,
-                        trader_username: document.trader_username,
-                        weight: document.weight
-                    });
-                    console.log("previousSubAccountConfigBeforeUpdate_Collection.createNewDocument createResult:",createResult);
-                }
-            }
-        }catch(error){
-            const newErrorMessage = `(fn:#initPreviousSubAcccountConfigBeforeUpdateCollection) ${error.message}`;
-            error.message = newErrorMessage;
-            throw error;
-        }
-    }
+    // async #initPreviousSubAcccountConfigBeforeUpdateCollection(){
+    //     /**
+    //      * Read the Documents and create new document in previousSubAccountConfigBeforeUpdate_Collection if not exist
+    //      */
+    //     try{
+    //         console.log("executing::: #initPreviousSubAcccountConfigBeforeUpdateCollection");
+    //         const allDocuments_Cursor  = await this.getAllDocuments();
+    //         while(await allDocuments_Cursor.hasNext()){
+    //             const document = await allDocuments_Cursor.next();
+    //             // console.log({document});
+    //             if(!document)return;
+    //             // If document is not saved in previousSubAccountConfigBeforeUpdate_Collection: create
+    //             const documentInPreviousSubAccountConfigBeforeUpdateCollection = await this.previousSubAccountConfigBeforeUpdate_Collection.findOne({original_document_id:document._id});
+    //             // console.log({documentInPreviousSubAccountConfigBeforeUpdateCollection});
+    //             if(!documentInPreviousSubAccountConfigBeforeUpdateCollection){
+    //                 const createResult = await this.previousSubAccountConfigBeforeUpdate_Collection.createNewDocument({
+    //                     original_document_id:document._id,
+    //                     sub_link_name: document.sub_link_name,
+    //                     trader_uid: document.trader_uid,
+    //                     trader_username: document.trader_username,
+    //                     weight: document.weight
+    //                 });
+    //                 console.log("previousSubAccountConfigBeforeUpdate_Collection.createNewDocument createResult:",createResult);
+    //             }
+    //         }
+    //     }catch(error){
+    //         const newErrorMessage = `(fn:#initPreviousSubAcccountConfigBeforeUpdateCollection) ${error.message}`;
+    //         error.message = newErrorMessage;
+    //         throw error;
+    //     }
+    // }
 
     async createIndexes(){
         await this.#collection.createIndex(["_id","sub_link_name"],{unique:true});
@@ -93,23 +111,6 @@ module.exports.SubAccountsConfigCollection =  class SubAccountsConfigCollection{
      * @returns {Promise<import("mongodb").DeleteResult>}
      */
     async deleteManyDocumentsByIds(ids){
-        // for(const id of ids){
-        //     // await this.#saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(id);
-        //     // delete the previousDocumentBeforeUpdateCollection document after some time
-        //     await sleepAsync(5000);
-        //     const deleteResult = await this.previousSubAccountConfigBeforeUpdate_Collection.deleteManyDocumentsByIds([new ObjectId(id)]);
-        //     console.log({deleteResult});
-        //     // const timeout = setTimeout(async ()=>{
-        //     //     try{
-        //     //         clearTimeout(timeout);
-        //     //         const deleteResult =await this.previousSubAccountConfigBeforeUpdate_Collection.deleteManyDocumentsByIds([id]);
-        //     //         console.log({deleteResult});
-        //     //     }catch(error){
-        //     //         const newErrorMessage = `(method:deleteManyDocumentsByIds): ${error.message}`;
-        //     //         console.log(newErrorMessage);
-        //     //     }
-        //     // },(1000*60));// 1 min
-        // }
         // delete many
         const newObjectIds = ids.map((str)=>new ObjectId(str));
         const deleteResults = await this.#collection.deleteMany({_id:{$in: newObjectIds}});
@@ -143,10 +144,9 @@ module.exports.SubAccountsConfigCollection =  class SubAccountsConfigCollection{
     // added
     watchCollection(){
         console.log("Setting watch listener");
-        const eventListenter =  this.#collection.watch();
-        // eventListenter.addListener("close",()=>{
-        //     console.log(this.#COLLECTION_NAME+" Stream Closed");
-        // });
+        const eventListenter =  this.#collection.watch(undefined,{
+            fullDocumentBeforeChange:"whenAvailable"
+        });
         this.#eventListenersArray.push(eventListenter);
         return eventListenter;
     }
@@ -176,7 +176,7 @@ module.exports.SubAccountsConfigCollection =  class SubAccountsConfigCollection{
      */
     async getAllDocuments(sort=true){
         if(sort){
-            return await this.#collection.find({}).sort();
+            return await this.#collection.find({}).sort(-1);
         }else {
             return  await this.#collection.find({}); 
         }
@@ -189,7 +189,7 @@ module.exports.SubAccountsConfigCollection =  class SubAccountsConfigCollection{
      */
     async getAllDocumentsBy(by={},sort=true){
         if(sort){
-            return await  this.#collection.find(by).sort();
+            return await  this.#collection.find(by).sort(-1);
         }else {
             return await  this.#collection.find(by); 
         }
@@ -202,43 +202,43 @@ module.exports.SubAccountsConfigCollection =  class SubAccountsConfigCollection{
         return await this.#collection.findOne(filter);
     }
 
-    /** 
-     * @param {import("mongodb").ObjectId|string} documentId
-     */
-    async saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(documentId){
-        try{
-            if(!documentId)throw new Error("documentId mustt be passed in");
-            const documentId_as_ObjectId = typeof documentId==="string"?new ObjectId(documentId):documentId;
-            const previousDocumentBeforeUpdate = await this.findOne({_id:documentId_as_ObjectId});
-            if(!previousDocumentBeforeUpdate)throw new Error(`previousDocumentBeforeUpdate not found previousDocumentBeforeUpdate:${previousDocumentBeforeUpdate}`);
-            console.log({previousDocumentBeforeUpdate});
-            // Delete the previous saved document before update
-            const previous_previousDocumentBeforeUpdate = await this.previousSubAccountConfigBeforeUpdate_Collection.findOne({original_document_id: documentId_as_ObjectId});
-            console.log({previous_previousDocumentBeforeUpdate});
-            if(previous_previousDocumentBeforeUpdate){
-                console.log("Deleting previous_previousDocumentBeforeUpdate");
-                const deleteManyDocumentsByIds_Result = await this.previousSubAccountConfigBeforeUpdate_Collection.deleteManyDocumentsByIds([previous_previousDocumentBeforeUpdate._id]);
-                console.log("Deleted previous_previousDocumentBeforeUpdate",{deleteManyDocumentsByIds_Result});
-            }
-            // Save the previousDocumentBeforeUpdate
-            /**
-             * @type {import("../previous_sub_account_config_before_update/types").Previous_SubAccountConfig_Before_Update_Document_Interface}
-             */
-            const previousDocumentBeforeUpdate_payloadDoc = {
-                ...previousDocumentBeforeUpdate,
-                original_document_id: documentId_as_ObjectId
-            }; 
-            //@ts-ignore
-            delete previousDocumentBeforeUpdate_payloadDoc._id;
-            console.log({previousDocumentBeforeUpdate_payloadDoc});
-            const insertResult = await this.previousSubAccountConfigBeforeUpdate_Collection.createNewDocument(previousDocumentBeforeUpdate_payloadDoc);
-            console.log("Inserted: insertResult",{insertResult});
-        }catch(error){
-            const newErrorMessage = `(method:#saveDocumentInDB_In_previousDocumentBeforeUpdateCollection) ${error.message}`;
-            error.message = newErrorMessage;
-            throw error;
-        }
-    }
+    // /** 
+    //  * @param {import("mongodb").ObjectId|string} documentId
+    //  */
+    // async saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(documentId){
+    //     try{
+    //         if(!documentId)throw new Error("documentId mustt be passed in");
+    //         const documentId_as_ObjectId = typeof documentId==="string"?new ObjectId(documentId):documentId;
+    //         const previousDocumentBeforeUpdate = await this.findOne({_id:documentId_as_ObjectId});
+    //         if(!previousDocumentBeforeUpdate)throw new Error(`previousDocumentBeforeUpdate not found previousDocumentBeforeUpdate:${previousDocumentBeforeUpdate}`);
+    //         console.log({previousDocumentBeforeUpdate});
+    //         // Delete the previous saved document before update
+    //         const previous_previousDocumentBeforeUpdate = await this.previousSubAccountConfigBeforeUpdate_Collection.findOne({original_document_id: documentId_as_ObjectId});
+    //         console.log({previous_previousDocumentBeforeUpdate});
+    //         if(previous_previousDocumentBeforeUpdate){
+    //             console.log("Deleting previous_previousDocumentBeforeUpdate");
+    //             const deleteManyDocumentsByIds_Result = await this.previousSubAccountConfigBeforeUpdate_Collection.deleteManyDocumentsByIds([previous_previousDocumentBeforeUpdate._id]);
+    //             console.log("Deleted previous_previousDocumentBeforeUpdate",{deleteManyDocumentsByIds_Result});
+    //         }
+    //         // Save the previousDocumentBeforeUpdate
+    //         /**
+    //          * @type {import("../previous_sub_account_config_before_update/types").Previous_SubAccountConfig_Before_Update_Document_Interface}
+    //          */
+    //         const previousDocumentBeforeUpdate_payloadDoc = {
+    //             ...previousDocumentBeforeUpdate,
+    //             original_document_id: documentId_as_ObjectId
+    //         }; 
+    //         //@ts-ignore
+    //         delete previousDocumentBeforeUpdate_payloadDoc._id;
+    //         console.log({previousDocumentBeforeUpdate_payloadDoc});
+    //         const insertResult = await this.previousSubAccountConfigBeforeUpdate_Collection.createNewDocument(previousDocumentBeforeUpdate_payloadDoc);
+    //         console.log("Inserted: insertResult",{insertResult});
+    //     }catch(error){
+    //         const newErrorMessage = `(method:#saveDocumentInDB_In_previousDocumentBeforeUpdateCollection) ${error.message}`;
+    //         error.message = newErrorMessage;
+    //         throw error;
+    //     }
+    // }
 
     
 

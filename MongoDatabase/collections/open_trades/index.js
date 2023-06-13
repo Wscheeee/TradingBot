@@ -1,7 +1,7 @@
 //@ts-check
 
 const { ObjectId } = require("mongodb");
-const { sleepAsync } = require("../../../Utils/sleepAsync");
+// const { sleepAsync } = require("../../../Utils/sleepAsync");
 
 
 
@@ -23,35 +23,51 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
     #eventListenersArray = [];
 
 
-    /**
-     * @type {import("../previous_open_trades_before_update").PreviousOpenTradesBeforeUpdate }
-     */
-    previousOpenTradesBeforeUpdate_Collection;
+    // /**
+    //  * @type {import("../previous_open_trades_before_update").PreviousOpenTradesBeforeUpdate }
+    //  */
+    // previousOpenTradesBeforeUpdate_Collection;
 
     /**
      * 
      * @param {import("mongodb").Db} database 
-     * @param {import("../previous_open_trades_before_update").PreviousOpenTradesBeforeUpdate } previousOpenTradesBeforeUpdate_Collection 
-     */
-    constructor(database,previousOpenTradesBeforeUpdate_Collection){ 
+    */
+    // * @param {import("../previous_open_trades_before_update").PreviousOpenTradesBeforeUpdate } previousOpenTradesBeforeUpdate_Collection 
+    constructor(database){ 
         this.#database = database;
         this.#collection = this.#database.collection(this.#COLLECTION_NAME);
-        this.previousOpenTradesBeforeUpdate_Collection = previousOpenTradesBeforeUpdate_Collection;
-       
+        // this.previousOpenTradesBeforeUpdate_Collection = previousOpenTradesBeforeUpdate_Collection;
     }
 
     async runOnInitImmediatelyAfterConnect(){
         const FUNCTION_NAME="(class:OpenTrades)(method:runOnInitImmediatelyAfterConnect)";
         console.log(FUNCTION_NAME);
         try{
-            await this.#initPreviousOpenTradesBeforeUpdateCollection();
-            console.log("Finished executing::: #initPreviousOpenTradesBeforeUpdateCollection");
+            console.log("Creating collecion "+ this.#COLLECTION_NAME + " if not yet created");
+            await this.#database.createCollection(this.#COLLECTION_NAME,{changeStreamPreAndPostImages:{
+                enabled: true
+            }});
+            console.log("Created collecion "+ this.#COLLECTION_NAME);
         }catch(error){
+            console.log(`Collection ${this.#COLLECTION_NAME} already created`);
             const newErrorMessage = `${FUNCTION_NAME}: ${error.message}`;
             error.message = newErrorMessage;
-            throw error;
+            console.log(error.message);
+            // throw error;
         }
-    }
+    } 
+    // async runOnInitImmediatelyAfterConnect(){
+    //     const FUNCTION_NAME="(class:OpenTrades)(method:runOnInitImmediatelyAfterConnect)";
+    //     console.log(FUNCTION_NAME);
+    //     try{
+    //         await this.#initPreviousOpenTradesBeforeUpdateCollection();
+    //         console.log("Finished executing::: #initPreviousOpenTradesBeforeUpdateCollection");
+    //     }catch(error){
+    //         const newErrorMessage = `${FUNCTION_NAME}: ${error.message}`;
+    //         error.message = newErrorMessage;
+    //         throw error;
+    //     } 
+    // }
     
     async createIndexes(){
         await this.#collection.createIndex("_id");
@@ -59,38 +75,38 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
         return;
     }
 
-    async #initPreviousOpenTradesBeforeUpdateCollection(){
-        /**
-         * Read the Documents and create new document in previousSubAccountConfigBeforeUpdate_Collection if not exist
-         */
-        try{
-            console.log("executing::: #initPreviousOpenTradesBeforeUpdateCollection");
-            const allDocuments_Cursor  = await this.getAllDocuments();
-            while(await allDocuments_Cursor.hasNext()){
-                const document = await allDocuments_Cursor.next();
-                if(!document)return;
-                // console.log({document});
-                // If document is not saved in previousSubAccountConfigBeforeUpdate_Collection: create
-                const documentInPreviousSubAccountConfigBeforeUpdateCollection = await this.previousOpenTradesBeforeUpdate_Collection.findOne({original_document_id:document._id});
-                // console.log({documentInPreviousSubAccountConfigBeforeUpdateCollection});
-                const originalDocumentId = document._id;
-                if(document._id){
-                    delete document._id;
-                }
-                const payload = {
-                    ...document,
-                    original_document_id:originalDocumentId
-                };
-                if(!documentInPreviousSubAccountConfigBeforeUpdateCollection){
-                    this.previousOpenTradesBeforeUpdate_Collection.createNewDocument(payload);
-                }
-            }
-        }catch(error){
-            const newErrorMessage = `(fn:#initPreviousOpenTradesBeforeUpdateCollection) ${error.message}`;
-            error.message = newErrorMessage;
-            throw error;
-        }
-    }
+    // async #initPreviousOpenTradesBeforeUpdateCollection(){
+    //     /**
+    //      * Read the Documents and create new document in previousSubAccountConfigBeforeUpdate_Collection if not exist
+    //      */
+    //     try{
+    //         console.log("executing::: #initPreviousOpenTradesBeforeUpdateCollection");
+    //         const allDocuments_Cursor  = await this.getAllDocuments();
+    //         while(await allDocuments_Cursor.hasNext()){
+    //             const document = await allDocuments_Cursor.next();
+    //             if(!document)return;
+    //             // console.log({document});
+    //             // If document is not saved in previousSubAccountConfigBeforeUpdate_Collection: create
+    //             const documentInPreviousSubAccountConfigBeforeUpdateCollection = await this.previousOpenTradesBeforeUpdate_Collection.findOne({original_document_id:document._id});
+    //             // console.log({documentInPreviousSubAccountConfigBeforeUpdateCollection});
+    //             const originalDocumentId = document._id;
+    //             if(document._id){
+    //                 delete document._id;
+    //             }
+    //             const payload = {
+    //                 ...document,
+    //                 original_document_id:originalDocumentId
+    //             };
+    //             if(!documentInPreviousSubAccountConfigBeforeUpdateCollection){
+    //                 this.previousOpenTradesBeforeUpdate_Collection.createNewDocument(payload);
+    //             }
+    //         }
+    //     }catch(error){
+    //         const newErrorMessage = `(fn:#initPreviousOpenTradesBeforeUpdateCollection) ${error.message}`;
+    //         error.message = newErrorMessage;
+    //         throw error;
+    //     }
+    // }
     
     /**
      * 
@@ -98,23 +114,6 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
      * @returns {Promise<import("mongodb").DeleteResult>}
      */
     async deleteManyDocumentsByIds(documentIds){ 
-        // for(const id of documentIds){
-        //     await this.#saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(id);
-        //     await sleepAsync(5000);
-        //     const deleteResult =await this.previousOpenTradesBeforeUpdate_Collection.deleteManyDocumentsByIds([id]);
-        //     console.log({deleteResult});
-        //     // delete the previousDocumentBeforeUpdateCollection document after some time
-        //     // const timeout = setTimeout(async ()=>{
-        //     //     try{
-        //     //         clearTimeout(timeout);
-        //     //         const deleteResult =await this.previousOpenTradesBeforeUpdate_Collection.deleteManyDocumentsByIds([id]);
-        //     //         console.log({deleteResult});
-        //     //     }catch(error){
-        //     //         const newErrorMessage = `(method:deleteManyDocumentsByIds): ${error.message}`;
-        //     //         console.log(newErrorMessage);
-        //     //     }
-        //     // },(1000*60));// 1 min
-        // }
         // delete many
         const newObjectIds = documentIds.map((str)=>new ObjectId(str));
         const deleteResults = await this.#collection.deleteMany({_id:{$in: newObjectIds}});
@@ -171,43 +170,43 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
         });
     }
 
-    /**
-     * @param {import("mongodb").ObjectId|string} documentId
-     */ 
-    async saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(documentId){
-        try{
-            if(!documentId)throw new Error("documentId mustt be passed in");
-            const documentId_as_ObjectId = typeof documentId==="string"?new ObjectId(documentId):documentId;
-            const previousDocumentBeforeUpdate = await this.findOne({_id:documentId_as_ObjectId});
-            if(!previousDocumentBeforeUpdate)throw new Error(`previousDocumentBeforeUpdate not found previousDocumentBeforeUpdate:${previousDocumentBeforeUpdate}`);
-            console.log({previousDocumentBeforeUpdate});
-            // Delete the previous saved document before update
-            const previous_previousDocumentBeforeUpdate = await this.previousOpenTradesBeforeUpdate_Collection.findOne({original_document_id: documentId_as_ObjectId});
-            console.log({previous_previousDocumentBeforeUpdate});
-            if(previous_previousDocumentBeforeUpdate){
-                console.log("Deleting previous_previousDocumentBeforeUpdate");
-                const deleteManyDocumentsByIds_Result = await this.previousOpenTradesBeforeUpdate_Collection.deleteManyDocumentsByIds([previous_previousDocumentBeforeUpdate._id]);
-                console.log("Deleted previous_previousDocumentBeforeUpdate",{deleteManyDocumentsByIds_Result});
-            }
-            // Save the previousDocumentBeforeUpdate
-            /**
-             * @type {import("../previous_open_trades_before_update/types").Previous_OpenTrades_Before_Update_Collection_Document_Interface}
-             */
-            const previousDocumentBeforeUpdate_payloadDoc = {
-                ...previousDocumentBeforeUpdate,
-                original_document_id: documentId_as_ObjectId
-            }; 
-            //@ts-ignore
-            delete previousDocumentBeforeUpdate_payloadDoc._id;
-            console.log({previousDocumentBeforeUpdate_payloadDoc});
-            const insertResult = await this.previousOpenTradesBeforeUpdate_Collection.createNewDocument(previousDocumentBeforeUpdate_payloadDoc);
-            console.log("Inserted: insertResult",{insertResult});
-        }catch(error){
-            const newErrorMessage = `(method:#saveDocumentInDB_In_previousDocumentBeforeUpdateCollection) ${error.message}`;
-            error.message = newErrorMessage;
-            throw error;
-        }
-    }
+    // /**
+    //  * @param {import("mongodb").ObjectId|string} documentId
+    //  */ 
+    // async saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(documentId){
+    //     try{
+    //         if(!documentId)throw new Error("documentId mustt be passed in");
+    //         const documentId_as_ObjectId = typeof documentId==="string"?new ObjectId(documentId):documentId;
+    //         const previousDocumentBeforeUpdate = await this.findOne({_id:documentId_as_ObjectId});
+    //         if(!previousDocumentBeforeUpdate)throw new Error(`previousDocumentBeforeUpdate not found previousDocumentBeforeUpdate:${previousDocumentBeforeUpdate}`);
+    //         console.log({previousDocumentBeforeUpdate});
+    //         // Delete the previous saved document before update
+    //         const previous_previousDocumentBeforeUpdate = await this.previousOpenTradesBeforeUpdate_Collection.findOne({original_document_id: documentId_as_ObjectId});
+    //         console.log({previous_previousDocumentBeforeUpdate});
+    //         if(previous_previousDocumentBeforeUpdate){
+    //             console.log("Deleting previous_previousDocumentBeforeUpdate");
+    //             const deleteManyDocumentsByIds_Result = await this.previousOpenTradesBeforeUpdate_Collection.deleteManyDocumentsByIds([previous_previousDocumentBeforeUpdate._id]);
+    //             console.log("Deleted previous_previousDocumentBeforeUpdate",{deleteManyDocumentsByIds_Result});
+    //         }
+    //         // Save the previousDocumentBeforeUpdate
+    //         /**
+    //          * @type {import("../previous_open_trades_before_update/types").Previous_OpenTrades_Before_Update_Collection_Document_Interface}
+    //          */
+    //         const previousDocumentBeforeUpdate_payloadDoc = {
+    //             ...previousDocumentBeforeUpdate,
+    //             original_document_id: documentId_as_ObjectId
+    //         }; 
+    //         //@ts-ignore
+    //         delete previousDocumentBeforeUpdate_payloadDoc._id;
+    //         console.log({previousDocumentBeforeUpdate_payloadDoc});
+    //         const insertResult = await this.previousOpenTradesBeforeUpdate_Collection.createNewDocument(previousDocumentBeforeUpdate_payloadDoc);
+    //         console.log("Inserted: insertResult",{insertResult});
+    //     }catch(error){
+    //         const newErrorMessage = `(method:#saveDocumentInDB_In_previousDocumentBeforeUpdateCollection) ${error.message}`;
+    //         error.message = newErrorMessage;
+    //         throw error;
+    //     }
+    // }
 
     /**
      * @param {import("mongodb").ObjectId} documentId
@@ -246,7 +245,7 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
      */
     async getAllDocuments(sort=true){
         if(sort){
-            return  await this.#collection.find({}).sort();
+            return  await this.#collection.find({}).sort(-1);
 
         }else {
             return  await this.#collection.find({}); 
@@ -260,7 +259,7 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
      */
     async getAllDocumentsBy(by={},sort=true){
         if(sort){
-            return await  this.#collection.find(by).sort();
+            return await  this.#collection.find(by).sort(-1);
         }else {
             return await  this.#collection.find(by); 
         }

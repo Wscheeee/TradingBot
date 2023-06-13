@@ -77,12 +77,12 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
                     });
                 }
                 // Save in previous open trades before update
-                await this.#mongoDatabase.collection.openTradesCollection.saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(documentId);
+                // await this.#mongoDatabase.collection.openTradesCollection.saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(documentId);
                
             } else if (change.operationType === "update") {
                 console.log("(openTradesCollection):UPDATE event");
                 const documentId = change.documentKey._id;
-                const updatedFields = change.updateDescription.updatedFields;
+                const updatedFields = change.updateDescription.updatedFields; 
                 const fullDocumentAfterUpdate =  await this.#mongoDatabase.collection.openTradesCollection.findOne({_id:documentId});
                 if(!fullDocumentAfterUpdate) throw new Error(`(openTradesCollection):UPDATE event fullDocumentAfterUpdate is empty for documentId:${change.documentKey._id}`);
                 const trader = await this.#mongoDatabase.collection.topTradersCollection.getDocumentByTraderUid(fullDocumentAfterUpdate.trader_uid);
@@ -102,7 +102,8 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
 
                 if (hasRealChange && fullDocumentAfterUpdate.copied) {
                     // const previousDoc = this.#mongoDatabase.collection.openTradesCollection.previousDocumentsForUpdates_Object[fullDocumentAfterUpdate._id.toString()];
-                    const previousDocBeforeUpdate = await this.#mongoDatabase.collection.openTradesCollection.previousOpenTradesBeforeUpdate_Collection.findOne({original_document_id: fullDocumentAfterUpdate._id});
+                    // const previousDocBeforeUpdate = await this.#mongoDatabase.collection.openTradesCollection.previousOpenTradesBeforeUpdate_Collection.findOne({original_document_id: fullDocumentAfterUpdate._id});
+                    const previousDocBeforeUpdate = change.fullDocumentBeforeChange;
                     console.log("OpenTrades Document has real changes!");
                     this.#onUpdatePositionCallbacks.forEach((cb) => {
                         cb(previousDocBeforeUpdate,fullDocumentAfterUpdate, trader);
@@ -112,13 +113,14 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
                 } 
 
                 // Save in previous open trades before update
-                await this.#mongoDatabase.collection.openTradesCollection.saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(documentId);
+                // await this.#mongoDatabase.collection.openTradesCollection.saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(documentId);
                
 
             }else if(change.operationType === "delete"){
                 const documentId = change.documentKey._id;
+                console.log("(openTradesCollection):UPDATE event :"+documentId.toString());
                 // Delete from previous open trades before update
-                await this.#mongoDatabase.collection.openTradesCollection.previousOpenTradesBeforeUpdate_Collection.deleteManyDocumentsByIds([documentId]);
+                // await this.#mongoDatabase.collection.openTradesCollection.previousOpenTradesBeforeUpdate_Collection.deleteManyDocumentsByIds([documentId]);
                
             }
         });

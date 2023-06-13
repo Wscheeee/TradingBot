@@ -11,8 +11,8 @@ const {
     PerformanceCollection,
     SubAccountsCollection,
     SubAccountsConfigCollection,
-    PreviousOpenTradesBeforeUpdate,
-    PreviousSubAccountConfigBeforeUpdate
+    // PreviousOpenTradesBeforeUpdate,
+    // PreviousSubAccountConfigBeforeUpdate
 } = require("./collections/");
 
 /**
@@ -25,10 +25,10 @@ const {
  *      performanceCollection: PerformanceCollection,
  *      subAccountsCollection: SubAccountsCollection,
  *      subAccountsConfigCollection: SubAccountsConfigCollection,
- *      previousOpenTradesBeforeUpdate: PreviousOpenTradesBeforeUpdate,
- *      previousSubAccountConfigBeforeUpdate: PreviousSubAccountConfigBeforeUpdate
  * }} Collections_Interface
- */
+*/
+//  *      previousOpenTradesBeforeUpdate: PreviousOpenTradesBeforeUpdate,
+//  *      previousSubAccountConfigBeforeUpdate: PreviousSubAccountConfigBeforeUpdate
 
 // import {utils} from './utils'
 module.exports.MongoDatabase =  class MongoDatabase{
@@ -66,7 +66,7 @@ module.exports.MongoDatabase =  class MongoDatabase{
         performanceCollection: null,
         subAccountsCollection: null,
         subAccountsConfigCollection: null,
-        previousSubAccountConfigBeforeUpdate: null,
+        // previousSubAccountConfigBeforeUpdate: null,
     };
     /**
      * @type {null|import("mongodb").ClientSession}
@@ -101,19 +101,19 @@ module.exports.MongoDatabase =  class MongoDatabase{
                 // this.#session = this.#client.startSession();// what is this ?
                 this.#dbIsConnected = true;
                 this.#database = this.#client.db(databaseName);
-                const previousOpenTradesBeforeUpdate = new PreviousOpenTradesBeforeUpdate(this.#database);
-                const previousSubAccountConfigBeforeUpdate =  new PreviousSubAccountConfigBeforeUpdate(this.#database);
+                // const previousOpenTradesBeforeUpdate = new PreviousOpenTradesBeforeUpdate(this.#database);
+                // const previousSubAccountConfigBeforeUpdate =  new PreviousSubAccountConfigBeforeUpdate(this.#database);
                 this.collection = {
                     usersCollection: new UsersCollection(this.#database),
                     oldTradesCollection: new OldTradesCollection(this.#database),
-                    openTradesCollection: new OpenTradesCollection(this.#database,previousOpenTradesBeforeUpdate),
+                    openTradesCollection: new OpenTradesCollection(this.#database),
                     topTradersCollection: new TopTradersCollection(this.#database),
                     tradedPositionsCollection: new TradedPositionsCollection(this.#database),
                     performanceCollection: new PerformanceCollection(this.#database),
                     subAccountsCollection: new SubAccountsCollection(this.#database),
-                    subAccountsConfigCollection: new SubAccountsConfigCollection(this.#database,previousSubAccountConfigBeforeUpdate),
-                    previousOpenTradesBeforeUpdate: previousOpenTradesBeforeUpdate,
-                    previousSubAccountConfigBeforeUpdate:previousSubAccountConfigBeforeUpdate
+                    subAccountsConfigCollection: new SubAccountsConfigCollection(this.#database),
+                    // previousOpenTradesBeforeUpdate: previousOpenTradesBeforeUpdate,
+                    // previousSubAccountConfigBeforeUpdate:previousSubAccountConfigBeforeUpdate
                 };
                 // this.runOnInitImmediatelyAfterDBConnect = [
                 // ];

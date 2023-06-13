@@ -134,20 +134,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                         });
                     }
 
-                    // Send their balancce to master account
-                    const subAccountInfoBalancesCalcsObj = accountUsernameToTheirDetailsObj[subUsername];
-                    if(subAccountInfoBalancesCalcsObj.balance>0.00001){
-                        console.log("Send amount to Master Account");
-                        await performUniversalTransfer({
-                            amount: String(new DecimalMath(subAccountInfoBalancesCalcsObj.balance).truncateToDecimalPlaces(4).getResult()),
-                            toMemberId: Number(getMasterAccountAPIKeyInfo_Res.result.userID),
-                            fromMemberId: Number(subAccountDoc.sub_account_uid),
-                            bybit,
-                            masterBybit:bybit,
-                            subAccountsUids:[String(subAccountDoc.sub_account_uid)]
-                        });
-
-                    }
+                
 
 
                 }
@@ -192,7 +179,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                         fromUid:0,
                         toUid:0
                     };
-                }
+                } 
             }
             console.log("ledgerObj_Arrray");
             console.log(ledgerObj_Arrray);
@@ -204,7 +191,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                     if(subAccountInfoBalancesCalcsObj && subAccountInfoBalancesCalcsObj.difference>0 && Number(subAccountInfoBalancesCalcsObj.difference.toFixed(2))>0.0){
                         
                         await performUniversalTransfer({
-                            amount: String(new DecimalMath(subAccountInfoBalancesCalcsObj.difference).truncateToDecimalPlaces(4).getResult()),
+                            amount: String(new DecimalMath(subAccountInfoBalancesCalcsObj.difference).removeDecimals().getResult()),
                             toMemberId: Number(getMasterAccountAPIKeyInfo_Res.result.userID),
                             fromMemberId: Number(subAccount.sub_account_uid),
                             bybit,
@@ -279,7 +266,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                 console.log(">gettingMoneyFromMasterAccounts");
                 let remainingChange = masterAccountWalletBalance;
                 console.log({masterAccountWalletBalance});
-                ledgerObj_Arrray.forEach((ledgerObj_)=>{
+                for(const ledgerObj_ of  ledgerObj_Arrray){
                     if(remainingChange>0){
                         const {amount,toUid}  = ledgerObj_;
                         if(remainingChange<=amount){// Meaning the difference in account cannot fill in the required in "subAcccount to"
@@ -301,9 +288,10 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                             });
                             
                         }
-
+    
                     }
-                });
+
+                }
 
             };
             gettingMoneyFromMasterAccounts();
@@ -311,12 +299,28 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
             console.log("transactionsLedgersArray");
             console.log(transactionsLedgersArray);
 
+            // it all transfers are less than 1 return
+            const MINIMUM_AMOUUNT_TO_TRANSER = 1;
+            const transfersListLength = transactionsLedgersArray.length;
+            let numberOfTransfersWithAmountLessThanMin = 0;
+            for(const transactionLedger of transactionsLedgersArray){
+                if(transactionLedger.amount<MINIMUM_AMOUUNT_TO_TRANSER){
+                    numberOfTransfersWithAmountLessThanMin+=1;
+                }
+            }
+
+            if(transfersListLength===numberOfTransfersWithAmountLessThanMin){
+                console.log("Amount to transfer in the ledger is less than minimum so not transferring anything",{MINIMUM_AMOUUNT_TO_TRANSER});
+                return;
+            }
+
+
 
             // // Make transfers
             for(const transactionLedger of transactionsLedgersArray){
-                if(Number(transactionLedger.amount.toFixed(2))>0.00){
+                if(new DecimalMath(transactionLedger.amount).removeDecimals().getResult()>=1){
                     await performUniversalTransfer({
-                        amount: String(new DecimalMath(transactionLedger.amount).truncateToDecimalPlaces(4).getResult()),
+                        amount: String(new DecimalMath(transactionLedger.amount).removeDecimals().getResult()),
                         toMemberId: Number(transactionLedger.toUid),
                         fromMemberId: Number(transactionLedger.fromUid),
                         bybit,
@@ -328,8 +332,13 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                 }
             }
 
+        }else {
+            return;
         }
-        return;
+
+        return await allocateCapitalToSubAccounts({
+            bybit, mongoDatabase,user
+        });
        
     }catch(error){
         const newErrorMessage = `(user:${user.tg_user_id}) (fn:allocateCapitalToSubAccounts):${error.message}`;

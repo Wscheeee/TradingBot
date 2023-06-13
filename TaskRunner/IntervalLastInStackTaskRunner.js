@@ -71,6 +71,16 @@ module.exports.IntervalLastInStackTaskRunner = class IntervalLastInStackTaskRunn
         }
     }
 
+    stopInterval(){
+        console.log("[Class:IntervalLastInStackTaskRunner => #stopInterval:] stoping");
+        clearInterval(this.#intervalId);
+    }
+    startInterval(){
+        console.log("[Class:IntervalLastInStackTaskRunner => #startInterval:] stoping");
+        this.#jobRunner();
+    }
+
+
 
     /**
      * ads a job in the task runner

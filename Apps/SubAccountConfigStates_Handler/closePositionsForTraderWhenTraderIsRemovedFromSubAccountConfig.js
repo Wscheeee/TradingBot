@@ -19,7 +19,8 @@ module.exports.closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig = 
          * Get the traders open positions documents
          */
         const traderOpenPositionsDocument_Cursor = await mongoDatabase.collection.openTradesCollection.getAllDocumentsBy({
-            trader_uid
+            trader_uid,
+            status:"OPEN"
         });
 
         /**

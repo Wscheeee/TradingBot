@@ -16,9 +16,10 @@ module.exports.SubAccountsConfigCollectionStateDetector = class SubAccountsConfi
     * @type {OnCreateDocumentCb_Interface[]}
     */
     #onCreateDocumentCallbacks = [];
+    //   *      configDocumentBeforeUpdate: import("../collections/previous_sub_account_config_before_update/types/").Previous_SubAccountConfig_Before_Update_Collection_Document_Interface,
     /**
   * @typedef {(
-  *      configDocumentBeforeUpdate: import("../collections/previous_sub_account_config_before_update/types/").Previous_SubAccountConfig_Before_Update_Collection_Document_Interface,
+  *     configDocumentBeforeUpdate: import("../collections/sub_accounts_config/types").Sub_Account_Config_Document_Interface,
   *      configDocumentAfterUpdate:import("../collections/sub_accounts_config/types").Sub_Account_Config_Collection_Document_Interface,
   * )=>any} OnUpdateDocumentCb_Interface
   */
@@ -29,7 +30,7 @@ module.exports.SubAccountsConfigCollectionStateDetector = class SubAccountsConfi
 
     /**
   * @typedef {(
-  *      configDocumentBeforeDelete: import("../collections/previous_sub_account_config_before_update/types/").Previous_SubAccountConfig_Before_Update_Collection_Document_Interface,
+  *      configDocumentBeforeDelete: import("../collections/sub_accounts_config/types").Sub_Account_Config_Document_Interface,
   * )=>any} OnDeleteDocumentCb_Interface
   */
     /**
@@ -37,20 +38,20 @@ module.exports.SubAccountsConfigCollectionStateDetector = class SubAccountsConfi
     */
     #onDeleteDocumentCallbacks = [];
  
-    #update_collection_that_holds_previous_documents_before_update = true;
+    // #update_collection_that_holds_previous_documents_before_update = true;
     /**
    * @constructor
-   * @param {{mongoDatabase:import("../MongoDatabase").MongoDatabase, update_collection_that_holds_previous_documents_before_update:boolean}} param0 
+   * @param {{mongoDatabase:import("../MongoDatabase").MongoDatabase}} param0 
    */
-    constructor({ mongoDatabase,update_collection_that_holds_previous_documents_before_update }) {
+    constructor({ mongoDatabase }) {
         this.#mongoDatabase = mongoDatabase;
-        this.#update_collection_that_holds_previous_documents_before_update = update_collection_that_holds_previous_documents_before_update;
     }
 
     listenToSubAccountsConfigCollection() {
         const watcher = this.#mongoDatabase.collection.subAccountsConfigCollection.watchCollection();
         watcher.addListener("change", async (change) => {
             if(change.operationType==="drop")process.exit();//restart the app when the collection is dropped
+
             if (change.operationType === "insert") {
                 console.log("(subAccountsConfigCollection):INSERT event");
                 const documentId = change.documentKey._id;
@@ -59,11 +60,11 @@ module.exports.SubAccountsConfigCollectionStateDetector = class SubAccountsConfi
                 this.#onCreateDocumentCallbacks.forEach((cb) => {
                     cb(fullDocument);
                 });
-                if(this.#update_collection_that_holds_previous_documents_before_update ){
-                    // Save it to previous sub account config before update
-                    await this.#mongoDatabase.collection.subAccountsConfigCollection.saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(documentId);
+                // if(this.#update_collection_that_holds_previous_documents_before_update ){
+                //     // Save it to previous sub account config before update
+                //     await this.#mongoDatabase.collection.subAccountsConfigCollection.saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(documentId);
 
-                }
+                // }
             } else if (change.operationType === "update") {
                 console.log("(subAccountsConfigCollection):UPDATE event");
                 const documentId = change.documentKey._id;
@@ -74,29 +75,27 @@ module.exports.SubAccountsConfigCollectionStateDetector = class SubAccountsConfi
                     return;
                 }
                 if(!fullDocumentAfterChange)return;
-                const documentBeforeUpdate = await this.#mongoDatabase.collection.previousSubAccountConfigBeforeUpdate.findOne({original_document_id:documentId});
+                const documentBeforeUpdate = change.fullDocumentBeforeChange; 
                 console.log({documentBeforeUpdate});
                 if(!documentBeforeUpdate)return;
                 this.#onUpdateDocumentCallbacks.forEach((cb) => {
                     cb(documentBeforeUpdate,fullDocumentAfterChange);
                 });
-                if(this.#update_collection_that_holds_previous_documents_before_update ){
-                    // Save it to previous sub account config before update
-                    await this.#mongoDatabase.collection.subAccountsConfigCollection.saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(documentId);
+                // if(this.#update_collection_that_holds_previous_documents_before_update ){
+                //     // Save it to previous sub account config before update
+                //     await this.#mongoDatabase.collection.subAccountsConfigCollection.saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(documentId);
 
-                }
+                // }
 
             } else if(change.operationType==="delete"){
                 console.log("(subAccountsConfigCollection):DELETE event");
-                const documentId = change.documentKey._id;
+                // const documentId = change.documentKey._id;
                 // const fullDocumentAfterChange =  change.fullDocument;
-                const documentBeforedDelete = await this.#mongoDatabase.collection.subAccountsConfigCollection.previousSubAccountConfigBeforeUpdate_Collection.findOne({original_document_id:documentId});
+                const documentBeforedDelete = change.fullDocumentBeforeChange;
                 if(!documentBeforedDelete)return;
                 this.#onDeleteDocumentCallbacks.forEach((cb) => {
                     cb(documentBeforedDelete);
                 });
-                // Delete document from sub account config before update
-                await this.#mongoDatabase.collection.subAccountsConfigCollection.previousSubAccountConfigBeforeUpdate_Collection.deleteManyDocumentsByIds([documentId]);
             }
         });
     }

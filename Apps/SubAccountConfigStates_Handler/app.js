@@ -62,7 +62,7 @@ process.env.TZ = dotEnvObj.TZ;
 
         //////////////////////////////////
         // SUB ACCOUNTS CONFIG COLLECTION
-        const subAccountsConfigCollectionStateDetector = new SubAccountsConfigCollectionStateDetector({ mongoDatabase: mongoDatabase, update_collection_that_holds_previous_documents_before_update: true });
+        const subAccountsConfigCollectionStateDetector = new SubAccountsConfigCollectionStateDetector({ mongoDatabase: mongoDatabase });
         logger.info("Create SubAccountsConfigCollectionStateDetector and set listeners");
         subAccountsConfigCollectionStateDetector.onUpdateDocument(async (configDocumentBeforeUpdate,configDocumentAfterUpdate)=>{
             try{

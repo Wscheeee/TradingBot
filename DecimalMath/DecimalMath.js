@@ -71,6 +71,15 @@ class DecimalMath {
         this.result = Math.trunc(this.result * factor) / factor;
         return this;
     }
+
+    /**
+     * Return only whole number
+     */
+    removeDecimals() {
+        this.result =  Math.floor(this.result);
+        return this;
+    }
+
     
   
     /**

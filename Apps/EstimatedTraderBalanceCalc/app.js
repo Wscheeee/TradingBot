@@ -10,7 +10,7 @@
 
 
 
-const { MongoDatabase , TopTradersCollectionStateDetector} = require("../../MongoDatabase");
+const { MongoDatabase , TopTradersCollectionStateDetector, PositionsStateDetector} = require("../../MongoDatabase");
 
 const {sleepAsync} = require("../../Utils/sleepAsync");
 const { readAndConfigureDotEnv } = require("../../Utils/readAndConfigureDotEnv");
@@ -20,7 +20,8 @@ const {Telegram} = require("../../Telegram");
 
 // local
 const {estimateTotalTraderBalance} = require("./estimateTotalTraderBalance");
-const {saveTraderEstimatedTotalBalance} = require("./saveTraderEstimatedTotalBalance");
+const {saveTraderEstimatedTotalDayBalance} = require("./saveTraderEstimatedTotalDayBalance");
+const {saveTraderEstimatedTotalCurrentBalance} = require("./saveTraderEstimatedTotalCurrentBalance");
 
 
 const APP_NAME = "App:EstimatedTraderBalanceCalc";
@@ -64,7 +65,7 @@ process.env.TZ = dotEnvObj.TZ;
         logger.info("Connect DB");
 
         //////////////////////////////////
-        // SUB ACCOUNTS CONFIG COLLECTION
+        // TOP TRADERS COLLECTION
         const topTradersCollectionStateDetector = new TopTradersCollectionStateDetector({ mongoDatabase: mongoDatabase ,arrayOfUpdateFilters:["daily_pnl","daily_roi"]});
         logger.info("Create topTradersCollectionStateDetector and set listeners");
         topTradersCollectionStateDetector.onUpdateDocument(async (topTraderDocumentBeforeUpdate,topTraderDocumentAfterUpdate)=>{
@@ -77,7 +78,7 @@ process.env.TZ = dotEnvObj.TZ;
                     traderDocument:topTraderDocumentAfterUpdate
                 });
 
-                await saveTraderEstimatedTotalBalance({
+                await saveTraderEstimatedTotalDayBalance({
                     estimated_total_balance:estimatedTotalBalance,
                     mongoDatabase,
                     traderDocument: topTraderDocumentAfterUpdate
@@ -88,22 +89,17 @@ process.env.TZ = dotEnvObj.TZ;
                 logger.error(`topTraders.onCreateDocument ${e.message}`);
             }
         });
-        // topTradersCollectionStateDetector.onDeleteDocumentCallbacks(async (deletedTopTraderDocument)=>{
-        //     try{
-        //         logger.info(`topTraders.onDeleteDocumentCallbacks deletedConfigDocument:${JSON.stringify(deletedTopTraderDocument)}`);
-        //         if(!mongoDatabase)return;
-               
-                
+       
 
-        //     }catch(e){
-        //         logger.error(`topTraders.onDeleteDocumentCallbacks ${e.message}`);
-        //     }
-        // });
-
-        
         topTradersCollectionStateDetector.listenToTopTradersCollectionCollection();
         logger.info("Set topTradersCollectionStateDetector.listenToTopTradersCollectionCollection");
         //////////////////////////////////
+
+
+        ////////////////////////////////
+        // POSITIONS COLECTION
+
+
 
 
       

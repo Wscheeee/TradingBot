@@ -71,7 +71,7 @@ process.env.TZ = dotEnvObj.TZ;
                 
                 // Check if the trader uid has changed
                 // If trader uid has changed : close the trader's positions for each trader
-                if(configDocumentBeforeUpdate.trader_uid!==configDocumentAfterUpdate.trader_uid && !!configDocumentBeforeUpdate.sub_link_name){
+                if(configDocumentBeforeUpdate.trader_uid!==configDocumentAfterUpdate.trader_uid){
                     // NOTE: That the previousDocument b4 update might have empty trader details and weight.
                     if(configDocumentBeforeUpdate.trader_uid){
                         await closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig({
@@ -82,13 +82,16 @@ process.env.TZ = dotEnvObj.TZ;
                     }
                     
 
+                    
+                    
+                }
+                if(configDocumentBeforeUpdate.sub_link_name){
                     await updateSubAccountDocumentsToUpdatedSubAccountConfigData({
                         mongoDatabase,
                         sub_link_name: configDocumentBeforeUpdate.sub_link_name,
                         updatedSubAccountConfigDocument:configDocumentAfterUpdate
                     });
-                   
-                    
+
                 }
             }catch(e){
                 logger.error(`subAcccountConfig.onUpdateDocument ${e.message}`);

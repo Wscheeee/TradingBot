@@ -91,7 +91,7 @@ process.env.TZ = dotEnvObj.TZ;
                     
                 }
             }catch(e){
-                logger.error(`subAcccountConfig.onCreateDocument ${e.message}`);
+                logger.error(`subAcccountConfig.onUpdateDocument ${e.message}`);
             }
         });
         subAccountsConfigCollectionStateDetector.onDeleteDocumentCallbacks(async (deletedConfigDocument)=>{

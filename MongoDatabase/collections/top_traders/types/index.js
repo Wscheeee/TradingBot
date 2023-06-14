@@ -3,6 +3,7 @@
  *      unique_number: string,
  *      uid: string
  *      username:string,
+ *      estimated_total_balance?: number,
  *      trader_base_allocation: number,
  *      daily_pnl: number,
  *      daily_roi: number,
@@ -37,6 +38,10 @@
 /**
  * @typedef {import("mongodb").WithId<TopTraderDocument_Interface>} TopTraderCollection_Document_Interface 
  */
+
+// /**
+//  * @typedef {import("mongodb").Filter<TopTraderDocument_Interface>} TopTraderDocument_Interface_Filtered
+//  */
 
 
 

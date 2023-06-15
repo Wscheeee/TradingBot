@@ -10,6 +10,9 @@ const {MongoDatabase} = require("../../MongoDatabase");
 const {sleepAsync} = require("../../Utils/sleepAsync");
 const {readAndConfigureDotEnv} = require("../../Utils/readAndConfigureDotEnv");
 
+// local
+const {saveTraderEstimatedTotalDayBalance} = require("./saveTraderEstimatedTotalDayBalance");
+
 const {IS_LIVE} = require("../../appConfig");
 const dotEnvObj = readAndConfigureDotEnv(IS_LIVE); 
 const {Telegram} = require("../../Telegram");
@@ -87,6 +90,7 @@ console.log(IS_LIVE);
                         username: savedTrader.username,
                         uid: savedTrader.uid,
                         followed: savedTrader.followed,
+                        yesterday_estimated_balance: savedTrader.today_estimated_balance,
                         past_day_pnl:savedTrader.daily_pnl===0?savedTrader.past_day_pnl:savedTrader.daily_pnl,
                         past_day_roi:savedTrader.daily_roi===0?savedTrader.past_day_roi:savedTrader.daily_roi,  
                         document_last_edited_at_datetime: new Date(),
@@ -286,6 +290,19 @@ console.log(IS_LIVE);
                                 ),
                     });
 
+
+
+                    // Perform the estimate trader's balance calculation
+                    const estimateBalance = await mongoDatabase.collection.topTradersCollection.utils.estimateTotalTraderBalance({
+                        mongoDatabase,
+                        traderDocument: savedTrader
+                    });
+                    await saveTraderEstimatedTotalDayBalance({
+                        mongoDatabase,
+                        traderDocument: savedTrader,
+                        estimated_total_balance: estimateBalance
+                    });
+
                 }
 
 
@@ -302,6 +319,7 @@ console.log(IS_LIVE);
                         username: savedTrader.username,
                         uid: savedTrader.uid,
                         followed: savedTrader.followed,
+                        yesterday_estimated_balance: savedTrader.today_estimated_balance,
                         past_day_pnl:savedTrader.daily_pnl===0?savedTrader.past_day_pnl:savedTrader.daily_pnl,
                         past_day_roi:savedTrader.daily_roi===0?savedTrader.past_day_roi:savedTrader.daily_roi,  
                         document_last_edited_at_datetime: new Date(),
@@ -499,6 +517,17 @@ console.log(IS_LIVE);
                                     },
                                     savedTrader.exactYearlyROI
                                 ),
+                    });
+
+                    // Perform the estimate trader's balance calculation
+                    const estimateBalance = await mongoDatabase.collection.topTradersCollection.utils.estimateTotalTraderBalance({
+                        mongoDatabase,
+                        traderDocument: savedTrader
+                    });
+                    await saveTraderEstimatedTotalDayBalance({
+                        mongoDatabase,
+                        traderDocument: savedTrader,
+                        estimated_total_balance: estimateBalance
                     });
 
                 }

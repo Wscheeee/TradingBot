@@ -3,8 +3,8 @@
  *      unique_number: string,
  *      uid: string
  *      username:string,
- *      estimated_total_day_balance?: number,
- *      estimated_total_current_balance?: number,
+ *      yesterday_estimated_balance?: number,
+ *      today_estimated_balance?: number,
  *      trader_base_allocation: number,
  *      daily_pnl: number,
  *      daily_roi: number,

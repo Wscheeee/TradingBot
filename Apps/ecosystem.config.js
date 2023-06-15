@@ -5,10 +5,6 @@ module.exports = {
             script: "./CreateSubAccountsAndAllocateCapital/app.js"
         },
         {
-            name: "EstimatedTraderBalanceCalc",
-            script: "./EstimatedTraderBalanceCalc/app.js"
-        },
-        {
             name: "Executor",
             script: "./Executor/app.js"
         },

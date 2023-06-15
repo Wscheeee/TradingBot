@@ -1,11 +1,11 @@
 //@ts-check
 
 
-const {DecimalMath} = require("../../DecimalMath");
+const {DecimalMath} = require("../../../../DecimalMath");
 /**
  * @param {{
- *      traderDocument: import("../../MongoDatabase/collections/top_traders/types").TopTraderCollection_Document_Interface,
- *      mongoDatabase: import("../../MongoDatabase").MongoDatabase
+ *      traderDocument: import("../types").TopTraderCollection_Document_Interface,
+ *      mongoDatabase: import("../../../MongoDatabase").MongoDatabase
  * }} param0
  */
 module.exports.estimateTotalTraderBalance = async function estimateTotalTraderBalance({

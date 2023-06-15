@@ -3,6 +3,7 @@
 const {Bybit} = require("../../Trader");
 
 const {newPositionSizingAlgorithm} = require("./algos/qty");
+const { saveTraderEstimatedTotalCurrentBalance } = require("./saveTraderEstimatedTotalCurrentBalance");
 
 /**
  * 
@@ -53,7 +54,20 @@ module.exports.positionCloseHandler = async function positionCloseHandler({
                     onErrorCb(error);
                 }
             }
-            await Promise.all(promises);
+            await Promise.allSettled(promises);
+
+            /////////////////////////////////////
+            // Calculate trader estimate ccurrent balance after trade
+            const estimateBalance = await mongoDatabase.collection.topTradersCollection.utils.estimateTotalTraderBalance({
+                mongoDatabase,
+                traderDocument: trader
+            });
+            await saveTraderEstimatedTotalCurrentBalance({
+                mongoDatabase,
+                traderDocument: trader,
+                estimated_total_balance: estimateBalance
+            });
+
             
         }catch(error){
             console.log({error});

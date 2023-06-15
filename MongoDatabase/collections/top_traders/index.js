@@ -1,5 +1,6 @@
 const {  ObjectId } = require("mongodb");
 
+const utils = require("./utils");
 
 
 module.exports.TopTradersCollection =  class TopTradersCollection{
@@ -19,6 +20,9 @@ module.exports.TopTradersCollection =  class TopTradersCollection{
      * @type {import("mongodb").ChangeStream[]}
      */
     #eventListenersArray = [];
+
+
+    utils = utils;
 
 
     /**

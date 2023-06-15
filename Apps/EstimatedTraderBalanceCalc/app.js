@@ -10,7 +10,7 @@
 
 
 
-const { MongoDatabase , TopTradersCollectionStateDetector, PositionsStateDetector} = require("../../MongoDatabase");
+const { MongoDatabase , TopTradersCollectionStateDetector} = require("../../MongoDatabase");
 
 const {sleepAsync} = require("../../Utils/sleepAsync");
 const { readAndConfigureDotEnv } = require("../../Utils/readAndConfigureDotEnv");
@@ -19,9 +19,9 @@ const {Telegram} = require("../../Telegram");
 
 
 // local
-const {estimateTotalTraderBalance} = require("./estimateTotalTraderBalance");
+// const {estimateTotalTraderBalance} = require("./estimateTotalTraderBalance");
 const {saveTraderEstimatedTotalDayBalance} = require("./saveTraderEstimatedTotalDayBalance");
-const {saveTraderEstimatedTotalCurrentBalance} = require("./saveTraderEstimatedTotalCurrentBalance");
+// const {saveTraderEstimatedTotalCurrentBalance} = require("./saveTraderEstimatedTotalCurrentBalance");
 
 
 const APP_NAME = "App:EstimatedTraderBalanceCalc";
@@ -73,7 +73,7 @@ process.env.TZ = dotEnvObj.TZ;
                 logger.info(`topTraders.onUpdateDocument b4:${JSON.stringify(topTraderDocumentBeforeUpdate)}${JSON.stringify(topTraderDocumentAfterUpdate)}`);
                 if(!mongoDatabase)return;
 
-                const estimatedTotalBalance = await estimateTotalTraderBalance({
+                const estimatedTotalBalance = await mongoDatabase.collection.topTradersCollection.utils.estimateTotalTraderBalance({
                     mongoDatabase,
                     traderDocument:topTraderDocumentAfterUpdate
                 });

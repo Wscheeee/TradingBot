@@ -57,8 +57,10 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
         //todo : retrieve trader.past_day_pnl 
 
         // - Calculate the trader balance for today + yesterday
-        const trader_balance_today = new DecimalMath(trader.daily_pnl).divide(trader.daily_roi).add(trader.daily_pnl).getResult();
-        const trader_balance_yesterday = new DecimalMath(trader.past_day_pnl).divide(trader.past_day_roi).add(trader.past_day_pnl).getResult();
+        const trader_balance_today = trader.today_estimated_balance;
+        if(!trader_balance_today)throw new Error("trader.today_estimated_balance is undefined for trader:"+trader.username);
+        const trader_balance_yesterday = trader.yesterday_estimated_balance;
+        if(!trader_balance_yesterday)throw new Error("trader.yesterday_estimated_balance is undefined for trader:"+trader.username);
         // - Check if balance changed more than 15% from yesterday (this is to prevent from innacurate balance calculations)
         // const diff = Math.abs((trader_balance_today - trader_balance_yesterday).dividedBy(trader_balance_yesterday)) * 100;
         const diff = Math.abs(new DecimalMath((trader_balance_today - trader_balance_yesterday)).divide(trader_balance_yesterday).getResult()) * 100;
@@ -142,7 +144,7 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
         console.log({valueToAdd});
         const qty = valueToAdd / position.entry_price;
         const qtyToByWith = qty;
-        console.log({qtyToByWith})
+        console.log({qtyToByWith});
         // standardize the qty
         const standardizedQTY = await bybit.standardizeQuantity({ quantity: qtyToByWith, symbol: position.pair });
         console.log({ standardizedQTY });

@@ -119,6 +119,7 @@ async function handler({
             action:"new_trade",
             user
         });
+        if(sizeToExecute===0)throw new Error("sizeToExecute==="+sizeToExecute);
         const standardized_qty = sizeToExecute;
                 
         // Switch position mode
@@ -225,7 +226,7 @@ async function handler({
         
 
     }catch(error){
-        const newErrorMessage = `(fn:handler) ${error.message}`;
+        const newErrorMessage = `(fn:handler) trader:${trader.username} user:${user.username} user_tg_id:${user.tg_user_id} ${error.message}`;
         error.message = newErrorMessage;
         onErrorCb(error);
         // throw error;

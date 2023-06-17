@@ -148,6 +148,7 @@ async function handler({
             action: "update",
             user
         });
+        if(sizeToExecute===0)throw new Error("sizeToExecute==="+sizeToExecute);
         const standardized_qty = sizeToExecute;
     
         if (standardized_qty == parseFloat(tradedPositionObj.size)) throw new Error("Not updating the position as qty not changed");

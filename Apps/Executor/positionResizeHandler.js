@@ -151,6 +151,7 @@ async function handler({
             action:"resize",
             user
         });
+        if(sizeToExecute===0)throw new Error("sizeToExecute==="+sizeToExecute);
         const standardized_qty = sizeToExecute;
     
         /**

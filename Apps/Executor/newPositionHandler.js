@@ -174,7 +174,7 @@ async function handler({
         logger.info("Getting a list of open active orders from bybit_RestClientV5");
         const getActiveOrders_Res = await bybit.clients.bybit_RestClientV5.getActiveOrders({
             category:"linear",
-            symbol: position.pair,
+            symbol: position.pair, 
             orderId: openPositionRes.result.orderId,
         });
         if(!getActiveOrders_Res ||!getActiveOrders_Res.result ||Object.keys(getActiveOrders_Res.result).length==0){

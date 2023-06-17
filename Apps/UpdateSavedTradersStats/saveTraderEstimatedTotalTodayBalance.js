@@ -9,15 +9,15 @@
  *    estimated_total_balance : number
  *}} param0 
  */
-module.exports.saveTraderEstimatedTotalDayBalance = async function saveTraderEstimatedTotalDayBalance({
+module.exports.saveTraderEstimatedTotalTodayBalance = async function saveTraderEstimatedTotalTodayBalance({
     mongoDatabase,estimated_total_balance,traderDocument
 }){
-    const FUNCTION_NAME = "(fn:saveTraderEstimatedTotalDayBalance)";
+    const FUNCTION_NAME = "(fn:saveTraderEstimatedTotalTodayBalance)";
     console.log(FUNCTION_NAME);
     try{
 
         const updateResult = await mongoDatabase.collection.topTradersCollection.updateDocument(traderDocument._id,{
-            estimated_total_day_balance: estimated_total_balance
+            today_estimated_balance: estimated_total_balance
         });
         console.log({updateResult});
         return;

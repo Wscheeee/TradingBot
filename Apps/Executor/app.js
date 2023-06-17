@@ -59,12 +59,12 @@ process.env.TZ = dotEnvObj.TZ;
                 "position mode not modified"
             ];
             const messageIsUnwanted = messagesToFilterOut.filter((filterText)=>{
-                if(!message.includes(filterText)){
+                if(message.includes(filterText)){
                     return filterText;
 
                 }
             });
-            if(!messageIsUnwanted){
+            if(messageIsUnwanted.length===0){
                 await errorbot.sendMessage(dotEnvObj.TELEGRAM_ERROR_CHHANNEL_ID,message);
 
             }

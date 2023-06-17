@@ -58,9 +58,9 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
 
         // - Calculate the trader balance for today + yesterday
         const trader_balance_today = trader.today_estimated_balance;
-        if(!trader_balance_today)throw new Error("trader.today_estimated_balance is undefined for trader:"+trader.username);
+        if(!trader_balance_today)throw new Error(`trader.today_estimated_balance is ${trader.today_estimated_balance} for trader: ${trader.username}`);
         const trader_balance_yesterday = trader.yesterday_estimated_balance;
-        if(!trader_balance_yesterday)throw new Error("trader.yesterday_estimated_balance is undefined for trader:"+trader.username);
+        if(!trader_balance_yesterday)throw new Error(`trader.yesterday_estimated_balance is ${trader.yesterday_estimated_balance} for trader: ${trader.username}`);
         // - Check if balance changed more than 15% from yesterday (this is to prevent from innacurate balance calculations)
         // const diff = Math.abs((trader_balance_today - trader_balance_yesterday).dividedBy(trader_balance_yesterday)) * 100;
         const diff = Math.abs(new DecimalMath((trader_balance_today - trader_balance_yesterday)).divide(trader_balance_yesterday).getResult()) * 100;

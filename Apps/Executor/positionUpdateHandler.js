@@ -23,7 +23,9 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
              * Get all users cursor
              * 
              */
-            const users_Cursor = await mongoDatabase.collection.usersCollection.getAllDocuments();
+            const users_Cursor = await mongoDatabase.collection.usersCollection.getAllDocumentsBy({
+                status: true
+            });
             const users_array = await users_Cursor.toArray();
             const promises = [];
             for(const user of users_array){

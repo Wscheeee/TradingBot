@@ -42,7 +42,7 @@ console.log(process.env);
 💰 Pair : ${position.pair}
 🔖 Type : ${position.direction}
 🌿 Leverage : ${position.leverage}
-⌛ Entry Price : ${position.entry_price}`
+⌛ Entry Price : ${new DecimalMath(position.entry_price).truncateToDecimalPlaces(5).getResult()}`
             );
         }); 
  
@@ -85,7 +85,7 @@ console.log(process.env);
 💰 Pair : ${position.pair}
 🔖 Type : ${position.direction}
 🌿 Leverage : ${position.leverage}
-⌛ Entry Price : ${position.entry_price}
+⌛ Entry Price : ${new DecimalMath(position.entry_price).truncateToDecimalPlaces(5).getResult()}
 ❇️ Size Change of : ${sizeChange}
 
 ✨ Size : ${position.previous_size_before_partial_close} ➡️ ${position.size} ✨`
@@ -108,7 +108,7 @@ console.log(process.env);
 💰 Pair : ${position.pair}
 🔖 Type : ${position.direction}
 🌿 Leverage :  ${previousPosition.leverage} ➡️ ${position.leverage} ✨
-⌛ Entry Price : ${position.entry_price}
+⌛ Entry Price : ${new DecimalMath(position.entry_price).truncateToDecimalPlaces(5).getResult()}
 ❇️ Leverage Change of : ${leverageChange}
 
 ✨ Size : ${position.size}`
@@ -131,8 +131,8 @@ console.log(process.env);
 💸 Position Size : ${position.previous_size_before_partial_close}
 💸 Closed Size : ${position.size}
 💸 Left Size : ${position.previous_size_before_partial_close-position.size}
-⌛ Entry Price : ${position.entry_price}
-⌛ Closed Price : ${position.mark_price}
+⌛ Entry Price : ${new DecimalMath(position.entry_price).truncateToDecimalPlaces(5).getResult()}
+⌛ Closed Price : ${new DecimalMath(position.mark_price).truncateToDecimalPlaces(5).getResult()}
 
 📈💶🚀 ROI : ${roi}% 🚀💶📈`
             );
@@ -149,8 +149,8 @@ console.log(process.env);
 🔖 Type : ${position.direction}
 🌿 Leverage : ${position.leverage}
 💸 Size : ${position.size}
-⌛ Entry Price : ${position.entry_price}
-⌛ Closed Price : ${position.mark_price}
+⌛ Entry Price : ${new DecimalMath(position.entry_price).truncateToDecimalPlaces(5).getResult()}
+⌛ Closed Price : ${new DecimalMath(position.mark_price).truncateToDecimalPlaces(5).getResult()}
 
 📈💶🚀 ROI : ${roi}% 🚀💶📈`
             );

@@ -11,7 +11,7 @@ const {sleepAsync} = require("../../Utils/sleepAsync");
 const {readAndConfigureDotEnv} = require("../../Utils/readAndConfigureDotEnv");
 
 // local
-const {saveTraderEstimatedTotalDayBalance} = require("./saveTraderEstimatedTotalDayBalance");
+const {saveTraderEstimatedTotalTodayBalance} = require("./saveTraderEstimatedTotalTodayBalance");
 
 const {IS_LIVE} = require("../../appConfig");
 const dotEnvObj = readAndConfigureDotEnv(IS_LIVE); 
@@ -297,7 +297,7 @@ console.log(IS_LIVE);
                         mongoDatabase,
                         traderDocument: savedTrader
                     });
-                    await saveTraderEstimatedTotalDayBalance({
+                    await saveTraderEstimatedTotalTodayBalance({
                         mongoDatabase,
                         traderDocument: savedTrader,
                         estimated_total_balance: estimateBalance
@@ -524,7 +524,7 @@ console.log(IS_LIVE);
                         mongoDatabase,
                         traderDocument: savedTrader
                     });
-                    await saveTraderEstimatedTotalDayBalance({
+                    await saveTraderEstimatedTotalTodayBalance({
                         mongoDatabase,
                         traderDocument: savedTrader,
                         estimated_total_balance: estimateBalance

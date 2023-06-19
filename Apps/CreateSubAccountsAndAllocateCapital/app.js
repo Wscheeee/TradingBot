@@ -184,6 +184,29 @@ process.env.TZ = dotEnvObj.TZ;
             }
         });
 
+        usersCollectionStateDetector.onUserCustomConfigListUpdate(async (userDocumentBeforeUpdate,userDocumentAfterUpdate)=>{
+            try{
+                logger.info(`user.onUserCustomConfigListUpdate ${userDocumentAfterUpdate.tg_user_id}`);
+                if(!mongoDatabase)return;
+                // Loop throught the user's custom configs 
+                // Run allocations in TaskRunner
+                intervalLastInStackTaskRunner.addJob(
+                    async function (){
+                        await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
+                            mongoDatabase,
+                            onError: (error)=>{
+                                logger.error(error.message);
+                            }
+                        });
+
+                    }
+                );
+            }catch(error){
+                logger.error(`user.onCreateDocument ${error.message}`);
+            }
+        });
+
+        
 
         
         usersCollectionStateDetector.listenToUsersCollection();

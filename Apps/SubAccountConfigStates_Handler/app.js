@@ -144,14 +144,15 @@ process.env.TZ = dotEnvObj.TZ;
                 console.log({userDocumentBeforeUpdate,userDocumentAfterUpdate});
                 if(!userDocumentAfterUpdate.status===false||userDocumentAfterUpdate.atomos==true){
                     throw new Error(`user:${userDocumentAfterUpdate.username} ${userDocumentAfterUpdate.tg_user_id} not subscribed | User not following own custom traders`);
-                };// User not subscribed | User not following own custom traders
+                }// User not subscribed | User not following own custom traders
+
                 if(!userDocumentBeforeUpdate){
                     throw new Error("userDocumentBeforeUpdate is: "+JSON.stringify(userDocumentBeforeUpdate));
                 }
                 const customSubAccountConfigArray_beforeUpdate = userDocumentBeforeUpdate.custom_sub_account_configs;
                 const customSubAccountConfigArray_afterUpdate = userDocumentAfterUpdate.custom_sub_account_configs;
                 if(!customSubAccountConfigArray_beforeUpdate || !customSubAccountConfigArray_beforeUpdate){
-                    throw new Error("customSubAccountConfigArray_beforeUpdate is: "+JSON.stringify(customSubAccountConfigArray_beforeUpdate) + "and customSubAccountConfigArray_afterUpdate is: "+JSON.stringify(customSubAccountConfigArray_afterUpdate));return;
+                    throw new Error("customSubAccountConfigArray_beforeUpdate is: "+JSON.stringify(customSubAccountConfigArray_beforeUpdate) + "and customSubAccountConfigArray_afterUpdate is: "+JSON.stringify(customSubAccountConfigArray_afterUpdate));
                 }
 
                 // Loop throughthe config lists and get the respective config
@@ -178,9 +179,7 @@ process.env.TZ = dotEnvObj.TZ;
                                     });
             
                                 }
-                                
-            
-                                
+                                 
                                 
                             }
                             if(configDocumentBeforeUpdate.sub_link_name){

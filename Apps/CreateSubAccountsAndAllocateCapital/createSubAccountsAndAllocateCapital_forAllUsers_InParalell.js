@@ -23,16 +23,22 @@ module.exports.createSubAccountsAndAllocateCapital_forAllUsers_InParalell =  asy
     try{
         onError(new Error("(fn:createSubAccountsAndAllocateCapital_forAllUsers_InParalell): running"));
         if(!mongoDatabase)return;
+        console.log("Getting uusers with status ===true");
         // Loop through users and create requuired subaccounts
         const usersDocuments_Cursor = await mongoDatabase.collection.usersCollection.getAllDocumentsBy({
             status: true
         });
+        console.log("Got users");
         const requestsPromiseArray = [];
         while(await usersDocuments_Cursor.hasNext()){
             try{
                 const user = await usersDocuments_Cursor.next();
+                console.log({user});
+                if(user?.tg_user_id!==101) continue;
                 console.log(`user: ${user?.tg_user_id}`);
-                if(!user || user.atomos===false && !user.custom_sub_account_configs)return;
+                if(!user || user.atomos===false && !user.custom_sub_account_configs){
+                    throw new Error(`user:${user?.username} ${user?.tg_user_id} !user || user.atomos===false && !user.custom_sub_account_configs`);
+                }
                 const request = async()=>{
                     try{
                         const bybit = new Bybit({
@@ -47,9 +53,34 @@ module.exports.createSubAccountsAndAllocateCapital_forAllUsers_InParalell =  asy
                             });
         
                         }else {
+                            // user.atomos === false
+                            // Meaning that the user is following own config
+                            // Get user's subAcccounts
+                            const userSubAccountsDocuments_Cursor = await mongoDatabase.collection.subAccountsCollection.getAllDocumentsBy({
+                                tg_user_id: user.tg_user_id,
+                                testnet: user.testnet
+                            });
+                            const userSubAccountsDocuments_Array = await userSubAccountsDocuments_Cursor.toArray();
+                            for(const subAccount of userSubAccountsDocuments_Array){
+                                let subAccountHasConfig = false;
+                                for(const subAccountConfig of user.custom_sub_account_configs){
+                                    if(subAccountConfig.sub_link_name===subAccount.sub_link_name){
+                                        subAccountHasConfig = true;
+                                    }
+                                }
+                                if(subAccountHasConfig===false){
+                                    // reset the sub accountt
+                                    await mongoDatabase.collection.subAccountsCollection.updateDocument(subAccount._id,{
+                                        weight:0,
+                                        trader_uid:""
+                                    });
+                                }
+
+                            }
                             await ifUserHasAtomosSubAccountsCreatedButNotLinkedInDBLink_andUserAtomosIsFalse({
                                 bybit,mongoDatabase,user
                             });
+
                             
                         }
                         await createSubAccountsForUserIfNotCreated({

@@ -25,8 +25,8 @@ module.exports.createSubAccountsForUserIfNotCreated = async function createSubAc
             const allSubCollectionsForUser_Array = await getAllSubCollectionsForUser_Cursor.toArray();
 
             // Get sub acccounts Configs
-            const subAccountsConfig_Cursor = await mongoDatabase.collection.subAccountsConfigCollection.getAllDocuments();
-            const subAccountsConfig_documents_Array = await subAccountsConfig_Cursor.toArray();
+            // const subAccountsConfig_Cursor = await mongoDatabase.collection.subAccountsConfigCollection.getAllDocuments();
+            const subAccountsConfig_documents_Array = user.custom_sub_account_configs;//await subAccountsConfig_Cursor.toArray();
             if(subAccountsConfig_documents_Array.length===0)throw new Error("Sub_Account_Config collection: No documentt found in collection. Collection must have a sub account config document ");
 
             // Get Existing Sub Accounts on Bybit 

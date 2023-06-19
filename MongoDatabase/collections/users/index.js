@@ -7,14 +7,14 @@ module.exports.UsersCollection =  class UsersCollection{
      */
     #database;
     /**
-     * @type {import("mongodb").Collection<import("./types").User_Interface>}
+     * @type {import("mongodb").Collection<import("./types").UserDocument_Interface>}
      */
     #collection;
     /**
      * @type {import("mongodb").ChangeStream[]}
      */
     #eventListenersArray = [];
-
+  
 
     /**
      * 
@@ -24,6 +24,24 @@ module.exports.UsersCollection =  class UsersCollection{
         this.#database = database;
         this.#collection = this.#database.collection(this.#COLLECTION_NAME);
     }
+
+    async runOnInitImmediatelyAfterConnect(){
+        const FUNCTION_NAME="(class:OpenTrades)(method:runOnInitImmediatelyAfterConnect)";
+        console.log(FUNCTION_NAME);
+        try{
+            console.log("Creating collecion "+ this.#COLLECTION_NAME + " if not yet created");
+            await this.#database.createCollection(this.#COLLECTION_NAME,{changeStreamPreAndPostImages:{
+                enabled: true
+            }});
+            console.log("Created collecion "+ this.#COLLECTION_NAME);
+        }catch(error){
+            console.log(`Collection ${this.#COLLECTION_NAME} already created`);
+            const newErrorMessage = `${FUNCTION_NAME}: ${error.message}`;
+            error.message = newErrorMessage;
+            console.log(error.message);
+            // throw error;
+        }
+    } 
     
     async createIndexes(){
         await this.#collection.createIndex("_id");
@@ -48,8 +66,7 @@ module.exports.UsersCollection =  class UsersCollection{
 
     /**
      * 
-     * @param {import("./types").User_Interface} doc 
-     * @returns {import("./types").Users_Collection_Document_Interface}
+     * @param {import("./types").UserDocument_Interface} doc 
      */
     async createNewDocument(doc){
         console.log(doc);
@@ -70,8 +87,7 @@ module.exports.UsersCollection =  class UsersCollection{
 
     /**
      * @param {import("mongodb").ObjectId} documentId
-     * @param {import("mongodb").UpdateFilter<import("./types").User_Interface>} doc 
-     * @returns {import("./types").Users_Collection_Document_Interface}
+     * @param {import("mongodb").UpdateFilter<import("./types").UserDocument_Interface>} doc 
      */
     async updateDocument(documentId,doc){
         console.log(doc);
@@ -91,10 +107,9 @@ module.exports.UsersCollection =  class UsersCollection{
     // added
     watchCollection(){
         console.log("Setting watch listener");
-        const eventListenter =  this.#collection.watch();
-        // eventListenter.addListener("close",()=>{
-        //     console.log(this.#COLLECTION_NAME+" Stream Closed");
-        // });
+        const eventListenter =  this.#collection.watch(undefined,{
+            fullDocumentBeforeChange: "whenAvailable"
+        });
         this.#eventListenersArray.push(eventListenter);
         return eventListenter;
     }
@@ -132,7 +147,7 @@ module.exports.UsersCollection =  class UsersCollection{
     }
 
     /**
-     * @param {import("mongodb").Filter<import("./types").User_Interface>} by 
+     * @param {import("mongodb").Filter<import("./types").UserDocument_Interface>} by 
      * @param {boolean?} sort 
      * @returns 
      */
@@ -145,7 +160,7 @@ module.exports.UsersCollection =  class UsersCollection{
     }
 
     /**
-     * @param {import("mongodb").Filter<import("./types").User_Interface>} filter
+     * @param {import("mongodb").Filter<import("./types").UserDocument_Interface>} filter
      */
     async findOne(filter){
         return await this.#collection.findOne(filter);

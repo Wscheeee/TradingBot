@@ -6,6 +6,7 @@ const {Bybit} = require("../../Trader");
 const {createSubAccountsForUserIfNotCreated} = require("./createSubAccountsForUserIfNotCreated");
 const {allocateCapitalToSubAccounts} = require("./allocateCapitalToSubAccounts");
 const { DateTime } = require("../../DateTime");
+const { ifUserHasAtomosSubAccountsCreatedButNotLinkedInDBLink_andUserAtomosIsTrue } = require("./ifUserHasAtomosSubAccountsCreatedButNotLinkedInDBLink_andUserAtomosIsTrue");
 const { ifUserHasAtomosSubAccountsCreatedButNotLinkedInDBLink_andUserAtomosIsFalse } = require("./ifUserHasAtomosSubAccountsCreatedButNotLinkedInDBLink_andUserAtomosIsFalse");
 
 /**
@@ -31,7 +32,7 @@ module.exports.createSubAccountsAndAllocateCapital_forAllUsers_InParalell =  asy
             try{
                 const user = await usersDocuments_Cursor.next();
                 console.log(`user: ${user?.tg_user_id}`);
-                if(!user)return;
+                if(!user || user.atomos===false && !user.custom_sub_account_configs)return;
                 const request = async()=>{
                     try{
                         const bybit = new Bybit({
@@ -40,11 +41,16 @@ module.exports.createSubAccountsAndAllocateCapital_forAllUsers_InParalell =  asy
                             publicKey: user.publicKey,
                             testnet: user.testnet===true?true:false // Doing this incase testnet is undefined but it shouldn't
                         });
-                        if(user.atomos===false){
-                            await ifUserHasAtomosSubAccountsCreatedButNotLinkedInDBLink_andUserAtomosIsFalse({
+                        if(user.atomos===true){
+                            await ifUserHasAtomosSubAccountsCreatedButNotLinkedInDBLink_andUserAtomosIsTrue({
                                 bybit,mongoDatabase,user
                             });
         
+                        }else {
+                            await ifUserHasAtomosSubAccountsCreatedButNotLinkedInDBLink_andUserAtomosIsFalse({
+                                bybit,mongoDatabase,user
+                            });
+                            
                         }
                         await createSubAccountsForUserIfNotCreated({
                             bybit,

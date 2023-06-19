@@ -18,13 +18,18 @@ module.exports.UsersCollectionStateDetector = class UsersCollectionStateDetector
     #onCreateDocumentCallbacks = [];
     /**
   * @typedef {(
-  *      user:import("../collections/users/types").Users_Collection_Document_Interface,
+  *      userDocumentBeforeUpdate:import("../collections/users/types").UserDocument_Interface|undefined,
+  *      userDocumentAfterUpdate:import("../collections/users/types").Users_Collection_Document_Interface,
   * )=>any} OnUpdateDocumentCb_Interface
   */
     /**
     * @type {OnUpdateDocumentCb_Interface[]}
     */
     #onUpdateDocumentCallbacks = [];
+    /**
+    * @type {OnUpdateDocumentCb_Interface[]}
+    */
+    #onUserCustomConfigListUpdateCallbacks = [];
  
     /**
    * @constructor
@@ -51,10 +56,19 @@ module.exports.UsersCollectionStateDetector = class UsersCollectionStateDetector
                 // const fullDocumentAfterChange =  change.fullDocument||null;
                 const documentId = change.documentKey._id;
                 const fullDocumentAfterChange = await this.#mongoDatabase.collection.usersCollection.getDocumentById(change.documentKey._id);
+                const fullDocumentBeforeChange = change.fullDocumentBeforeChange;
                 if(!fullDocumentAfterChange)throw new Error(`(subAccountsConfigCollection):INSERT event fullDocumentAfterChange not found for documentId:${documentId}`);
                 this.#onUpdateDocumentCallbacks.forEach((cb) => {
-                    cb(fullDocumentAfterChange);
+                    cb(fullDocumentBeforeChange,fullDocumentAfterChange);
                 });
+                if(change.updateDescription.updatedFields){
+                    if(Object.keys(change.updateDescription.updatedFields).includes("custom_sub_account_configs")){
+                        this.#onUserCustomConfigListUpdateCallbacks.forEach((cb) => {
+                            cb(fullDocumentBeforeChange,fullDocumentAfterChange);
+                        });
+                    }
+
+                }
             }
         });
     }
@@ -74,5 +88,14 @@ module.exports.UsersCollectionStateDetector = class UsersCollectionStateDetector
    */
     onUpdateDocument(onUpdateDocumentCb) {
         this.#onUpdateDocumentCallbacks.push(onUpdateDocumentCb);
+    }
+
+    /**
+   * 
+   * @param {OnUpdateDocumentCb_Interface} onUpdateDocumentCb 
+   */
+    onUserCustomConfigListUpdate(onUpdateDocumentCb){
+        this.#onUserCustomConfigListUpdateCallbacks.push(onUpdateDocumentCb);
+
     }
 };

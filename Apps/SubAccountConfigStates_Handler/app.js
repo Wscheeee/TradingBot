@@ -9,7 +9,7 @@
 
 
 
-const { MongoDatabase , SubAccountsConfigCollectionStateDetector} = require("../../MongoDatabase");
+const { MongoDatabase , SubAccountsConfigCollectionStateDetector, UsersCollectionStateDetector} = require("../../MongoDatabase");
 
 const {sleepAsync} = require("../../Utils/sleepAsync");
 const { readAndConfigureDotEnv } = require("../../Utils/readAndConfigureDotEnv");
@@ -129,6 +129,73 @@ process.env.TZ = dotEnvObj.TZ;
         logger.info("Set subAccountsConfigCollectionStateDetector.listenToSubAccountsConfigCollection");
         //////////////////////////////////
 
+
+        
+
+
+        //////////////////////////////////
+        // USERS COLLECTION
+        const usersCollectionStateDetector = new UsersCollectionStateDetector({mongoDatabase: mongoDatabase});
+        logger.info("Create UsersCollectionStateDetector and set listeners");
+        usersCollectionStateDetector.onUserCustomConfigListUpdate(async (userDocumentBeforeUpdate,userDocumentAfterUpdate)=>{
+            try{
+                if(!userDocumentAfterUpdate.status||!userDocumentAfterUpdate.atomos)return;// User not subscribed | User not following own custom traders
+                if(!userDocumentBeforeUpdate){
+                    throw new Error("userDocumentBeforeUpdate is: "+JSON.stringify(userDocumentBeforeUpdate));
+                }
+                const customSubAccountConfigArray_beforeUpdate = userDocumentBeforeUpdate.custom_sub_account_configs;
+                const customSubAccountConfigArray_afterUpdate = userDocumentAfterUpdate.custom_sub_account_configs;
+                if(!customSubAccountConfigArray_beforeUpdate || !customSubAccountConfigArray_beforeUpdate){
+                    throw new Error("customSubAccountConfigArray_beforeUpdate is: "+JSON.stringify(customSubAccountConfigArray_beforeUpdate) + "and customSubAccountConfigArray_afterUpdate is: "+JSON.stringify(customSubAccountConfigArray_afterUpdate));return;
+                }
+
+                // Loop throughthe config lists and get the respective config
+                for(const configDocumentBeforeUpdate of  customSubAccountConfigArray_beforeUpdate){
+                    // let configDocumentAfterUpdate = null;
+                    for(const configDocumentAfterUpdate of customSubAccountConfigArray_afterUpdate){
+                        if(configDocumentBeforeUpdate.sub_link_name===configDocumentAfterUpdate.sub_link_name){
+                            // configDocumentAfterUpdate = configDocumentAfterUpdate_;
+
+                            logger.info(`subAcccountConfig.onUpdateDocument b4:${JSON.stringify(configDocumentBeforeUpdate)}${JSON.stringify(configDocumentAfterUpdate)}`);
+                            if(!mongoDatabase)return;
+                            
+                            // Check if the trader uid has changed
+                            // If trader uid has changed : close the trader's positions for each trader
+                            if(configDocumentBeforeUpdate.trader_uid!==configDocumentAfterUpdate.trader_uid){
+                                // NOTE: That the previousDocument b4 update might have empty trader details and weight.
+                                if(configDocumentBeforeUpdate.trader_uid){
+                                    await closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig({
+                                        mongoDatabase,
+                                        trader_uid:configDocumentBeforeUpdate.trader_uid
+                                    });
+            
+                                }
+                                
+            
+                                
+                                
+                            }
+                            if(configDocumentBeforeUpdate.sub_link_name){
+                                await updateSubAccountDocumentsToUpdatedSubAccountConfigData({
+                                    mongoDatabase,
+                                    sub_link_name: configDocumentBeforeUpdate.sub_link_name,
+                                    updatedSubAccountConfigDocument:configDocumentAfterUpdate
+                                });
+            
+                            }
+
+                        }
+                    }
+
+                }
+
+            }catch(e){
+                logger.error(`subAcccountConfig.onUpdateDocument ${e.message}`);
+            }
+        });
+        usersCollectionStateDetector.listenToUsersCollection();
+        logger.info("Set usersCollectionStateDetector.listenToUsersCollection");
+        //////////////////////////////////
 
       
     }catch(error){

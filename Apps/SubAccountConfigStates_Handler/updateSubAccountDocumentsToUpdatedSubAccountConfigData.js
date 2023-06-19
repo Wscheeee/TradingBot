@@ -7,7 +7,7 @@
  * @param {{
  *      sub_link_name: string,
 *      mongoDatabase: import("../../MongoDatabase").MongoDatabase,
-*      updatedSubAccountConfigDocument: import("../../MongoDatabase/collections/sub_accounts_config/types").Sub_Account_Config_Collection_Document_Interface|null
+*      updatedSubAccountConfigDocument: import("../../MongoDatabase/collections/sub_accounts_config/types").Sub_Account_Config_Collection_Document_Interface|null|import("../../MongoDatabase/collections/sub_accounts_config/types").Sub_Account_Config_Document_Interface
 * }} param0
 */
 // *      previous_trader_uid: string,
@@ -22,7 +22,7 @@ module.exports.updateSubAccountDocumentsToUpdatedSubAccountConfigData = async fu
          * Get sub accounts with sub link name
          */
         const subAccountsAssociatedToTheSubLinkNameAndTestnetValue_Documents_Cursor = await mongoDatabase.collection.subAccountsCollection.getAllDocumentsBy({
-            sub_link_name
+            sub_link_name, 
         });
         while(await subAccountsAssociatedToTheSubLinkNameAndTestnetValue_Documents_Cursor.hasNext() ){
             const subAccount_document = await subAccountsAssociatedToTheSubLinkNameAndTestnetValue_Documents_Cursor.next();

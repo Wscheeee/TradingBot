@@ -11,6 +11,7 @@
 *   totalMonths: number,
 *   totalPaid: number,
 *   status: Boolean,
+*   custom_sub_account_configs: import("../../sub_accounts_config/types").Sub_Account_Config_Document_Interface[],
 *   copiedTraders: string[],
 *   atomos: boolean,
 *   totalPnl: number,
@@ -19,11 +20,11 @@
 *   privateKey: string,
 *   atomos: true,
 *   last_sub_allocation_check_datetime: undefined| string
-* }} User_Interface 
+* }} UserDocument_Interface 
 */
 
 /**
-* @typedef {import("mongodb").WithId<User_Interface>} Users_Collection_Document_Interface
+* @typedef {import("mongodb").WithId<UserDocument_Interface>} Users_Collection_Document_Interface
 */
 
 

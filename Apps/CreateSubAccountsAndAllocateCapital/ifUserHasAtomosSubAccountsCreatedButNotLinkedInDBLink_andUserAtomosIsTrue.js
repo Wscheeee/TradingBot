@@ -12,10 +12,10 @@ const {createSubAccountApiKeys} = require("./createSubAccountApiKeys");
 *      bybit: import("../../Trader").Bybit 
 * }} param0
 */
-module.exports.ifUserHasAtomosSubAccountsCreatedButNotLinkedInDBLink_andUserAtomosIsFalse = async function ifUserHasAtomosSubAccountsCreatedButNotLinkedInDBLink_andUserAtomosIsFalse({
+module.exports.ifUserHasAtomosSubAccountsCreatedButNotLinkedInDBLink_andUserAtomosIsTrue = async function ifUserHasAtomosSubAccountsCreatedButNotLinkedInDBLink_andUserAtomosIsTrue({
     bybit,mongoDatabase,user
 }){
-    const FUNCTION_NAME = "(FN:ifUserHasAtomosSubAccountsCreatedButNotLinkedInDBLink_andUserAtomosIsFalse)";
+    const FUNCTION_NAME = "(FN:ifUserHasAtomosSubAccountsCreatedButNotLinkedInDBLink_andUserAtomosIsTrue)";
     console.log(FUNCTION_NAME);
     try{
         // Get the Sub Accounts present in user's bybit
@@ -63,8 +63,8 @@ module.exports.ifUserHasAtomosSubAccountsCreatedButNotLinkedInDBLink_andUserAtom
 
 
         // Get  sub account configs
-        // const subAccountConfigDocuments_Cursor = await mongoDatabase.collection.subAccountsConfigCollection.getAllDocuments();
-        const subAccountConfigDocuments_Array = user.custom_sub_account_configs;//await subAccountConfigDocuments_Cursor.toArray();
+        const subAccountConfigDocuments_Cursor = await mongoDatabase.collection.subAccountsConfigCollection.getAllDocuments();
+        const subAccountConfigDocuments_Array = await subAccountConfigDocuments_Cursor.toArray();
 
         const unlikedSubAccountConfigDocuments_Array = subAccountConfigDocuments_Array.filter((subAccountConfigDocument)=>{
             if(linkedSubLinkNames_Array.includes(subAccountConfigDocument.sub_link_name)===false){

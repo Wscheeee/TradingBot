@@ -122,6 +122,7 @@ module.exports.MongoDatabase =  class MongoDatabase{
                  * Run Initilizers
                 */
                 //1. Inititialize previous docs ccollections
+                await this.collection.usersCollection.runOnInitImmediatelyAfterConnect();
                 await this.collection.subAccountsConfigCollection.runOnInitImmediatelyAfterConnect();
                 await this.collection.openTradesCollection.runOnInitImmediatelyAfterConnect();
                 

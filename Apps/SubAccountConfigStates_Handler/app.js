@@ -138,8 +138,13 @@ process.env.TZ = dotEnvObj.TZ;
         const usersCollectionStateDetector = new UsersCollectionStateDetector({mongoDatabase: mongoDatabase});
         logger.info("Create UsersCollectionStateDetector and set listeners");
         usersCollectionStateDetector.onUserCustomConfigListUpdate(async (userDocumentBeforeUpdate,userDocumentAfterUpdate)=>{
+            const FUNCTION_NAME = "(fn:usersCollectionStateDetector.onUserCustomConfigListUpdate)";
+            console.log(FUNCTION_NAME);
             try{
-                if(!userDocumentAfterUpdate.status||!userDocumentAfterUpdate.atomos)return;// User not subscribed | User not following own custom traders
+                console.log({userDocumentBeforeUpdate,userDocumentAfterUpdate});
+                if(!userDocumentAfterUpdate.status===false||userDocumentAfterUpdate.atomos==true){
+                    throw new Error(`user:${userDocumentAfterUpdate.username} ${userDocumentAfterUpdate.tg_user_id} not subscribed | User not following own custom traders`);
+                };// User not subscribed | User not following own custom traders
                 if(!userDocumentBeforeUpdate){
                     throw new Error("userDocumentBeforeUpdate is: "+JSON.stringify(userDocumentBeforeUpdate));
                 }
@@ -155,7 +160,10 @@ process.env.TZ = dotEnvObj.TZ;
                     for(const configDocumentAfterUpdate of customSubAccountConfigArray_afterUpdate){
                         if(configDocumentBeforeUpdate.sub_link_name===configDocumentAfterUpdate.sub_link_name){
                             // configDocumentAfterUpdate = configDocumentAfterUpdate_;
-
+                            console.log({
+                                configDocumentBeforeUpdate,
+                                configDocumentAfterUpdate
+                            });
                             logger.info(`subAcccountConfig.onUpdateDocument b4:${JSON.stringify(configDocumentBeforeUpdate)}${JSON.stringify(configDocumentAfterUpdate)}`);
                             if(!mongoDatabase)return;
                             
@@ -190,7 +198,7 @@ process.env.TZ = dotEnvObj.TZ;
                 }
 
             }catch(e){
-                logger.error(`subAcccountConfig.onUpdateDocument ${e.message}`);
+                logger.error(`${FUNCTION_NAME} ${e.message}`);
             }
         });
         usersCollectionStateDetector.listenToUsersCollection();

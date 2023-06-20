@@ -142,7 +142,7 @@ process.env.TZ = dotEnvObj.TZ;
             console.log(FUNCTION_NAME);
             try{
                 console.log({userDocumentBeforeUpdate,userDocumentAfterUpdate});
-                if(!userDocumentAfterUpdate.status===false||userDocumentAfterUpdate.atomos==true){
+                if(userDocumentAfterUpdate.status===false||userDocumentAfterUpdate.atomos==true){
                     throw new Error(`user:${userDocumentAfterUpdate.username} ${userDocumentAfterUpdate.tg_user_id} not subscribed | User not following own custom traders`);
                 }// User not subscribed | User not following own custom traders
 

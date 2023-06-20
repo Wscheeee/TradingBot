@@ -23,7 +23,7 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
     #onNewPositionCallbacks = [];
     /**
   * @typedef {(
-  *      previousPositionDocument: import("../collections/previous_open_trades_before_update/types").Previous_OpenTrades_Before_Update_Collection_Document_Interface,
+  *      previousPositionDocument: import("../collections/open_trades/types").OpenTrades_Interface,
   *      position:import("../collections/open_trades/types").OpenTrades_Collection_Document_Interface,
   *      trader:import("../collections/top_traders/types").TopTraderCollection_Document_Interface
   * )=>any} OnUpdatePositionCb_Interface
@@ -53,6 +53,17 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
   * @type {OnCloseFullPositionCb_Interface[]}
   */
     #onCloseFullPositionCallbacks = [];
+
+
+    /**
+  * @type {OnCloseFullPositionCb_Interface[]}
+  */
+    #onPositionCloseFor_TraderRemovedFromAtomosSubAccountConfig_Callbacks = [];
+    /**
+  * @type {OnCloseFullPositionCb_Interface[]}
+  */
+    #onPositionCloseFor_TraderRemovedFromUserCustomSubAccountConfig_Callbacks = [];
+
     /**
    * @constructor
    * @param {{mongoDatabase:import("../MongoDatabase").MongoDatabase}} param0 
@@ -139,9 +150,22 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
                     const trader = await this.#mongoDatabase.collection.topTradersCollection.getDocumentByTraderUid(fullDocument.trader_uid);
                     if(!trader) throw new Error(`(openTradesCollection):UPDATE event trader not found for documentId:${change.documentKey._id} and trader_uid:${fullDocument.trader_uid}`);
                     if (fullDocument.part === 0) {
-                        this.#onCloseFullPositionCallbacks.forEach((cb) => {
-                            cb(fullDocument, trader);
-                        });
+                        if(fullDocument.reason==="TRADER_CLOSED_THIS_POSITION"||!fullDocument.reason){
+                            this.#onCloseFullPositionCallbacks.forEach((cb) => {
+                                cb(fullDocument, trader);
+                            });
+
+                        }else if(fullDocument.reason==="TRADER_REMOVED_FROM_ATOMOS_SUB_ACCOUNT_CONFIG"){
+                            this.#onPositionCloseFor_TraderRemovedFromAtomosSubAccountConfig_Callbacks.forEach((cb)=>{
+                                cb(fullDocument, trader);
+                            });
+                        }else if(fullDocument.reason==="TRADER_REMOVED_FROM_USER_CUSTOM_SUB_ACCOUNT_CONFIG"){
+                            this.#onPositionCloseFor_TraderRemovedFromUserCustomSubAccountConfig_Callbacks.forEach((cb)=>{
+                                cb(fullDocument, trader);
+                            });
+                        }else {
+                            throw new Error("changestream(fn:listenToOldTradesCollection) Unknown reason for closing position: Contact dev to debug issue");
+                        }
                     } else {
                         const originalPosition = await this.#mongoDatabase.collection.openTradesCollection.getDocumentById(fullDocument.original_position_id);
                         if(!originalPosition) throw new Error(`(openTradesCollection):UPDATE event originalPosition not found for documentId:${change.documentKey._id} and trader_uid:${fullDocument.trader_uid} and original_position_id:${fullDocument.original_position_id}`);
@@ -181,4 +205,18 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
     onPositionClose(onClosePositionCb) {
         this.#onCloseFullPositionCallbacks.push(onClosePositionCb);
     }
+    /**
+   * @param {OnCloseFullPositionCb_Interface} onClosePositionCb 
+   */
+    onPositionClose_forTraderRemovedFromAtomosConfig(onClosePositionCb) {
+        this.#onPositionCloseFor_TraderRemovedFromAtomosSubAccountConfig_Callbacks.push(onClosePositionCb);
+    }
+    /**
+   * @param {OnCloseFullPositionCb_Interface} onClosePositionCb 
+   */
+    onPositionClose_forTraderRemovedFromUserCustomConfig(onClosePositionCb) {
+        this.#onPositionCloseFor_TraderRemovedFromUserCustomSubAccountConfig_Callbacks.push(onClosePositionCb);
+    }
+
+
 };

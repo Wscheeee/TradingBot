@@ -104,7 +104,7 @@ module.exports.TradedPositionsCollection =  class TradedPositionsCollection{
 
     /**
      * @param {import("mongodb").ObjectId} documentId
-     * @param {import("mongodb").UpdateFilter<import("./types").TradedPosition_Document_Interface>} doc 
+     * @param {import("mongodb").Filter<import("./types").TradedPosition_Document_Interface>} doc 
      * @returns {import("./types").TradedPosition_Collection_Document_Interface}
      */
     async updateDocument(documentId,doc){

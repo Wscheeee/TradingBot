@@ -76,7 +76,8 @@ process.env.TZ = dotEnvObj.TZ;
                     if(configDocumentBeforeUpdate.trader_uid){
                         await closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig({
                             mongoDatabase,
-                            trader_uid:configDocumentBeforeUpdate.trader_uid
+                            trader_uid:configDocumentBeforeUpdate.trader_uid,
+                            config_type:"atomos"
                         });
 
                     }
@@ -104,7 +105,8 @@ process.env.TZ = dotEnvObj.TZ;
                 if(deletedConfigDocument.trader_uid){
                     await closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig({
                         mongoDatabase,
-                        trader_uid:deletedConfigDocument.trader_uid
+                        trader_uid:deletedConfigDocument.trader_uid,
+                        config_type:"atomos"
                     });
 
                 }
@@ -175,7 +177,9 @@ process.env.TZ = dotEnvObj.TZ;
                                 if(configDocumentBeforeUpdate.trader_uid){
                                     await closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig({
                                         mongoDatabase,
-                                        trader_uid:configDocumentBeforeUpdate.trader_uid
+                                        trader_uid:configDocumentBeforeUpdate.trader_uid,
+                                        tg_user_id: userDocumentAfterUpdate.tg_user_id,
+                                        config_type:"user_custom"
                                     });
             
                                 }
@@ -219,83 +223,4 @@ process.env.TZ = dotEnvObj.TZ;
 })();
 
 
-
-
-// /**
-//  * 
-//  * @param {{
-//  *   mongoDatabase: import("../../MongoDatabase").MongoDatabase
-//  *   sub_link_name:string,
-//  *    trader_uid: string
-// * }} param0 
-//  */
-// async function closeAllPositionsInAnAccountAndTransferTheBalanceToMainAccount({mongoDatabase,sub_link_name,trader_uid}){
-//     try{
-//         console.log("(fn:deletedConfigDocument)");
-//         // loop through all users
-//         const users_Cursor = await mongoDatabase.collection.usersCollection.getAllDocuments();
-//         while(await users_Cursor.hasNext()){
-//             const userDocument = await users_Cursor.next();
-//             if(!userDocument)return;
-//             console.log({username:userDocument.username});
-//             // if(userDocument.username!="Speet") continue;
-//             // console.log("IIs Speet continue:");
-            
-//             // Get the sub acccount
-//             const subAccountDocument_Cursor = await mongoDatabase.collection.subAccountsCollection.getAllDocumentsBy({
-//                 sub_link_name:sub_link_name,
-//                 testnet: userDocument.testnet,
-//                 tg_user_id: userDocument.tg_user_id,
-//                 trader_uid: trader_uid
-//             });
-//             while(await subAccountDocument_Cursor.hasNext()){
-//                 const subAccountDocument = await subAccountDocument_Cursor.next();
-//                 console.log({subAccountDocument});
-//                 if(!subAccountDocument){
-//                     logger.info(`subAccount not found for configDocumentBeforeUpdate: ${JSON.stringify({sub_link_name,trader_uid})}`);
-//                     return;
-//                 }
-
-    
-//                 const masterBybit = new Bybit({
-//                     millisecondsToDelayBetweenRequests: 5000,
-//                     privateKey: userDocument.privateKey,
-//                     publicKey: userDocument.publicKey,
-//                     testnet: userDocument.testnet===true?true:false
-//                 });
-//                 const subAccountBybit  = new Bybit({
-//                     millisecondsToDelayBetweenRequests: 5000,
-//                     privateKey: subAccountDocument.private_api,
-//                     publicKey: subAccountDocument.public_api,
-//                     testnet: subAccountDocument.testnet===true?true:false
-//                 });
-//                 await closeAllPositionsInASubAccount({
-//                     bybit: subAccountBybit
-//                 });
-    
-    
-//                 // Get master account info
-//                 const getMasterAccountAPIKeyInfo_Res = await masterBybit.clients.bybit_AccountAssetClientV3.getAPIKeyInformation();
-//                 // console.log(getMasterAccountAPIKeyInfo_Res);
-//                 //@ts-ignore
-//                 if(getMasterAccountAPIKeyInfo_Res.retCode!==0)throw new Error("getMasterAccountAPIKeyInfo_Res: "+getMasterAccountAPIKeyInfo_Res.retMsg);
-        
-//                 await transferAllUSDTBalanceFromSubAccountToMainAccount({
-//                     master_acccount_uid: Number(getMasterAccountAPIKeyInfo_Res.result.userID),
-//                     masterAccount_bybit: masterBybit,
-//                     sub_account_uid: subAccountDocument.sub_account_uid,
-//                     subAccount_bybit: subAccountBybit,
-    
-//                 });
-//             }
-
-            
-//         }
-//     }catch(error){
-//         const newErrorMessage = `(fn:deletedConfigDocument) ${error.message}`;
-//         error.message = newErrorMessage;
-//         console.log(error);
-//         logger.error(error.message);
-//     }
-// }
 

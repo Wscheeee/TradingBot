@@ -6,11 +6,13 @@
 /**
  * @param {{
  *      trader_uid: string,
- *      mongoDatabase: import("../../MongoDatabase").MongoDatabase
+ *      mongoDatabase: import("../../MongoDatabase").MongoDatabase,
+ *      tg_user_id?:number,
+ *      config_type:"atomos"|"user_custom"
  * }} param0
  */
 module.exports.closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig = async function closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig({
-    mongoDatabase,trader_uid
+    mongoDatabase,trader_uid,tg_user_id,config_type
 }){
     const FUNCTION_NAME = "(fn:closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig)";
     try{
@@ -18,6 +20,7 @@ module.exports.closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig = 
         /**
          * Get the traders open positions documents
          */
+        
         const traderOpenPositionsDocument_Cursor = await mongoDatabase.collection.openTradesCollection.getAllDocumentsBy({
             trader_uid,
             status:"OPEN"
@@ -30,6 +33,22 @@ module.exports.closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig = 
         while(await traderOpenPositionsDocument_Cursor.hasNext()){
             const traderOpenPositionsDocument = await traderOpenPositionsDocument_Cursor.next();
             if(!traderOpenPositionsDocument)return;
+
+            // // Match the trader open position with Traded positions and mark the tradded positions as closed
+            // const tradedPositionDocument = await mongoDatabase.collection.tradedPositionsCollection.findOne({
+            //     trader_uid: trader_uid,
+            //     direction: traderOpenPositionsDocument.direction,
+            //     pair: traderOpenPositionsDocument.pair,
+            //     position_id_in_openTradesCollection: traderOpenPositionsDocument._id
+            // });
+
+            // if(!tradedPositionDocument)throw new Error("tradedPositionDocument not found: tradedPositionDocument:"+tradedPositionDocument);
+
+            // // Update status tto closed
+            // await mongoDatabase.collection.tradedPositionsCollection.updateDocument(tradedPositionDocument._id,{
+            //     status:"CLOSED",
+
+            // })
 
             /**
              * Create an old trades document 
@@ -60,14 +79,15 @@ module.exports.closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig = 
                 status: "CLOSED",
                 total_parts: positionToClose_.total_parts,
                 trader_id: positionToClose_.trader_id,
-                trader_uid: positionToClose_.trader_uid ,
+                trader_uid: positionToClose_.trader_uid , 
                 document_created_at_datetime: datetimeNow,
                 document_last_edited_at_datetime: datetimeNow,
                 server_timezone: process.env.TZ||"",
-                    
+                reason:config_type==="atomos"?"TRADER_REMOVED_FROM_ATOMOS_SUB_ACCOUNT_CONFIG":"TRADER_REMOVED_FROM_USER_CUSTOM_SUB_ACCOUNT_CONFIG",
+                tg_user_id:tg_user_id
             });
             // delete from openPositions collections
-            await mongoDatabase.collection.openTradesCollection.deleteManyDocumentsByIds([positionToClose_._id]);
+            // await mongoDatabase.collection.openTradesCollection.deleteManyDocumentsByIds([positionToClose_._id]);
         }
 
       

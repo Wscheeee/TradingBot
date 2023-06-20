@@ -52,6 +52,8 @@ module.exports.closeAllPositionsInASubAccount = async function closeAllPositions
             console.log({closeAPositionRes});
             if(closeAPositionRes.retCode===0){
                 // successfull
+
+               
                 
             }
         }

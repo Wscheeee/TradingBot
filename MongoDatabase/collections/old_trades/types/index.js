@@ -26,9 +26,11 @@
 *      document_created_at_datetime:Date,
 *      document_last_edited_at_datetime:Date,
 *      server_timezone: string,
+*      reason:"TRADER_REMOVED_FROM_ATOMOS_SUB_ACCOUNT_CONFIG"|"TRADER_REMOVED_FROM_USER_CUSTOM_SUB_ACCOUNT_CONFIG"|"TRADER_CLOSED_THIS_POSITION",
+*      tg_user_id?: number 
 * }} OldTrades_Interface 
 */
-
+// tg_user_id?: number for when reason===TRADER_REMOVED_FROM_USER_CUSTOM_SUB_ACCOUNT_CONFIG
 /**
 * @typedef {import("mongodb").WithId<OldTrades_Interface>} OldTrades_Collection_Document_Interface
 */

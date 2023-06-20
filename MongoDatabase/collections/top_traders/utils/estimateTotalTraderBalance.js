@@ -32,7 +32,7 @@ module.exports.estimateTotalTraderBalance = async function estimateTotalTraderBa
         while(await traderOpenPositionsDocuments_Cursor.hasNext()){
             const position = await traderOpenPositionsDocuments_Cursor.next();
             if(position){
-                const positionValue = new DecimalMath(position.size).multiply(position.entry_price).getResult();
+                const positionValue = new DecimalMath(position.size).multiply(position.entry_price).divide(position.leverage).getResult();
                 totalPositionsValue+=positionValue;
             }
         }

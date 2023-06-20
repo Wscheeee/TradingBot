@@ -6,11 +6,13 @@
 /**
  * @param {{
 *      trader_uid: string,
-*      mongoDatabase: import("../../MongoDatabase").MongoDatabase
+*      mongoDatabase: import("../../MongoDatabase").MongoDatabase,
+*      tg_user_id?:number,
+*      config_type:"atomos"|"user_custom"
 * }} param0
 */
 module.exports.markPositionsInDB_asClosedForATrader= async function markPositionsInDB_asClosedForATrader({
-    mongoDatabase,trader_uid
+    mongoDatabase,trader_uid,config_type,tg_user_id
 }){
     const FUNCTION_NAME = "(fn:markPositionsInDB_asClosedForATrader)";
     try{
@@ -64,10 +66,11 @@ module.exports.markPositionsInDB_asClosedForATrader= async function markPosition
                 document_created_at_datetime: datetimeNow,
                 document_last_edited_at_datetime: datetimeNow,
                 server_timezone: process.env.TZ||"",
-                   
+                reason:config_type==="atomos"?"TRADER_REMOVED_FROM_ATOMOS_SUB_ACCOUNT_CONFIG":"TRADER_REMOVED_FROM_USER_CUSTOM_SUB_ACCOUNT_CONFIG",
+                tg_user_id:tg_user_id
             });
             // delete from openPositions collections
-            await mongoDatabase.collection.openTradesCollection.deleteManyDocumentsByIds([positionToClose_._id]);
+            // await mongoDatabase.collection.openTradesCollection.deleteManyDocumentsByIds([positionToClose_._id]);
         }
 
      

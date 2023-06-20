@@ -41,7 +41,9 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
             console.log({ accountBalance_Resp });
             throw new Error(accountBalance_Resp.ret_msg);
         }
-        const totalUSDT_balance = parseFloat(accountBalance_Resp.result.balance.walletBalance);
+        const openPositionsTotalUSDTValue = await bybit.clients.bybit_RestClientV5.getTotalOpenPositionsUSDTValue();
+        console.log({openPositionsTotalUSDTValue});
+        const totalUSDT_balance = new DecimalMath(parseFloat(accountBalance_Resp.result.balance.walletBalance)).add(openPositionsTotalUSDTValue).getResult();
         console.log({totalUSDT_balance});
         /** TRADE VALUE
         * - Get the trade size + entry price + leverage
@@ -85,7 +87,8 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
             qty
         }); 
 
-        const qtyToByWith = qty * position.mark_price;
+        // const qtyToByWith = (qty * position.leverage) * position.mark_price
+        const qtyToByWith = new DecimalMath(qty).multiply(position.leverage).multiply(position.mark_price).getResult();
 
         // standardize the qty
         const standardizedQTY = await bybit.standardizeQuantity({ quantity: qtyToByWith, symbol: position.pair });

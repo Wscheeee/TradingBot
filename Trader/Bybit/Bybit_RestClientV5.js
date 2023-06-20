@@ -138,6 +138,24 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
     }
 
 
+    async getTotalOpenPositionsUSDTValue(){
+        await this.#rateLimiter.addJob();
+        console.log("[method: getActiveOrders]");
+        const activeOrders_Res = await this.getActiveOrders({
+            category:"linear",
+            baseCoin:"USDT"
+        });
+        if(activeOrders_Res.retCode!==0){
+            throw new Error(`[method: getActiveOrders] ${activeOrders_Res.retMsg}`);
+        }else {
+            let totalValue = 0;
+            for(const order of activeOrders_Res.result.list){
+                const orderValue = order.cumExecValue;
+                totalValue+= orderValue;
+            }
+            return totalValue;
+        }
+    }
 
 
     // Account

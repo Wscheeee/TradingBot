@@ -138,15 +138,15 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
     }
 
 
-    async getTotalOpenPositionsUSDTValue(){
+    /**
+    * @param {import("bybit-api").GetAccountOrdersParams} getAccountOrdersParams
+    */
+    async getTotalOpenPositionsUSDTValue(getAccountOrdersParams){
         await this.#rateLimiter.addJob();
-        console.log("[method: getActiveOrders]");
-        const activeOrders_Res = await this.getActiveOrders({
-            category:"linear",
-            baseCoin:"USDT"
-        });
+        console.log("[method: getTotalOpenPositionsUSDTValue]");
+        const activeOrders_Res = await this.getActiveOrders(getAccountOrdersParams);
         if(activeOrders_Res.retCode!==0){
-            throw new Error(`[method: getActiveOrders] ${activeOrders_Res.retMsg}`);
+            throw new Error(`[method: getTotalOpenPositionsUSDTValue] ${activeOrders_Res.retMsg}`);
         }else {
             let totalValue = 0;
             for(const order of activeOrders_Res.result.list){

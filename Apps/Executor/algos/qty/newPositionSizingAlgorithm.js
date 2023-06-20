@@ -41,7 +41,10 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
             console.log({ accountBalance_Resp });
             throw new Error(accountBalance_Resp.ret_msg);
         }
-        const openPositionsTotalUSDTValue = await bybit.clients.bybit_RestClientV5.getTotalOpenPositionsUSDTValue();
+        const openPositionsTotalUSDTValue = await bybit.clients.bybit_RestClientV5.getTotalOpenPositionsUSDTValue({
+            category:"linear",
+            settleCoin:"USDT"
+        });
         console.log({openPositionsTotalUSDTValue});
         const totalUSDT_balance = new DecimalMath(parseFloat(accountBalance_Resp.result.balance.walletBalance)).add(openPositionsTotalUSDTValue).getResult();
         console.log({totalUSDT_balance});

@@ -36,13 +36,13 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
         const accountBalance_Resp = await bybit.clients.bybit_AccountAssetClientV3.getDerivativesCoinBalance({
             accountType: "CONTRACT",
             coin: COIN
-        });
+        }); 
         if (!accountBalance_Resp.result || !accountBalance_Resp.result.balance) {
             console.log({ accountBalance_Resp });
             throw new Error(accountBalance_Resp.ret_msg);
         }
         const totalUSDT_balance = parseFloat(accountBalance_Resp.result.balance.walletBalance);
-
+        console.log({totalUSDT_balance});
         /** TRADE VALUE
         * - Get the trade size + entry price + leverage
         * - Calculate Trade Value = (Size * Entry price) / Leverages
@@ -83,7 +83,7 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
             tradeValue,
             // userTrade_Cursor,
             qty
-        });
+        }); 
 
         const qtyToByWith = qty * position.mark_price;
 

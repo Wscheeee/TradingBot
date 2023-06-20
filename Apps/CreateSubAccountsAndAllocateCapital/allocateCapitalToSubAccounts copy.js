@@ -129,7 +129,9 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                     if(subAccountDoc.trader_uid){
                         await markPositionsInDB_asClosedForATrader({
                             mongoDatabase,
-                            trader_uid:subAccountDoc.trader_uid
+                            trader_uid:subAccountDoc.trader_uid,
+                            config_type:user.atomos===true?"atomos":"user_custom",
+                            tg_user_id: user.tg_user_id
                         });
                     }
 

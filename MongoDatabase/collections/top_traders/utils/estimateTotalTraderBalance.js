@@ -15,7 +15,14 @@ module.exports.estimateTotalTraderBalance = async function estimateTotalTraderBa
     const FUNCTION_NAME = "(fn:estimateTotalTraderBalance)";
     console.log(FUNCTION_NAME);
     try {
-        const traderDailyPNL = traderDocument.daily_pnl;
+        // const ratio = new Decimal(1).div(traderDocument.daily_roi);
+        // let estimateDaily = new Decimal(traderDocument.daily_pnl).mul(ratio);
+
+        // // Make sure estimateDaily is always positive
+        // estimateDaily = estimateDaily.abs();
+
+        // today_estimated_balance = estimateDaily + totalPositionsValue
+
         // Get trader open positions and accumulate their values
         const traderOpenPositionsDocuments_Cursor = await mongoDatabase.collection.openTradesCollection.getAllDocumentsBy({
             trader_uid: traderDocument.uid,
@@ -29,9 +36,12 @@ module.exports.estimateTotalTraderBalance = async function estimateTotalTraderBa
                 totalPositionsValue+=positionValue;
             }
         }
-
-        const totalEstimatedBalance = traderDailyPNL+totalPositionsValue;
-        return totalEstimatedBalance;
+        const ratio = new DecimalMath(1).divide(traderDocument.daily_roi).getResult();
+        let estimateDaily = new DecimalMath(traderDocument.daily_pnl).multiply(ratio).getResult();
+        // Make sure estimateDaily is always positive
+        estimateDaily = Math.abs(estimateDaily);
+        const today_estimated_balance = estimateDaily + totalPositionsValue;
+        return today_estimated_balance;
 
     }catch(error){
         const newErrorMessage = `${FUNCTION_NAME}: ${error.message}`;

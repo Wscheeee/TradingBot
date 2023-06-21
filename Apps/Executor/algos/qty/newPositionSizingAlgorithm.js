@@ -90,8 +90,8 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
             qty
         }); 
 
-        // const qtyToByWith = (qty * position.leverage) * position.mark_price
-        const qtyToByWith = new DecimalMath(qty).multiply(position.leverage).multiply(position.mark_price).getResult();
+        // const qtyToByWith = (qty * position.leverage) / position.mark_price
+        const qtyToByWith = new DecimalMath(qty).multiply(position.leverage).divide(position.mark_price).getResult();
 
         // standardize the qty
         const standardizedQTY = await bybit.standardizeQuantity({ quantity: qtyToByWith, symbol: position.pair });

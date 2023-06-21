@@ -97,6 +97,7 @@ async function handler({
             testnet: user.testnet 
         });
         if(!subAccountDocument) throw new Error("No SubAccount found in subAccountDocument");
+        if(!subAccountDocument.weight ||Number(subAccountDocument.weight)===0)throw new Error(`subAccountDocument.weight===${subAccountDocument.weight}`);
         const bybitSubAccount = new Bybit({
             millisecondsToDelayBetweenRequests: 5000,
             privateKey: subAccountDocument.private_api,

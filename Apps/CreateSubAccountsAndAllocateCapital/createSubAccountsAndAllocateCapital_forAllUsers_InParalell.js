@@ -72,7 +72,8 @@ module.exports.createSubAccountsAndAllocateCapital_forAllUsers_InParalell =  asy
                                     // reset the sub accountt
                                     await mongoDatabase.collection.subAccountsCollection.updateDocument(subAccount._id,{
                                         weight:0,
-                                        trader_uid:""
+                                        trader_uid:"",
+                                        trader_username:""
                                     });
                                 }
 

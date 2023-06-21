@@ -140,6 +140,7 @@ process.env.TZ = dotEnvObj.TZ;
         const usersCollectionStateDetector = new UsersCollectionStateDetector({mongoDatabase: mongoDatabase});
         logger.info("Create UsersCollectionStateDetector and set listeners");
 
+
         usersCollectionStateDetector.onUserCustomConfigListUpdate(async (userDocumentBeforeUpdate,userDocumentAfterUpdate)=>{
             const FUNCTION_NAME = "(fn:usersCollectionStateDetector.onUserCustomConfigListUpdate)";
             console.log(FUNCTION_NAME);

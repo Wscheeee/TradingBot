@@ -48,13 +48,15 @@ module.exports.createSubAccountsAndAllocateCapital_forAllUsers_InParalell =  asy
                     while(await userSubAccountDocuments_Cursor.hasNext()){
                         const userSubAccountDocument = await userSubAccountDocuments_Cursor.next();
                         if(!userSubAccountDocument)continue;
+                        if(userSubAccountDocument.trader_uid!==""||userSubAccountDocument.trader_username!==""||userSubAccountDocument.weight!==0){
+                            // update reset
+                            await mongoDatabase.collection.subAccountsCollection.updateDocument(userSubAccountDocument._id,{
+                                trader_uid:"",
+                                trader_username:"",
+                                weight:0
+                            });
 
-                        // update reset
-                        await mongoDatabase.collection.subAccountsCollection.updateDocument(userSubAccountDocument._id,{
-                            trader_uid:"",
-                            trader_username:"",
-                            weight:0
-                        });
+                        }
                     }
                     continue;
                 }
@@ -100,17 +102,21 @@ module.exports.createSubAccountsAndAllocateCapital_forAllUsers_InParalell =  asy
                                 }
                                 if(subAccountHasConfig===false){
                                     // reset the sub accountt
-                                    await mongoDatabase.collection.subAccountsCollection.updateDocument(subAccount._id,{
-                                        weight:subAccountConfig_weight,
-                                        trader_uid:subAccountConfig_trader_uid,
-                                        trader_username:subAccountConfig_trader_username
-                                    });
+                                    if(subAccount.trader_uid!==subAccountConfig_trader_uid||subAccount.trader_username!==subAccountConfig_trader_username||subAccount.weight!==subAccountConfig_weight){
+                                        await mongoDatabase.collection.subAccountsCollection.updateDocument(subAccount._id,{
+                                            weight:subAccountConfig_weight,
+                                            trader_uid:subAccountConfig_trader_uid,
+                                            trader_username:subAccountConfig_trader_username
+                                        });
+                                    }
                                 }else {
-                                    await mongoDatabase.collection.subAccountsCollection.updateDocument(subAccount._id,{
-                                        weight:subAccountConfig_weight,
-                                        trader_uid:subAccountConfig_trader_uid,
-                                        trader_username:subAccountConfig_trader_username
-                                    });
+                                    if(subAccount.trader_uid!==subAccountConfig_trader_uid||subAccount.trader_username!==subAccountConfig_trader_username||subAccount.weight!==subAccountConfig_weight){
+                                        await mongoDatabase.collection.subAccountsCollection.updateDocument(subAccount._id,{
+                                            weight:subAccountConfig_weight,
+                                            trader_uid:subAccountConfig_trader_uid,
+                                            trader_username:subAccountConfig_trader_username
+                                        });
+                                    }
                                 }
 
                             }

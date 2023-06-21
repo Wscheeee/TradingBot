@@ -38,7 +38,7 @@ module.exports.createSubAccountsAndAllocateCapital_forAllUsers_InParalell =  asy
                 if(!user){
                     throw new Error(`user:!user ${user}`);
                 }
-                if(user.atomos===false && !user.custom_sub_account_configs){
+                if(user.atomos===false && !user.custom_sub_account_configs || user.atomos===false && user.custom_sub_account_configs.length===0){
                     // User is set to use custom sub account config but has none
                     // Geet user's sub accountts and reset their details
                     const userSubAccountDocuments_Cursor = await mongoDatabase.collection.subAccountsCollection.getAllDocumentsBy({

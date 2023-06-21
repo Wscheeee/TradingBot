@@ -139,11 +139,13 @@ process.env.TZ = dotEnvObj.TZ;
         // USERS COLLECTION
         const usersCollectionStateDetector = new UsersCollectionStateDetector({mongoDatabase: mongoDatabase});
         logger.info("Create UsersCollectionStateDetector and set listeners");
+
         usersCollectionStateDetector.onUserCustomConfigListUpdate(async (userDocumentBeforeUpdate,userDocumentAfterUpdate)=>{
             const FUNCTION_NAME = "(fn:usersCollectionStateDetector.onUserCustomConfigListUpdate)";
             console.log(FUNCTION_NAME);
             try{
                 console.log({userDocumentBeforeUpdate,userDocumentAfterUpdate});
+                if(!mongoDatabase)return;
                 if(userDocumentAfterUpdate.status===false||userDocumentAfterUpdate.atomos==true){
                     throw new Error(`user:${userDocumentAfterUpdate.username} ${userDocumentAfterUpdate.tg_user_id} not subscribed | User not following own custom traders`);
                 }// User not subscribed | User not following own custom traders
@@ -153,6 +155,9 @@ process.env.TZ = dotEnvObj.TZ;
                 }
                 const customSubAccountConfigArray_beforeUpdate = userDocumentBeforeUpdate.custom_sub_account_configs;
                 const customSubAccountConfigArray_afterUpdate = userDocumentAfterUpdate.custom_sub_account_configs;
+                if(!customSubAccountConfigArray_afterUpdate || customSubAccountConfigArray_afterUpdate.length===0){
+                    // turn all sub accounts for user to empty trader and 0 weight
+                }
                 if(!customSubAccountConfigArray_beforeUpdate || !customSubAccountConfigArray_beforeUpdate){
                     throw new Error("customSubAccountConfigArray_beforeUpdate is: "+JSON.stringify(customSubAccountConfigArray_beforeUpdate) + "and customSubAccountConfigArray_afterUpdate is: "+JSON.stringify(customSubAccountConfigArray_afterUpdate));
                 }
@@ -168,7 +173,7 @@ process.env.TZ = dotEnvObj.TZ;
                                 configDocumentAfterUpdate
                             });
                             logger.info(`subAcccountConfig.onUpdateDocument b4:${JSON.stringify(configDocumentBeforeUpdate)}${JSON.stringify(configDocumentAfterUpdate)}`);
-                            if(!mongoDatabase)return;
+                           
                             
                             // Check if the trader uid has changed
                             // If trader uid has changed : close the trader's positions for each trader

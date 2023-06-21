@@ -34,10 +34,29 @@ module.exports.createSubAccountsAndAllocateCapital_forAllUsers_InParalell =  asy
             try{
                 const user = await usersDocuments_Cursor.next();
                 console.log({user});
-                if(user?.tg_user_id!==101) continue;
                 console.log(`user: ${user?.tg_user_id}`);
-                if(!user || user.atomos===false && !user.custom_sub_account_configs){
-                    throw new Error(`user:${user?.username} ${user?.tg_user_id} !user || user.atomos===false && !user.custom_sub_account_configs`);
+                if(!user){
+                    throw new Error(`user:!user ${user}`);
+                }
+                if(user.atomos===false && !user.custom_sub_account_configs){
+                    // User is set to use custom sub account config but has none
+                    // Geet user's sub accountts and reset their details
+                    const userSubAccountDocuments_Cursor = await mongoDatabase.collection.subAccountsCollection.getAllDocumentsBy({
+                        tg_user_id: user.tg_user_id,
+                        testnet: user.testnet
+                    });
+                    while(await userSubAccountDocuments_Cursor.hasNext()){
+                        const userSubAccountDocument = await userSubAccountDocuments_Cursor.next();
+                        if(!userSubAccountDocument)continue;
+
+                        // update reset
+                        await mongoDatabase.collection.subAccountsCollection.updateDocument(userSubAccountDocument._id,{
+                            trader_uid:"",
+                            trader_username:"",
+                            weight:0
+                        });
+                    }
+                    continue;
                 }
                 const request = async()=>{
                     try{

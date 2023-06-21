@@ -81,10 +81,18 @@ module.exports.createSubAccountsAndAllocateCapital_forAllUsers_InParalell =  asy
                             });
                             const userSubAccountsDocuments_Array = await userSubAccountsDocuments_Cursor.toArray();
                             for(const subAccount of userSubAccountsDocuments_Array){
+                                let subAccountConfig_weight = 0;
+                                let subAccountConfig_trader_username = "";
+                                let subAccountConfig_trader_uid = "";
+
                                 let subAccountHasConfig = false;
                                 if(user.custom_sub_account_configs){
                                     for(const subAccountConfig of user.custom_sub_account_configs){
-                                        if(subAccountConfig.sub_link_name===subAccount.sub_link_name){
+                                        if(subAccountConfig.sub_link_name===subAccount.sub_link_name ){
+                                            subAccountConfig_weight = subAccountConfig.weight;
+                                            subAccountConfig_trader_username = subAccountConfig.trader_username;
+                                            subAccountConfig_trader_uid = subAccountConfig.trader_uid;
+                                            
                                             subAccountHasConfig = true;
                                         }
                                     }
@@ -93,9 +101,9 @@ module.exports.createSubAccountsAndAllocateCapital_forAllUsers_InParalell =  asy
                                 if(subAccountHasConfig===false){
                                     // reset the sub accountt
                                     await mongoDatabase.collection.subAccountsCollection.updateDocument(subAccount._id,{
-                                        weight:0,
-                                        trader_uid:"",
-                                        trader_username:""
+                                        weight:subAccountConfig_weight,
+                                        trader_uid:subAccountConfig_trader_uid,
+                                        trader_username:subAccountConfig_trader_username
                                     });
                                 }
 

@@ -105,6 +105,12 @@ module.exports.createSubAccountsAndAllocateCapital_forAllUsers_InParalell =  asy
                                         trader_uid:subAccountConfig_trader_uid,
                                         trader_username:subAccountConfig_trader_username
                                     });
+                                }else {
+                                    await mongoDatabase.collection.subAccountsCollection.updateDocument(subAccount._id,{
+                                        weight:subAccountConfig_weight,
+                                        trader_uid:subAccountConfig_trader_uid,
+                                        trader_username:subAccountConfig_trader_username
+                                    });
                                 }
 
                             }

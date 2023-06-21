@@ -35,7 +35,8 @@ module.exports.ifUserHasAtomosSubAccountsCreatedButNotLinkedInDBLink_andUserAtom
 
         // Get user sub accounts saved in db
         const userSubAcccountsSavedInDb_Cursor = await mongoDatabase.collection.subAccountsCollection.getAllDocumentsBy({
-            tg_user_id: user.tg_user_id
+            tg_user_id: user.tg_user_id,
+            testnet: user.testnet
         });
         const userSubAcccountsSavedInDb_Array = await userSubAcccountsSavedInDb_Cursor.toArray();
 

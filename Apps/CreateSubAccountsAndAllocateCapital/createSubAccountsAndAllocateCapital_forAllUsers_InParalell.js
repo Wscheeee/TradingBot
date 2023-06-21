@@ -63,10 +63,13 @@ module.exports.createSubAccountsAndAllocateCapital_forAllUsers_InParalell =  asy
                             const userSubAccountsDocuments_Array = await userSubAccountsDocuments_Cursor.toArray();
                             for(const subAccount of userSubAccountsDocuments_Array){
                                 let subAccountHasConfig = false;
-                                for(const subAccountConfig of user.custom_sub_account_configs){
-                                    if(subAccountConfig.sub_link_name===subAccount.sub_link_name){
-                                        subAccountHasConfig = true;
+                                if(user.custom_sub_account_configs){
+                                    for(const subAccountConfig of user.custom_sub_account_configs){
+                                        if(subAccountConfig.sub_link_name===subAccount.sub_link_name){
+                                            subAccountHasConfig = true;
+                                        }
                                     }
+
                                 }
                                 if(subAccountHasConfig===false){
                                     // reset the sub accountt

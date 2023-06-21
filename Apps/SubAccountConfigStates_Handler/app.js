@@ -191,11 +191,12 @@ process.env.TZ = dotEnvObj.TZ;
                                  
                                 
                             }
-                            if(configDocumentBeforeUpdate.sub_link_name){
+                            if(configDocumentBeforeUpdate.sub_link_name){ 
                                 await updateSubAccountDocumentsToUpdatedSubAccountConfigData({
                                     mongoDatabase,
                                     sub_link_name: configDocumentBeforeUpdate.sub_link_name,
-                                    updatedSubAccountConfigDocument:configDocumentAfterUpdate
+                                    updatedSubAccountConfigDocument:configDocumentAfterUpdate,
+                                    user: userDocumentAfterUpdate
                                 });
             
                             }

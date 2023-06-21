@@ -5,6 +5,7 @@
 
 /**
  * @param {{
+ *      user?: import("../../MongoDatabase/collections/users/types").Users_Collection_Document_Interface,
  *      sub_link_name: string,
 *      mongoDatabase: import("../../MongoDatabase").MongoDatabase,
 *      updatedSubAccountConfigDocument: import("../../MongoDatabase/collections/sub_accounts_config/types").Sub_Account_Config_Collection_Document_Interface|null|import("../../MongoDatabase/collections/sub_accounts_config/types").Sub_Account_Config_Document_Interface
@@ -13,7 +14,7 @@
 // *      previous_trader_uid: string,
 // *      subAccountConfigDocumentBeforeUpdate: import("../../MongoDatabase/collections/previous_sub_account_config_before_update/types").Previous_SubAccountConfig_Before_Update_Collection_Document_Interface,
 module.exports.updateSubAccountDocumentsToUpdatedSubAccountConfigData = async function updateSubAccountDocumentsToUpdatedSubAccountConfigData({
-    mongoDatabase,sub_link_name,updatedSubAccountConfigDocument
+    mongoDatabase,sub_link_name,updatedSubAccountConfigDocument,user
 }){
     const FUNCTION_NAME = "(fn:updateSubAccountDocumentsToUpdatedSubAccountConfigData)";
     try{
@@ -21,8 +22,11 @@ module.exports.updateSubAccountDocumentsToUpdatedSubAccountConfigData = async fu
         /**
          * Get sub accounts with sub link name
          */
-        const subAccountsAssociatedToTheSubLinkNameAndTestnetValue_Documents_Cursor = await mongoDatabase.collection.subAccountsCollection.getAllDocumentsBy({
+        const subAccountsAssociatedToTheSubLinkNameAndTestnetValue_Documents_Cursor = user?await mongoDatabase.collection.subAccountsCollection.getAllDocumentsBy({
             sub_link_name, 
+            tg_user_id: user.tg_user_id
+        }):await mongoDatabase.collection.subAccountsCollection.getAllDocumentsBy({
+            sub_link_name
         });
         while(await subAccountsAssociatedToTheSubLinkNameAndTestnetValue_Documents_Cursor.hasNext() ){
             const subAccount_document = await subAccountsAssociatedToTheSubLinkNameAndTestnetValue_Documents_Cursor.next();

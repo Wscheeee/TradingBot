@@ -9,7 +9,7 @@ const TelegramBot = require("./node_modules/node-telegram-bot-api/src/telegram")
 
 
 /**
- * @typedef {{telegram_bot_token:string,requestDelay:number}} Settings_Interface
+ * @typedef {{telegram_bot_token:string,requestDelay:number,polling?:boolean}} Settings_Interface
  */
 module.exports.Telegram = class Telegram {
     /**
@@ -47,23 +47,33 @@ module.exports.Telegram = class Telegram {
      * 
      * @param {Settings_Interface} settings 
      */
-    constructor({requestDelay,telegram_bot_token}){
+    constructor({requestDelay,telegram_bot_token,polling}){
         this.#settings ={
             telegram_bot_token:telegram_bot_token,
-            requestDelay:requestDelay 
+            requestDelay:requestDelay,
+            polling: polling
         };
-        this.telegramBot = new TelegramBot(telegram_bot_token,{polling:false});
+        this.telegramBot = new TelegramBot(telegram_bot_token,{polling:polling?polling:false});
+
+        this.telegramBot.on("polling_error", (error) => {
+            console.log(error.code);  // => 'EFATAL'
+            // implement your retry logic here
+            this.telegramBot = new TelegramBot(telegram_bot_token,{polling:polling?polling:false});
+        });
     }
 
 
     /**
      * @param {string} chatId
      * @param {string} message 
+     * @param {{}} [form] 
      */
-    async sendMessage(chatId,message){ 
+    async sendMessage(chatId,message,form){ 
         await this.utils.sleepAsync();
-        return await this.telegramBot.sendMessage(chatId,message);
+        return await this.telegramBot.sendMessage(chatId,message,form);
     }
+
+
 };
 
 

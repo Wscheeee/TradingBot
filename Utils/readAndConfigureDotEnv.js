@@ -15,10 +15,12 @@ module.exports.readAndConfigureDotEnv =  function readAndConfigureDotEnv(isLive=
      *  IS_LIVE: boolean,
      *  TELEGRAM_BOT_TOKEN: string,
      *  TELEGRAM_SIGNALS_CHANNEL_ID: string,
-     *  TELEGRAM_ERROR_CHHANNEL_ID: string
+     *  TELEGRAM_ERROR_CHHANNEL_ID: string,
+     *  TELEGRAM_ATOMOS_FOREX_VERIF_CHHANNEL_ID: string,
      *  BYBIT_PUBLIC_KEY: string,
      *  BYBIT_PRIVATE_KEY: string,
-     *  BYBIT_ACCOUNT_IS_LIVE: boolean
+     *  BYBIT_ACCOUNT_IS_LIVE: boolean,
+     *  OPENAI_SECRET_KEY: string
      * }} DotEnvTypes
      */
     const dotEnvObj = {
@@ -29,9 +31,11 @@ module.exports.readAndConfigureDotEnv =  function readAndConfigureDotEnv(isLive=
         TELEGRAM_BOT_TOKEN: "",
         TELEGRAM_SIGNALS_CHANNEL_ID: "",
         TELEGRAM_ERROR_CHHANNEL_ID:"",
+        TELEGRAM_ATOMOS_FOREX_VERIF_CHHANNEL_ID:"",
         BYBIT_PRIVATE_KEY: "",
         BYBIT_PUBLIC_KEY: "",
-        BYBIT_ACCOUNT_IS_LIVE: false
+        BYBIT_ACCOUNT_IS_LIVE: false,
+        OPENAI_SECRET_KEY:""
     };
     const dataStr = isLive? fs.readFileSync(path.join(__dirname,"..",".env"),{encoding:"utf-8"}): fs.readFileSync(path.join(__dirname,"..",".env.local"),{encoding:"utf-8"});
     dataStr.split("\n").forEach((row)=>{

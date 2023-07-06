@@ -2,6 +2,7 @@
 const {Bybit} = require("../../Trader");
 
 const {newPositionSizingAlgorithm} = require("./algos/qty");
+const { setUpSubAccountsForUser } = require("./setUpSubAccountsForUser");
 
 /**
  * 
@@ -84,6 +85,35 @@ async function handler({
     logger,mongoDatabase,position,trader,user,onErrorCb
 }){
     try{ 
+        //////////////////
+        /**
+         * Validate if user subaccounts are accurate
+         */
+        const userSubAccountConfigDocuments = user.atomos===true? await (await mongoDatabase.collection.subAccountsConfigCollection.getAllDocuments()).toArray() : user.custom_sub_account_configs;
+        const userSubAccountDocuments = await (await mongoDatabase.collection.subAccountsCollection.getAllDocumentsBy({tg_user_id:user.tg_user_id, testnet:user.testnet}) ).toArray();
+        let subAccountsAreSetAndReady = true;
+        for(const subAccountConfigDocument of userSubAccountConfigDocuments){
+            let subAccountIsSetAndReady = false;
+            userSubAccountDocuments.forEach((subAccount)=>{
+                if(
+                    subAccount.trader_uid === subAccountConfigDocument.trader_uid  &&
+                    subAccount.trader_username === subAccountConfigDocument.trader_username  &&
+                    subAccount.weight === subAccountConfigDocument.weight  
+                ){
+                    subAccountIsSetAndReady = true;  
+                }
+            });
+            if(subAccountIsSetAndReady===false){
+                subAccountsAreSetAndReady = false;
+            }
+        } 
+        if(subAccountsAreSetAndReady===false){
+            // set up sub accounts for user
+            await setUpSubAccountsForUser({
+                mongoDatabase,user
+            });
+        }  
+
         ////////////////////////////////////////////////
         /**
          * Connect to user subaccount Bybit Account

@@ -73,7 +73,7 @@ module.exports.ifUserHasAtomosSubAccountsCreatedButNotLinkedInDBLink_andUserAtom
             }
         });
 
-
+        console.log(`(${unlikedSubAccountConfigDocuments_Array.length}) Atomos subAccounts in bybit should be linked as they are iin config`);
         // Link unlikedSubAccountConfigDocuments with already existing unlinked sub accounts in bybit
         for(const unlikedSubAccountConfigDocument of unlikedSubAccountConfigDocuments_Array){
             //Create new sub account documents in sub Account collection

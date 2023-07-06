@@ -72,7 +72,7 @@ module.exports.createSubAccountsAndAllocateCapital_forAllUsers_InParalell =  asy
                             await ifUserHasAtomosSubAccountsCreatedButNotLinkedInDBLink_andUserAtomosIsTrue({
                                 bybit,mongoDatabase,user
                             });
-        
+         
                         }else {
                             // user.atomos === false
                             // Meaning that the user is following own config
@@ -88,7 +88,7 @@ module.exports.createSubAccountsAndAllocateCapital_forAllUsers_InParalell =  asy
                                 let subAccountConfig_trader_uid = "";
 
                                 let subAccountHasConfig = false;
-                                if(user.custom_sub_account_configs){
+                                if(user.custom_sub_account_configs && Array.isArray(user.custom_sub_account_configs)){
                                     for(const subAccountConfig of user.custom_sub_account_configs){
                                         if(subAccountConfig.sub_link_name===subAccount.sub_link_name ){
                                             subAccountConfig_weight = subAccountConfig.weight;

@@ -88,61 +88,6 @@ module.exports.createSubAccountsForUserIfNotCreated = async function createSubAc
             }
         }else {
             // User has atomos === true
-            // So user as own set traders to copy
-            //2. Get All User's Sub Accounts in sub accounts collection
-            // const getAllSubCollectionsForUser_Cursor = await mongoDatabase.collection.subAccountsCollection.getAllDocumentsBy({
-            //     tg_user_id: user.tg_user_id,
-            //     testnet: user.testnet
-            // }); 
-
-            // // Get the Sub Accounts present in user's bybit
-            // const getSubUIDList_Res = await bybit.clients.bybit_RestClientV5.getSubUIDList();
-            // if(getSubUIDList_Res.retCode!==0)throw new Error(getSubUIDList_Res.retMsg);
-            // const subAccountsPresentInUserBybitAccount_Array = getSubUIDList_Res.result.subMembers;
-            // // Loop through the User SubCollections and check if it exists in bybit: If does not exist create it. 
-            // let counter = 0;// Counts how many subAccountsCollection documents were got from db
-            // while(await getAllSubCollectionsForUser_Cursor.hasNext()){
-            //     const subCollectionDocument = await getAllSubCollectionsForUser_Cursor.next();
-            //     if(!subCollectionDocument)return;
-            //     counter+=1;
-
-            //     let subAcccountAlreadyCreated = false;
-            //     subAccountsPresentInUserBybitAccount_Array.forEach((subMember)=>{
-            //         if(subMember.username===subCollectionDocument.sub_account_username){
-            //             if(subMember.status!==bybit.SUB_ACCOUNTS_STATUS.NORMAL){
-            //                 throw new Error(`Sub Account (${subCollectionDocument.sub_account_username}) is present in user:(${user.username} userId:(${user.tg_user_id}) but the subAccount status is :(${subMember.status}) not normal)`);
-            //             }else {
-            //                 // Sub Account found in user's account
-            //                 subAcccountAlreadyCreated = true;
-            //             }
-            //         }
-            //     });
-
-            //     // Create Sub Account in users bybit a/c
-            //     if(subAcccountAlreadyCreated===false){
-            //         // create sub Account
-            //         await createSubAccount_itsApi_andSaveInDB({
-            //             bybit,mongoDatabase,
-            //             trader: subCollectionDocument.trader_uid?await mongoDatabase.collection.topTradersCollection.findOne({uid: subCollectionDocument.trader_uid}):null,
-            //             user,
-            //             sub_account_api_note: "Atomos User Config",
-            //             sub_account_note:"Atomos User Config",
-            //             sub_account_testnet:subCollectionDocument.testnet,
-            //             sub_account_trader_weight: subCollectionDocument.weight,
-            //             sub_account_sub_link_name: subCollectionDocument.sub_link_name
-            //         });
-            //         // delete the preevious sub account
-            //         await mongoDatabase.collection.subAccountsCollection.deleteManyDocumentsByIds([subCollectionDocument._id]);
-
-                    
-            //     }
-
-
-            // }
-            // // END OF WHILE LOOP
-
-            // if(counter===0)throw new Error(`User: (${user.username}) as atomos set to true but has no subAccount saved in subAccountsCollecction`);
-
 
             const getAllSubCollectionsForUser_Cursor = await mongoDatabase.collection.subAccountsCollection.getAllDocumentsBy({
                 tg_user_id: user.tg_user_id,
@@ -173,8 +118,8 @@ module.exports.createSubAccountsForUserIfNotCreated = async function createSubAc
                     ));
                     console.log({subAccountInBybit});
                     if(subAccountInBybit){
-                        // If sub Account in Vybit and in SubAccounts Collection but not assigned to a trader assign a trader
-                        if(!subAcccountWithSubLinkNameInConfigIsPresentInSubAccountsCollection.trader_uid && traderSubAccountConfig.trader_uid){
+                        // If sub Account in Bybit and in SubAccounts Collection but not assigned to a trader assign a trader
+                        if(!subAcccountWithSubLinkNameInConfigIsPresentInSubAccountsCollection.trader_uid && traderSubAccountConfig.trader_uid || (subAcccountWithSubLinkNameInConfigIsPresentInSubAccountsCollection.trader_uid !== traderSubAccountConfig.trader_uid)){
                             // ub Account in collection docs has no trader assigned but subAccounttConfig has a tradder assigned
                             await mongoDatabase.collection.subAccountsCollection.updateDocument(subAcccountWithSubLinkNameInConfigIsPresentInSubAccountsCollection._id,{
                                 trader_uid: traderSubAccountConfig.trader_uid,

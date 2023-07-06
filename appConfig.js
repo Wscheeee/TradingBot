@@ -1,4 +1,4 @@
 module.exports = {
-    IS_LIVE: false,
+    IS_LIVE: true,
     TZ: ""
 };

@@ -215,7 +215,6 @@ async function handler({
             position_id_in_oldTradesCollection: null,
             server_timezone: process.env.TZ?process.env.TZ:"",
             closed_roi_percentage: 0,
-            close_datetime: nowDate,
             close_price: 0,
             closed_pnl: 0, 
             

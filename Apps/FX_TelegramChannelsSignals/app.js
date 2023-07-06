@@ -24,7 +24,7 @@ const {TelegramChannelsSignalsProxy} = require("../../TelegramChannelsSignalsPro
 // local
 // const {createSubAccountsAndAllocateCapital_forAllUsers_InParalell} = require("./createSubAccountsAndAllocateCapital_forAllUsers_InParalell");
 
-const APP_NAME = "App:CreateSubAccountsAndAllocateCapital";
+const APP_NAME = "App:FX_TelegramChannelsSignals";
 const logger = new Logger({app_name:APP_NAME});
 const {IS_LIVE} = require("../../appConfig");
 // const { DateTime } = require("../../DateTime");

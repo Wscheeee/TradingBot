@@ -58,6 +58,21 @@ process.env.TZ = dotEnvObj.TZ;
 
 
         logger.info("Create Bybit Client");
+
+
+
+         /**
+                 * Connect to user Bybit Account
+                 */
+        const bybit = new Bybit({
+            millisecondsToDelayBetweenRequests: 5000,
+            privateKey: dotEnvObj.BYBIT_PRIVATE_KEY,
+            publicKey: dotEnvObj.BYBIT_PUBLIC_KEY,
+            testnet: true
+        });
+        const symbolInfo = await bybit.clients.bybit_LinearClient.getSymbolInfo("BTCUSDT");
+        console.log({symbolInfo});
+        return;
       
         console.log(dotEnvObj);
         mongoDatabase = new MongoDatabase(dotEnvObj.DATABASE_URI);
@@ -67,11 +82,11 @@ process.env.TZ = dotEnvObj.TZ;
 
 
         // Update position leverage
-        const updateRes = await mongoDatabase.collection.openTradesCollection.updateDocument("6468f8c8e84ceb820aff6dac",{
-            leverage: 2
+        // const updateRes = await mongoDatabase.collection.openTradesCollection.updateDocument("6468f8c8e84ceb820aff6dac",{
+        //     leverage: 2
 
-        });
-        console.log({updateRes});
+        // });
+        // console.log({updateRes});
 
 
 

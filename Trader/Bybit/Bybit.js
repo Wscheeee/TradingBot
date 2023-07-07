@@ -175,15 +175,19 @@ module.exports.Bybit = class Bybit {
 
     /**
      * 
-     * @param {{symbol:string,quantity:number}} param0 
+     * @param {{symbol:string,quantity:number,isRetry?:boolean}} param0 
      */
-    async standardizeQuantity({quantity,symbol}){
+    async standardizeQuantity({quantity,symbol,isRetry}){
         console.log("[method: standardizeQuantity]");
         console.log({quantity,symbol});
         const symbolInfo = await this.#clients.bybit_LinearClient.getSymbolInfo(symbol);
         console.log({symbolInfo});
         if(!symbolInfo || !symbolInfo.name){
-            throw symbolInfo;
+            if(isRetry){
+                throw symbolInfo;
+
+            }
+            return this.standardizeQuantity({quantity,symbol,isRetry:true});
         }else {
             const minQty = symbolInfo.lot_size_filter.min_trading_qty;
             const qtyStep = symbolInfo.lot_size_filter.qty_step;

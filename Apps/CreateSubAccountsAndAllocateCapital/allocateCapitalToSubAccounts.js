@@ -188,15 +188,18 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                 for(const subAccount of userSubAccounts_Array){
                     const subAccountInfoBalancesCalcsObj = accountUsernameToTheirDetailsObj[subAccount.sub_account_username];
                     if(subAccountInfoBalancesCalcsObj && subAccountInfoBalancesCalcsObj.difference>0 && Number(subAccountInfoBalancesCalcsObj.difference.toFixed(2))>0.0){
-                        
-                        await performUniversalTransfer({
-                            amount: String(new DecimalMath(subAccountInfoBalancesCalcsObj.difference).removeDecimals().getResult()),
-                            toMemberId: Number(getMasterAccountAPIKeyInfo_Res.result.userID),
-                            fromMemberId: Number(subAccount.sub_account_uid),
-                            bybit,
-                            masterBybit:bybit,
-                            subAccountsUids:[String(subAccount.sub_account_uid)]
-                        });
+                        const amount = new DecimalMath(subAccountInfoBalancesCalcsObj.difference).removeDecimals().getResult();
+                        if(amount>0){
+                            await performUniversalTransfer({
+                                amount: String(amount),
+                                toMemberId: Number(getMasterAccountAPIKeyInfo_Res.result.userID),
+                                fromMemberId: Number(subAccount.sub_account_uid),
+                                bybit,
+                                masterBybit:bybit,
+                                subAccountsUids:[String(subAccount.sub_account_uid)]
+                            });
+
+                        } 
                     }
                 }
                 console.log("No money transfers");
@@ -318,14 +321,18 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
             // // Make transfers
             for(const transactionLedger of transactionsLedgersArray){
                 if(new DecimalMath(transactionLedger.amount).removeDecimals().getResult()>=1){
-                    await performUniversalTransfer({
-                        amount: String(new DecimalMath(transactionLedger.amount).removeDecimals().getResult()),
-                        toMemberId: Number(transactionLedger.toUid),
-                        fromMemberId: Number(transactionLedger.fromUid),
-                        bybit,
-                        masterBybit:bybit,
-                        subAccountsUids:[String(transactionLedger.toUid),String(transactionLedger.fromUid)].filter((uid)=>uid!==String(getMasterAccountAPIKeyInfo_Res.result.userID))
-                    });
+                    const amount = new DecimalMath(transactionLedger.amount).removeDecimals().getResult();
+                    if(amount>0){
+                        await performUniversalTransfer({
+                            amount: String(amount),
+                            toMemberId: Number(transactionLedger.toUid),
+                            fromMemberId: Number(transactionLedger.fromUid),
+                            bybit,
+                            masterBybit:bybit,
+                            subAccountsUids:[String(transactionLedger.toUid),String(transactionLedger.fromUid)].filter((uid)=>uid!==String(getMasterAccountAPIKeyInfo_Res.result.userID))
+                        });
+
+                    }
 
 
                 }

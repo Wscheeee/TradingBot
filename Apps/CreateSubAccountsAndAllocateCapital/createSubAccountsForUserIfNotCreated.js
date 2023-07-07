@@ -48,7 +48,12 @@ module.exports.createSubAccountsForUserIfNotCreated = async function createSubAc
                     console.log({subAccountInBybit});
                     if(subAccountInBybit){
                         // If sub Account in Vybit and in SubAccounts Collection but not assigned to a trader assign a trader
-                        if(!subAcccountWithSubLinkNameInConfigIsPresentInSubAccountsCollection.trader_uid && traderSubAccountConfig.trader_uid){
+                        if(
+                            (subAcccountWithSubLinkNameInConfigIsPresentInSubAccountsCollection.trader_uid !== traderSubAccountConfig.trader_uid)||
+                            (subAcccountWithSubLinkNameInConfigIsPresentInSubAccountsCollection.trader_username !== traderSubAccountConfig.trader_username)||
+                            (subAcccountWithSubLinkNameInConfigIsPresentInSubAccountsCollection.weight !== traderSubAccountConfig.weight)
+                            
+                        ){
                             // ub Account in collection docs has no trader assigned but subAccounttConfig has a tradder assigned
                             await mongoDatabase.collection.subAccountsCollection.updateDocument(subAcccountWithSubLinkNameInConfigIsPresentInSubAccountsCollection._id,{
                                 trader_uid: traderSubAccountConfig.trader_uid,
@@ -119,7 +124,11 @@ module.exports.createSubAccountsForUserIfNotCreated = async function createSubAc
                     console.log({subAccountInBybit});
                     if(subAccountInBybit){
                         // If sub Account in Bybit and in SubAccounts Collection but not assigned to a trader assign a trader
-                        if(!subAcccountWithSubLinkNameInConfigIsPresentInSubAccountsCollection.trader_uid && traderSubAccountConfig.trader_uid || (subAcccountWithSubLinkNameInConfigIsPresentInSubAccountsCollection.trader_uid !== traderSubAccountConfig.trader_uid)){
+                        if(
+                            (subAcccountWithSubLinkNameInConfigIsPresentInSubAccountsCollection.trader_uid !== traderSubAccountConfig.trader_uid) || 
+                            (subAcccountWithSubLinkNameInConfigIsPresentInSubAccountsCollection.trader_username!== traderSubAccountConfig.trader_username) || 
+                            (subAcccountWithSubLinkNameInConfigIsPresentInSubAccountsCollection.weight !== traderSubAccountConfig.weight)
+                        ){
                             // ub Account in collection docs has no trader assigned but subAccounttConfig has a tradder assigned
                             await mongoDatabase.collection.subAccountsCollection.updateDocument(subAcccountWithSubLinkNameInConfigIsPresentInSubAccountsCollection._id,{
                                 trader_uid: traderSubAccountConfig.trader_uid,

@@ -71,7 +71,7 @@ process.env.TZ = dotEnvObj.TZ;
         const errorbot = new Telegram({telegram_bot_token:dotEnvObj.TELEGRAM_BOT_TOKEN,requestDelay:2000});
         logger.info("Create Telegrambot");
         logger.addLogCallback("error",async (cbIndex,message)=>{
-            const blackListMessages = [""];
+            const blackListMessages = [];
             let messageIsNotInBlist = true; 
             for(const bMessage of blackListMessages){
                 if(message.includes(bMessage)===true){

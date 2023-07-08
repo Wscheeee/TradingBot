@@ -180,7 +180,8 @@ process.env.TZ = dotEnvObj.TZ;
                 intervalLastInStackTaskRunner.addJob(
                     async function (){
                         await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
-                            mongoDatabase,
+                            mongoDatabase, 
+                            user,
                             onError: (error)=>{
                                 logger.error(error.message);
                             }
@@ -208,6 +209,7 @@ process.env.TZ = dotEnvObj.TZ;
                             async function (){
                                 await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
                                     mongoDatabase,
+                                    user:userDocumentAfterUpdate,
                                     onError: (error)=>{
                                         logger.error(error.message);
                                     }
@@ -235,6 +237,7 @@ process.env.TZ = dotEnvObj.TZ;
                     async function (){
                         await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
                             mongoDatabase,
+                            user:userDocumentAfterUpdate,
                             onError: (error)=>{
                                 logger.error(error.message);
                             }

@@ -13,15 +13,17 @@ const { ifUserHasAtomosSubAccountsCreatedButNotLinkedInDBLink_andUserAtomosIsFal
  * 
  * @param {{
 *      mongoDatabase: import("../../MongoDatabase").MongoDatabase,
+*      user?: import("../../MongoDatabase/collections/users/types").Users_Collection_Document_Interface,
 *      onError:(error:Error)=>any
 * }} param0
 */
 module.exports.createSubAccountsAndAllocateCapital_forAllUsers_InParalell =  async function createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
-    mongoDatabase,onError
+    mongoDatabase,onError,user
 }){
     console.log("(fn:createSubAccountsAndAllocateCapital_forAllUsers_InParalell)");
     try{
         onError(new Error("(fn:createSubAccountsAndAllocateCapital_forAllUsers_InParalell): running"));
+        const passedInUser = user;
         if(!mongoDatabase)return;
         console.log("Getting uusers with status ===true");
         // Loop through users and create requuired subaccounts
@@ -38,6 +40,7 @@ module.exports.createSubAccountsAndAllocateCapital_forAllUsers_InParalell =  asy
                 if(!user){
                     throw new Error(`user:!user ${user}`);
                 }
+                if(passedInUser && passedInUser.tg_user_id!==user.tg_user_id)continue;
                 if(user.atomos===false && !user.custom_sub_account_configs || user.atomos===false && user.custom_sub_account_configs.length===0){
                     // User is set to use custom sub account config but has none
                     // Geet user's sub accountts and reset their details

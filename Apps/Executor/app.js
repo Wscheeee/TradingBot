@@ -31,7 +31,7 @@ const {positionResizeHandler} = require("./positionResizeHandler");
 const {positionCloseHandler} = require("./positionCloseHandler"); 
 
  
-const APP_NAME = "App:Executor";
+const APP_NAME = "App:Executor"; 
 const logger = new Logger({app_name:APP_NAME});
 const {IS_LIVE} = require("../../appConfig");
 const dotEnvObj = readAndConfigureDotEnv(IS_LIVE);

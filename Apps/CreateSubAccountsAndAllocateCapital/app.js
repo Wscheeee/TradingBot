@@ -177,7 +177,7 @@ process.env.TZ = dotEnvObj.TZ;
                 logger.info(`user.onCreateDocument ${user.tg_user_id}`);
                 if(!mongoDatabase)return;
                 // Run allocations in TaskRunner
-                intervalLastInStackTaskRunner.addJob(
+                intervalLastInStackTaskRunner.addMustRunJob(
                     async function (){
                         await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
                             mongoDatabase, 
@@ -205,7 +205,7 @@ process.env.TZ = dotEnvObj.TZ;
                         userDocumentBeforeUpdate.status!==userDocumentAfterUpdate.status
                     ){
                         // Run allocations in TaskRunner
-                        intervalLastInStackTaskRunner.addJob(
+                        intervalLastInStackTaskRunner.addMustRunJob(
                             async function (){
                                 await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
                                     mongoDatabase,
@@ -233,7 +233,7 @@ process.env.TZ = dotEnvObj.TZ;
                 if(!mongoDatabase)return;
                 // Loop throught the user's custom configs 
                 // Run allocations in TaskRunner
-                intervalLastInStackTaskRunner.addJob(
+                intervalLastInStackTaskRunner.addMustRunJob(
                     async function (){
                         await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
                             mongoDatabase,

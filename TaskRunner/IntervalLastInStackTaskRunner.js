@@ -9,10 +9,16 @@ module.exports.IntervalLastInStackTaskRunner = class IntervalLastInStackTaskRunn
      * @type {AsyncFunction[]}
      */
     #jobStack = [];
+    /**
+     * Every incoming job is pushed in the stack
+     * @type {AsyncFunction[]}
+     */
+    #mustRunJobStack = [];
     #uid = "";
     #intervalTimeInMs = 0;
     #intervalId;
     #jobIsRunning = false;
+    #mustRunJobIsRunning = false;
     /**
      * @constructor
      * @param {{uid:string, intervalMs:number}} settings
@@ -31,10 +37,30 @@ module.exports.IntervalLastInStackTaskRunner = class IntervalLastInStackTaskRunn
     #jobRunner(){
         // Run only the last in stack
         this.#intervalId = setInterval(async ()=>{
+            // Run must run jobs 
+            console.log("[Class:IntervalLastInStackTaskRunner => #jobRunner:] running job",{"#jobIsRunning":this.#jobIsRunning,"#this.#mustRunJobIsRunning":this.#mustRunJobIsRunning});
+            
+            if(this.#mustRunJobIsRunning===false){
+                this.#mustRunJobIsRunning = true;
+                console.log("Must Run Jobs length = "+this.#mustRunJobStack.length);
+                for(const job of this.#mustRunJobStack){
+                    console.log("Running must run jobs");
+                    await job();
+                    this.#mustRunJobStack.shift();
+                }
+                this.#mustRunJobIsRunning = false;
+
+            }
+            
+           
+           
+
+            // Run other jobs
+
+
             const jobsLength = this.#jobStack.length;
             const jobInEndOfStack = this.#jobStack.at(-1);
-            console.log("[Class:IntervalLastInStackTaskRunner => #jobRunner:] running job",{"#jobIsRunning":this.#jobIsRunning});
-            if(jobInEndOfStack && this.#jobIsRunning===false){
+            if(jobInEndOfStack){
                 //clear the jobs left of the job
                 // run the job
                 console.log("[Class:IntervalLastInStackTaskRunner => #jobRunner:] running job");
@@ -59,6 +85,10 @@ module.exports.IntervalLastInStackTaskRunner = class IntervalLastInStackTaskRunn
                     console.log("[Class:IntervalLastInStackTaskRunner => #jobRunner:] not sure of this check");
                 }
             }
+
+
+
+
         },this.#intervalTimeInMs);
     }
 
@@ -90,6 +120,18 @@ module.exports.IntervalLastInStackTaskRunner = class IntervalLastInStackTaskRunn
         console.log("[Class:IntervalLastInStackTaskRunner => addJob:] adding a job");
         clearInterval(this.#intervalId);
         this.#jobStack.push(job);
+        this.#jobRunner();
+
+    }
+
+    /**
+     * ads a must rrun job in the task runner
+     * @param {AsyncFunction} job
+     */
+    addMustRunJob(job){
+        console.log("[Class:IntervalLastInStackTaskRunner => addMustRunJob:] adding a job");
+        clearInterval(this.#intervalId);
+        this.#mustRunJobStack.push(job);
         this.#jobRunner();
 
     }

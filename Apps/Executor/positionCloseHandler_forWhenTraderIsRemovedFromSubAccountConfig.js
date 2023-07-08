@@ -334,6 +334,8 @@ async function handler({
                 });
             logger.info("Closed position in tradedPositionCollection db");
         }
+        // Delete tthe added oldTradedDOCUMENT.
+        await mongoDatabase.collection.oldTradesCollection.deleteManyDocumentsByIds([position._id]);
 
     }catch(error){
         const newErrorMessage = `user:${user.tg_user_id} (fn:handler) ${error.message}`;

@@ -87,7 +87,7 @@ async function handler({
          * Connect to user Bybit SubAccount Account
          */
         const subAccountDocument = await mongoDatabase.collection.subAccountsCollection.findOne({
-            tg_user_id: user.tg_user_id,
+            tg_user_id: user.tg_user_id, 
             trader_uid: trader.uid,
             testnet: user.testnet 
         });

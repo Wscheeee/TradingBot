@@ -120,7 +120,8 @@ console.log(process.env);
         positionsStateDetector.onPositionResize(async (originalPosition, position,trader) => {
             console.log("Close position");
             console.log({originalPosition, position,trader});
-            let roi = (position.roi * 100).toFixed(2); 
+            // let roi = (position.roi * 100).toFixed(2); 
+            let roi = (position.roi).toFixed(2); 
             bot.sendMessage("@AtomosTradingSignals",
                 `🛑 Partial Position Closed 🛑
 
@@ -140,7 +141,8 @@ console.log(process.env);
         
         positionsStateDetector.onPositionClose(async (position, trader) => {
             console.log("Close position");
-            let roi = (position.roi * 100).toFixed(2);
+            // let roi = (position.roi * 100).toFixed(2);
+            let roi = (position.roi).toFixed(2);
             bot.sendMessage("@AtomosTradingSignals",
                 `🛑 Position Closed 🛑
 

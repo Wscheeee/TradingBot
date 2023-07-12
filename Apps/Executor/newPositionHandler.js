@@ -85,28 +85,57 @@ async function handler({
     logger,mongoDatabase,position,trader,user,onErrorCb
 }){
     try{ 
+        const compareArrays = function(array1, array2) {
+            let allSynced = true;
+            array1.forEach(obj1 => {
+                // Find matching object in array2 based on 'sub_link_name'
+                const obj2 = array2.find(obj => obj.sub_link_name === obj1.sub_link_name);
+        
+                if (obj2) {
+                    // Check if 'trader_uid', 'trader_username' and 'weight' match
+                    if (obj1.trader_uid === obj2.trader_uid &&
+                        obj1.trader_username === obj2.trader_username &&
+                        obj1.weight === obj2.weight) {
+        
+                        // If they match, add object to result array with subAccountIsSetAndReady = true
+                    } else {
+                        // If they don't match, add object to result array with subAccountIsSetAndReady = false
+                        allSynced = false;
+                    }
+                }else {
+                    allSynced = false;
+                }
+            });
+        
+            return allSynced;
+        };
         //////////////////
         /**
          * Validate if user subaccounts are accurate
          */
         const userSubAccountConfigDocuments = user.atomos===true? await (await mongoDatabase.collection.subAccountsConfigCollection.getAllDocuments()).toArray() : user.custom_sub_account_configs;
         const userSubAccountDocuments = await (await mongoDatabase.collection.subAccountsCollection.getAllDocumentsBy({tg_user_id:user.tg_user_id, testnet:user.testnet}) ).toArray();
-        let subAccountsAreSetAndReady = true;
-        for(const subAccountConfigDocument of userSubAccountConfigDocuments){
-            let subAccountIsSetAndReady = false;
-            userSubAccountDocuments.forEach((subAccount)=>{
-                if(
-                    subAccount.trader_uid === subAccountConfigDocument.trader_uid  &&
-                    subAccount.trader_username === subAccountConfigDocument.trader_username  &&
-                    subAccount.weight === subAccountConfigDocument.weight  
-                ){
-                    subAccountIsSetAndReady = true;  
-                }
-            });
-            if(subAccountIsSetAndReady===false){
-                subAccountsAreSetAndReady = false;
-            }
-        } 
+        console.log({userSubAccountConfigDocuments});
+        console.log({userSubAccountDocuments});
+        // let subAccountsAreSetAndReady = true;
+        let subAccountsAreSetAndReady = compareArrays(userSubAccountConfigDocuments,userSubAccountDocuments);
+        // for(const subAccountConfigDocument of userSubAccountConfigDocuments){
+        //     let subAccountIsSetAndReady = false;
+        //     userSubAccountDocuments.forEach((subAccount)=>{
+        //         if(
+        //             subAccount.sub_link_name === subAccountConfigDocument.sub_link_name &&
+        //             subAccount.trader_uid === subAccountConfigDocument.trader_uid  &&
+        //             subAccount.trader_username === subAccountConfigDocument.trader_username  &&
+        //             subAccount.weight === subAccountConfigDocument.weight  
+        //         ){
+        //             subAccountIsSetAndReady = true;  
+        //         }
+        //     });
+        //     if(subAccountIsSetAndReady===false){
+        //         subAccountsAreSetAndReady = false;
+        //     }
+        // } 
+        console.log({subAccountsAreSetAndReady});
         if(subAccountsAreSetAndReady===false){
             // set up sub accounts for user
             await setUpSubAccountsForUser({

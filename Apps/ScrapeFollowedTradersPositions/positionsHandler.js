@@ -269,7 +269,7 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                         document_created_at_datetime: datetimeNow,
                         document_last_edited_at_datetime: datetimeNow,
                         server_timezone: process.env.TZ||"",
-                        
+                        reason: "TRADER_CLOSED_THIS_POSITION"
                     });
                     // delete from openPositions collections
                     await mongoDatabase.collection.openTradesCollection.deleteManyDocumentsByIds([positionToClose_._id]);

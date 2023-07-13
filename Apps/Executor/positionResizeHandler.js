@@ -290,7 +290,7 @@ async function handler({
         logger.info("Updated position in tradedPositionCollection db");
 
     }catch(error){
-        const newErrorMessage = `user:${user.tg_user_id} (fn:handler) ${error.message}`;
+        const newErrorMessage = `user:${user.username}(tgId:${user.tg_user_id}) (fn:handler) ${error.message}`;
         error.message = newErrorMessage;
         onErrorCb(error);
         // throw error;

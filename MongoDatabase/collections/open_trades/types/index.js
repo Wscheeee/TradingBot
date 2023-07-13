@@ -3,6 +3,8 @@
  * @typedef {{
  *      trader_id: import("mongodb").ObjectId,
  *      trader_uid: string,
+ *      trader_username: string,
+ *      trader_today_estimated_balance:number,
  *      part: number,
  *      original_size: number,
  *      total_parts: number

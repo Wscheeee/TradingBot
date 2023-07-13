@@ -184,6 +184,7 @@ async function handler({
         if(!tradedPositionObj){
             throw new Error("Position setting out to close was never trades/open");
         }
+
     
         /**
      * Get the qty of the partial to close

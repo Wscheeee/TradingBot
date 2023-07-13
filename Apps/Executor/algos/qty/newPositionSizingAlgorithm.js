@@ -163,24 +163,47 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
     case "trade_close": {
         console.log("ACTION:trade_close");
         // Find the trade related to the user
-        const userTrade_Doc = await mongoDatabase.collection["tradedPositionsCollection"].findOne({
-            status: "OPEN",
-            pair: position.pair,
-            direction: position.direction,
-            trader_uid: position.trader_uid,
-            tg_user_id: user.tg_user_id
+        // const userTrade_Doc = await mongoDatabase.collection["tradedPositionsCollection"].findOne({
+        //     status: "OPEN",
+        //     pair: position.pair,
+        //     direction: position.direction,
+        //     trader_uid: position.trader_uid,
+        //     tg_user_id: user.tg_user_id
+        // });
+        // console.log({ userTrade_Doc });
+        // if(!userTrade_Doc)throw new Error("(algo:Action:Close)userTrade_Doc not found");
+
+        // // Calculate the amount to cut for the user's trade
+        // const qty = userTrade_Doc.size;//userTrade_Cursor.traded_value / position.entry_price;
+        // const qtyToByWith = qty;
+        // // standardize the qty
+        // const standardizedQTY = await bybit.standardizeQuantity({ quantity: qtyToByWith, symbol: position.pair });
+        // console.log({ standardizedQTY });
+        // sizeToExecute = standardizedQTY;
+
+
+
+        /***
+         * Get the correct qty of the position on bybit
+         */
+        const getActiveOrders_Result =  await bybit.clients.bybit_RestClientV5.getActiveOrders({
+            category:"linear",
+            symbol: position.pair
         });
-        console.log({ userTrade_Doc });
-        if(!userTrade_Doc)throw new Error("(algo:Action:Close)userTrade_Doc not found");
 
-        // Calculate the amount to cut for the user's trade
-        const qty = userTrade_Doc.size;//userTrade_Cursor.traded_value / position.entry_price;
-        const qtyToByWith = qty;
-        // standardize the qty
-        const standardizedQTY = await bybit.standardizeQuantity({ quantity: qtyToByWith, symbol: position.pair });
-        console.log({ standardizedQTY });
-        sizeToExecute = standardizedQTY;
+        if(getActiveOrders_Result.retCode!==0)throw new Error(`getActiveOrders_Result: ${getActiveOrders_Result.retMsg}`);
 
+        const theTradeInBybit = getActiveOrders_Result.result.list.find((p)=>{
+            if(
+                p.side===(position.direction==="LONG"?"Buy":"Sell")
+                &&
+                p.symbol===position.pair
+            ){
+                return p;
+            }
+        });
+        if(!theTradeInBybit)throw new Error(`not found theTradeInBybit : ${theTradeInBybit}`);
+        sizeToExecute = Number(theTradeInBybit.qty);
         break;
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////

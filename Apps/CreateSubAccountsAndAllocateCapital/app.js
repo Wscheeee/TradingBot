@@ -268,6 +268,8 @@ process.env.TZ = dotEnvObj.TZ;
             if (previousHourRun!== nowHours && nowHours===2) { 
                 console.log("(=>Run At 2am)");
                 if(!mongoDatabase)return;
+                const oneHourAgo = new Date(Date.now() - 3600000); // One hour ago
+                const users = await mongoDatabase.collection.usersCollection.getAllDocumentsBy({ last_sub_allocation_check_datetime: { $lte: oneHourAgo } });
                 // Run allocations in TaskRunner
                 intervalLastInStackTaskRunner.addJob(
                     async function (){
@@ -278,7 +280,7 @@ process.env.TZ = dotEnvObj.TZ;
                             }
                         });
 
-                    }
+                    } 
                 );
                 // await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
                 //     mongoDatabase,
@@ -292,20 +294,30 @@ process.env.TZ = dotEnvObj.TZ;
             }
         },(1000*60)*60);//1 hr
         
-      
+        const oneHourAgo = new Date(Date.now()).toLocaleString("en-US", {
+            month: "numeric",
+            day: "numeric",
+            year: "numeric",
+            hour: "numeric",
+            minute: "numeric",
+            second: "numeric",
+            hour12: true
+        }); // One hour ago
+        const users = await mongoDatabase.collection.usersCollection.getAllDocumentsBy({ last_sub_allocation_check_datetime: { $lte: oneHourAgo } });
+        console.log({users: await users.toArray()});
         // NONCE run
         // Run allocations in TaskRunner
-        intervalLastInStackTaskRunner.addJob(
-            async function (){
-                await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
-                    mongoDatabase,
-                    onError: (error)=>{
-                        logger.error(error.message);
-                    }
-                });
+        // intervalLastInStackTaskRunner.addJob(
+        //     async function (){
+        //         await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
+        //             mongoDatabase,
+        //             onError: (error)=>{
+        //                 logger.error(error.message);
+        //             }
+        //         });
 
-            }
-        );
+        //     }
+        // );
         // await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
         //     mongoDatabase,
         //     onError: (error)=>{

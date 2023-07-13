@@ -60,7 +60,7 @@ module.exports.IntervalLastInStackTaskRunner = class IntervalLastInStackTaskRunn
 
             const jobsLength = this.#jobStack.length;
             const jobInEndOfStack = this.#jobStack.at(-1);
-            if(jobInEndOfStack){
+            if(jobInEndOfStack && this.#jobIsRunning===false){
                 //clear the jobs left of the job
                 // run the job
                 console.log("[Class:IntervalLastInStackTaskRunner => #jobRunner:] running job");
@@ -79,7 +79,7 @@ module.exports.IntervalLastInStackTaskRunner = class IntervalLastInStackTaskRunn
                     console.log("[Class:IntervalLastInStackTaskRunner => #jobRunner:] no job to run");
 
                 }else if(!!jobInEndOfStack && this.#jobIsRunning===true){
-                    console.log("[Class:IntervalLastInStackTaskRunner => #jobRunner:] there is a job to run but there is a job next after the ccurrent running job is completed");
+                    console.log("[Class:IntervalLastInStackTaskRunner => #jobRunner:] there is a job running "+(jobsLength>1?"and there is a job to run next after it":""));
                     
                 }else {
                     console.log("[Class:IntervalLastInStackTaskRunner => #jobRunner:] not sure of this check");

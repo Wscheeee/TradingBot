@@ -20,7 +20,7 @@ module.exports.ifUserHasAtomosSubAccountsCreatedButNotLinkedInDBLink_andUserAtom
     try{
         // Get the Sub Accounts present in user's bybit
         const getSubUIDList_Res = await bybit.clients.bybit_RestClientV5.getSubUIDList();
-        if(getSubUIDList_Res.retCode!==0)throw new Error(getSubUIDList_Res.retMsg);
+        if(getSubUIDList_Res.retCode!==0)throw new Error("getSubUIDList_Res:::"+getSubUIDList_Res.retMsg);
         const subAccountsPresentInUserBybitAccount_Array = getSubUIDList_Res.result.subMembers;
         const atomosSubAccountsPresentInUserBybitAccount_Array = subAccountsPresentInUserBybitAccount_Array.filter((subMemberV5)=>{
             if(subMemberV5.username.toLowerCase().includes("atomos")){

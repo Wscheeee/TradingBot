@@ -124,7 +124,7 @@ module.exports.setUpSubAccountsForUser = async function ({user,mongoDatabase}){
         return;
 
     }catch(error){
-        error.message = `${FUNCTION_NAME} ${error.mmessage}`;
+        error.message = `${FUNCTION_NAME} ${error.message}`;
         throw error;
     }
 };

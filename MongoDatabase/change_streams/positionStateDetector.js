@@ -77,9 +77,11 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
         watcher.addListener("change", async (change) => {
             if(change.operationType==="drop")process.exit();//restart the app when the collection is dropped
             if (change.operationType === "insert") {
-                console.log("(openTradesCollection):INSERT event");
+                const FUNCTION_NAME = "(openTradesCollection):INSERT event";
+                console.log(FUNCTION_NAME);
                 const documentId = change.documentKey._id;
                 const fullDocument = await this.#mongoDatabase.collection.openTradesCollection.getDocumentById(documentId);
+                // if(!fullDocument)throw new Error(`${FUNCTION_NAME}: fullDocument not found`); // removed beause I don't think it's necessary.
                 if (fullDocument && fullDocument.copied) {
                     const trader = await this.#mongoDatabase.collection.topTradersCollection.getDocumentByTraderUid(fullDocument.trader_uid);
                     if(!trader)throw new Error(`New position came in but trader not found: trader_uid:${fullDocument.trader_uid} position documentId:${fullDocument._id}` );

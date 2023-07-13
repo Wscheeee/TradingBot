@@ -186,14 +186,20 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
         /***
          * Get the correct qty of the position on bybit
          */
-        const getActiveOrders_Result =  await bybit.clients.bybit_RestClientV5.getActiveOrders({
+        
+        const getOpenPosition_Result =  await bybit.clients.bybit_RestClientV5.getPositionInfo_Realtime({
             category:"linear",
-            symbol: position.pair
+            // settleCoin:"USDT"
+            symbol: position.pair,
+            
         });
 
-        if(getActiveOrders_Result.retCode!==0)throw new Error(`getActiveOrders_Result: ${getActiveOrders_Result.retMsg}`);
-
-        const theTradeInBybit = getActiveOrders_Result.result.list.find((p)=>{
+        if(getOpenPosition_Result.retCode!==0)throw new Error(`getActiveOrders_Result: ${getOpenPosition_Result.retMsg}`);
+        // console.log({getOpenPosiion_Result});
+        const theTradeInBybit = getOpenPosition_Result.result.list.find((p)=>{
+            console.log({
+                p
+            });
             if(
                 p.side===(position.direction==="LONG"?"Buy":"Sell")
                 &&
@@ -203,7 +209,7 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
             }
         });
         if(!theTradeInBybit)throw new Error(`not found theTradeInBybit : ${theTradeInBybit}`);
-        sizeToExecute = Number(theTradeInBybit.qty);
+        sizeToExecute = Number(theTradeInBybit.size);
         break;
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////

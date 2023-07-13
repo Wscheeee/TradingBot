@@ -27,7 +27,7 @@ const {createSubAccountsAndAllocateCapital_forAllUsers_InParalell} = require("./
 const APP_NAME = "App:CreateSubAccountsAndAllocateCapital";
 const logger = new Logger({app_name:APP_NAME});
 const {IS_LIVE} = require("../../appConfig");
-const { DateTime } = require("../../DateTime");
+const { createSubAccountsAndAllocateCapital_forAllUsersWhoseLastAlloationIsMoreThan0neHourAgo_InParalell } = require("./createSubAccountsAndAllocateCapital_forAllUsersWhoseLastAlloationIsMoreThan0neHourAgo_InParalell");
 const dotEnvObj = readAndConfigureDotEnv(IS_LIVE);
 process.env.TZ = dotEnvObj.TZ;
 
@@ -259,72 +259,25 @@ process.env.TZ = dotEnvObj.TZ;
 
 
         //////////////////////////////////
-        // RUN AT A PARTICULAR TIME
-        // let previousDayRun = -1;
-        let previousHourRun = -1;
+        // RUN EVERY HOUR BU ONLY RUN FOR USERS WHOSE LAST ALLOCATION WAS NOT WITHIN THE HOUR.
         interval = setInterval(async()=>{
-            const dateTIme = new DateTime();
-            const nowHours = dateTIme.now().hours;
-            if (previousHourRun!== nowHours && nowHours===2) { 
-                console.log("(=>Run At 2am)");
-                if(!mongoDatabase)return;
-                const oneHourAgo = new Date(Date.now() - 3600000); // One hour ago
-                const users = await mongoDatabase.collection.usersCollection.getAllDocumentsBy({ last_sub_allocation_check_datetime: { $lte: oneHourAgo } });
-                // Run allocations in TaskRunner
-                intervalLastInStackTaskRunner.addJob(
-                    async function (){
-                        await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
-                            mongoDatabase,
-                            onError: (error)=>{
-                                logger.error(error.message);
-                            }
-                        });
+            logger.info("Running Allocation for oncce per hour.");
+            // Run allocations in TaskRunner
+            intervalLastInStackTaskRunner.addJob(
+                async function (){
+                    await createSubAccountsAndAllocateCapital_forAllUsersWhoseLastAlloationIsMoreThan0neHourAgo_InParalell({
+                        mongoDatabase,
+                        onError: (error)=>{
+                            logger.error(error.message);
+                        }
+                    });
 
-                    } 
-                );
-                // await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
-                //     mongoDatabase,
-                //     onError: (error)=>{
-                //         logger.error(error.message);
-                //     }
-                // });
-                // If the target time has already passed, schedule the task for the next day
-                previousHourRun = nowHours;
-
-            }
+                } 
+            );
         },(1000*60)*60);//1 hr
         
-        const oneHourAgo = new Date(Date.now()).toLocaleString("en-US", {
-            month: "numeric",
-            day: "numeric",
-            year: "numeric",
-            hour: "numeric",
-            minute: "numeric",
-            second: "numeric",
-            hour12: true
-        }); // One hour ago
-        const users = await mongoDatabase.collection.usersCollection.getAllDocumentsBy({ last_sub_allocation_check_datetime: { $lte: oneHourAgo } });
-        console.log({users: await users.toArray()});
-        // NONCE run
-        // Run allocations in TaskRunner
-        // intervalLastInStackTaskRunner.addJob(
-        //     async function (){
-        //         await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
-        //             mongoDatabase,
-        //             onError: (error)=>{
-        //                 logger.error(error.message);
-        //             }
-        //         });
-
-        //     }
-        // );
-        // await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
-        //     mongoDatabase,
-        //     onError: (error)=>{
-        //         logger.error(error.message);
-        //     }
-        // });
-        //////////////////////////////////
+        
+        
       
     }catch(error){
         intervalLastInStackTaskRunner.stop();

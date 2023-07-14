@@ -5,7 +5,7 @@
  * }} param0 
  */
 async function getSubAccountsAndTheirInfo({
-    bybit
+    bybit 
 }){
     try{
         // Get sub accounts

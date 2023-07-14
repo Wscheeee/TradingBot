@@ -159,23 +159,53 @@ module.exports.Bybit = class Bybit {
     /**
      * Calculates the maximum quantity that can be sold based on the minimum quantity and step size of a cryptocurrency symbol.
      *
-     * @param {{qty:number,minQty:number,stepSize:number}} params
+     * @param {{qty:number,minQty:number,stepSize:number, maxQty:number}} params
      *  - The quantity that needs to be sold or bought.
      *  - The minimum quantity that can be sold or bought.
      *  - The quantity increment for selling or buying.
+     // * @returns {number[]} The maximum quantity that can be sold.
      *
-     * @returns {number} The maximum quantity that can be sold.
-     */
-    #calculateQty_ForOrder({qty, minQty, stepSize}) {
-        console.log("[method: calculateQty_ForOrder]",{qty, minQty, stepSize});
-        const maxQty = new DecimalMath(Math.floor(new DecimalMath(qty).divide(stepSize).getResult())).multiply(stepSize).getResult();
-        return maxQty >= minQty ? maxQty : 0;
+    */
+    #calculateQty_ForOrder({qty, minQty, stepSize, maxQty}) {
+        // retuurn array off qty'sso as to handle cases where qty is too big over max and need to execute full qty but iin batches
+        console.log("[method: calculateQty_ForOrder]",{qty, minQty, stepSize, maxQty});
+        /**
+         * @type {number[]}
+         */
+        let quantitiesArray = [];
+
+        if (qty <= maxQty) {
+            quantitiesArray.push(qty);
+        } else {
+            // qty > maxqty
+            const numRequests = Math.floor(qty / maxQty);
+            const remainder = qty % maxQty;
+        
+            /**
+             * @type {number[]}
+             */
+            let arrayWithQuantitiesLeftToExecute = new Array(numRequests).fill(0).map(_ => maxQty);
+
+
+            if (remainder > 0) {
+                arrayWithQuantitiesLeftToExecute.push(remainder);
+            }
+
+            quantitiesArray = [...quantitiesArray,...arrayWithQuantitiesLeftToExecute];
+        }
+
+        /// standardize the qty in arrayWithQuantitiesLeftToExecute
+        return quantitiesArray.map((unstandardizedQty)=>{
+            const maxQty = new DecimalMath(Math.floor(new DecimalMath(unstandardizedQty).divide(stepSize).getResult())).multiply(stepSize).getResult();
+            return maxQty >= minQty ? maxQty : 0;
+        });
 
     }  
 
     /**
      * 
      * @param {{symbol:string,quantity:number,isRetry?:boolean}} param0 
+     * @return {number[]}
      */
     async standardizeQuantity({quantity,symbol,isRetry}){
         console.log("[method: standardizeQuantity]");
@@ -187,17 +217,18 @@ module.exports.Bybit = class Bybit {
                 throw symbolInfo;
 
             }
-            return this.standardizeQuantity({quantity,symbol,isRetry:true});
+            return await this.standardizeQuantity({quantity,symbol,isRetry:true});
         }else {
             const minQty = symbolInfo.lot_size_filter.min_trading_qty;
             const qtyStep = symbolInfo.lot_size_filter.qty_step;
-            const maxQty =  this.#calculateQty_ForOrder({
+            const quantities =  this.#calculateQty_ForOrder({
                 qty: quantity,
                 minQty:minQty,
-                stepSize:qtyStep
+                stepSize:qtyStep,
+                maxQty: symbolInfo.lot_size_filter.max_trading_qty
             });
             
-            return maxQty;
+            return quantities;
         }
     }
 

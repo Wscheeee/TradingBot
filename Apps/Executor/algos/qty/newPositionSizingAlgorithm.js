@@ -20,10 +20,24 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
     bybit,
     mongoDatabase,
 }) {
-    let sizeToExecute;
+    const FUNCTION_NAME = "(fn:newPositionSizingAlgorithm)";
+    /**
+     * @type {number[]} 
+     */
+    let sizesToExecute;
+    /**
+     * @type {number} 
+     */
+    let symbolMaxLot;
+    /**
+     * @type {number} 
+     */
+    let symbolStepSize;
 
     switch (action) {
     case "new_trade": {
+        const ACTION_NAME = "[Action:(new_trade)]";
+        console.log(FUNCTION_NAME+" "+ACTION_NAME);
 
         /**
          *  - (METHOD: Get Single Coin Balance) check the total 
@@ -97,7 +111,11 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
         const standardizedQTY = await bybit.standardizeQuantity({ quantity: qtyToByWith, symbol: position.pair });
         console.log({ standardizedQTY });
 
-        sizeToExecute = standardizedQTY;
+        sizesToExecute = standardizedQTY;
+        const symbolInfo = await bybit.clients.bybit_LinearClient.getSymbolInfo(position.pair);
+        if(!symbolInfo)throw new Error("symbolInfo is undefined");
+        symbolMaxLot = symbolInfo.lot_size_filter.max_trading_qty;
+        symbolStepSize = symbolInfo.lot_size_filter.qty_step;
 
         break;
 
@@ -122,10 +140,14 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
         const qty = valueToCut / position.entry_price;
         const qtyToByWith = qty;
         // standardize the qty
-        const standardizedQTY = await bybit.standardizeQuantity({ quantity: qtyToByWith, symbol: position.pair });
-        console.log({ standardizedQTY });
+        const standardizedQuantities_array = await bybit.standardizeQuantity({ quantity: qtyToByWith, symbol: position.pair });
+        console.log({ standardizedQuantities_array }); 
 
-        sizeToExecute = standardizedQTY;
+        sizesToExecute = standardizedQuantities_array;
+        const symbolInfo = await bybit.clients.bybit_LinearClient.getSymbolInfo(position.pair);
+        if(!symbolInfo)throw new Error("symbolInfo is undefined");
+        symbolMaxLot = symbolInfo.lot_size_filter.max_trading_qty;
+        symbolStepSize = symbolInfo.lot_size_filter.qty_step;
 
         break;
 
@@ -154,7 +176,11 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
         // standardize the qty
         const standardizedQTY = await bybit.standardizeQuantity({ quantity: qtyToByWith, symbol: position.pair });
         console.log({ standardizedQTY });
-        sizeToExecute = standardizedQTY;
+        sizesToExecute = standardizedQTY;
+        const symbolInfo = await bybit.clients.bybit_LinearClient.getSymbolInfo(position.pair);
+        if(!symbolInfo)throw new Error("symbolInfo is undefined");
+        symbolMaxLot = symbolInfo.lot_size_filter.max_trading_qty;
+        symbolStepSize = symbolInfo.lot_size_filter.qty_step;
 
         break;
 
@@ -179,7 +205,7 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
         // // standardize the qty
         // const standardizedQTY = await bybit.standardizeQuantity({ quantity: qtyToByWith, symbol: position.pair });
         // console.log({ standardizedQTY });
-        // sizeToExecute = standardizedQTY;
+        // sizesToExecute = standardizedQTY;
 
 
 
@@ -209,7 +235,14 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
             }
         });
         if(!theTradeInBybit)throw new Error(`not found theTradeInBybit : ${theTradeInBybit}`);
-        sizeToExecute = Number(theTradeInBybit.size);
+        const qtyToByWith = Number(theTradeInBybit.size);
+        const standardizedQTY = await bybit.standardizeQuantity({ quantity: qtyToByWith, symbol: position.pair });
+        console.log({ standardizedQTY });
+        sizesToExecute = standardizedQTY;
+        const symbolInfo = await bybit.clients.bybit_LinearClient.getSymbolInfo(position.pair);
+        if(!symbolInfo)throw new Error("symbolInfo is undefined");
+        symbolMaxLot = symbolInfo.lot_size_filter.max_trading_qty;
+        symbolStepSize = symbolInfo.lot_size_filter.qty_step;
         break;
 
         ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -220,5 +253,5 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
 
     }
 
-    return { sizeToExecute };
+    return { sizesToExecute , symbolMaxLotSize:symbolMaxLot, symbolLotStepSize:symbolStepSize};
 };

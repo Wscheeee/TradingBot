@@ -189,7 +189,7 @@ async function handler({
         /**
      * Get the qty of the partial to close
     **/
-        const {sizeToExecute} = await newPositionSizingAlgorithm({
+        const {sizeToExecute, symbolLotStepSize, symbolMaxLotSize} = await newPositionSizingAlgorithm({
             bybit,
             position,
             trader,
@@ -250,13 +250,17 @@ async function handler({
      * Close the order
      */
     
-        const closePositionRes = await bybit.clients.bybit_RestClientV5.closeAPosition({
-            category:"linear",
-            orderType:"Market",
-            qty:String(standardized_qty),//String(position.size),// close whole position
-            side: position.direction==="LONG"?"Sell":"Buy",
-            symbol: position.pair,
-            positionIdx: position.direction==="LONG"?1:2,
+        const {closePositionRes,arrayWithQuantitiesLeftToExecute} = await bybit.clients.bybit_RestClientV5.closeAPosition({
+            orderParams: {
+                category:"linear",
+                orderType:"Market",
+                qty:String(standardized_qty),//String(position.size),// close whole position
+                side: position.direction==="LONG"?"Sell":"Buy",
+                symbol: position.pair,
+                positionIdx: position.direction==="LONG"?1:2,
+            },
+            symbolLotStepSize,
+            symbolMaxLotSize
         });
         console.log({closePositionRes});
         logger.info("Posion closed on bybit_RestClientV5");

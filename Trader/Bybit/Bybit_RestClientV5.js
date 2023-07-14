@@ -59,16 +59,71 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
     }
 
     // public
+    // /**
+    //  * 
+    //  * @param {{
+    //  *      orderParams: import("bybit-api").OrderParamsV5,
+    //  *      symbolMaxLotSize: number,
+    //  *      symbolLotStepSize: number
+    //  * }} orderParamsV5 
+    //  */
+    // async openANewPosition({orderParams,symbolLotStepSize,symbolMaxLotSize}){
+    //     await this.#rateLimiter.addJob();
+    //     console.log("[method: openNewPosition]");        
+    //     console.log({orderParams,symbolLotStepSize,symbolMaxLotSize});
+    //     const res = await this.#restClientV5.submitOrder(orderParams);
+    //     return res;
+    // }
+
     /**
      * 
-     * @param {import("bybit-api").OrderParamsV5} orderParamsV5 
-     */
-    async openANewPosition(orderParamsV5){
+     * @param {{
+    *      orderParams: import("bybit-api").OrderParamsV5,
+    *      symbolMaxLotSize?: number,
+    *      symbolLotStepSize?: number
+    * }} orderParamsV5 
+    */
+    async openANewPosition({ orderParams, symbolLotStepSize, symbolMaxLotSize }) {
+        const FUNCTION_NAME = "[method: openANewPosition]";
         await this.#rateLimiter.addJob();
-        console.log("[method: openNewPosition]");        
-        console.log(orderParamsV5);
-        const res = await this.#restClientV5.submitOrder(orderParamsV5);
-        return res;
+        console.log(FUNCTION_NAME);
+        console.log({ orderParams, symbolLotStepSize, symbolMaxLotSize });
+        if(!symbolLotStepSize|!symbolMaxLotSize){
+            // exeutte the request as is
+            const openPositionRes = await this.#restClientV5.submitOrder(orderParams);
+            return {openPositionRes,arrayWithQuantitiesLeftToExecute:[]};
+        }
+        /**
+         * @type {number[]}
+         */
+        if (orderParams.qty <= symbolMaxLotSize) {
+            console.log(`${FUNCTION_NAME} [orderParams.qty <= symbolMaxLotSize] this.#restClientV5.submitOrder(orderParams) :orderParams ` ,);
+            console.log({orderParams});
+            const openPositionRes = await this.#restClientV5.submitOrder(orderParams);
+            return {openPositionRes,arrayWithQuantitiesLeftToExecute:[]};
+        } else {
+            console.log(`${FUNCTION_NAME} [orderParams.qty > symbolMaxLotSize] this.#restClientV5.submitOrder(orderParams) :orderParams ` ,);
+            const numRequests = Math.floor(orderParams.qty / symbolMaxLotSize);
+            const remainder = orderParams.qty % symbolMaxLotSize;
+        
+            /**
+             * @type {number[]}
+             */
+            let arrayWithQuantitiesLeftToExecute = new Array(numRequests).fill(0).map(_ => symbolMaxLotSize);
+
+
+            if (remainder > 0) {
+                arrayWithQuantitiesLeftToExecute.push(remainder);
+            }
+
+            const qtyToExecute = arrayWithQuantitiesLeftToExecute.shift();
+            if(!qtyToExecute) throw new Error(FUNCTION_NAME+" Error: const qtyToExecute = arrayWithQuantitiesLeftToExecute.shift();");
+            const requestParams = { ...orderParams, qty: symbolMaxLotSize };
+            console.log(`${FUNCTION_NAME} [orderParams.qty > symbolMaxLotSize] this.#restClientV5.submitOrder(requestParams) :requestParams ` ,);
+            console.log({requestParams});
+            const openPositionRes = await this.#restClientV5.submitOrder(requestParams);
+            return {openPositionRes,arrayWithQuantitiesLeftToExecute};
+        }
     }
 
 
@@ -80,17 +135,69 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
         return cancelOrderRes;
     }
 
+    // /**
+    //  * 
+    //  * @param {{
+    //  *      orderParams: import("bybit-api").OrderParamsV5,
+    //  *      symbolMaxLotSize: number,
+    //  *      symbolLotStepSize: number
+    //  * }} orderParamsV5 
+    //  */
+    // async closeAPosition(orderParamsV5){
+    //     await this.#rateLimiter.addJob();
+    //     console.log("[method: closeAPosition]");        
+    //     console.log(orderParamsV5);
+    //     const res = await this.#restClientV5.submitOrder(orderParamsV5);        
+    //     return res;
+    // }
+
     /**
      * 
-     * @param {import("bybit-api").OrderParamsV5} orderParamsV5 
-     */
-    async closeAPosition(orderParamsV5){
+     * @param {{
+    *      orderParams: import("bybit-api").OrderParamsV5,
+    *      symbolMaxLotSize?: number,
+    *      symbolLotStepSize?: number
+    * }} orderParamsV5 
+    */
+    async closeAPosition({orderParams, symbolLotStepSize, symbolMaxLotSize}) {
+        const FUNCTION_NAME = "[method: closeAPosition]";
         await this.#rateLimiter.addJob();
-        console.log("[method: closeAPosition]");        
-        console.log(orderParamsV5);
-        const res = await this.#restClientV5.submitOrder(orderParamsV5);        
-        return res;
+        console.log(FUNCTION_NAME);
+   
+        console.log({ orderParams, symbolLotStepSize, symbolMaxLotSize });
+        if(!symbolLotStepSize||!symbolMaxLotSize){
+            const closePositionRes = await this.#restClientV5.submitOrder(orderParams);
+            return {closePositionRes,arrayWithQuantitiesLeftToExecute:[]};
+        }
+        /**
+         * @type {number[]}
+         */
+        if (orderParams.qty <= symbolMaxLotSize) {
+            const closePositionRes = await this.#restClientV5.submitOrder(orderParams);
+            return {closePositionRes,arrayWithQuantitiesLeftToExecute:[]};
+        } else {
+            const numRequests = Math.floor(orderParams.qty / symbolMaxLotSize);
+            const remainder = orderParams.qty % symbolMaxLotSize;
+        
+            /**
+             * @type {number[]}
+             */
+            let arrayWithQuantitiesLeftToExecute = new Array(numRequests).fill(0).map(_ => symbolMaxLotSize);
+
+
+            if (remainder > 0) {
+                arrayWithQuantitiesLeftToExecute.push(remainder);
+            }
+
+            const qtyToExecute = arrayWithQuantitiesLeftToExecute.shift();
+            if(!qtyToExecute) throw new Error(FUNCTION_NAME+" Error: const qtyToExecute = arrayWithQuantitiesLeftToExecute.shift();");
+            const requestParams = { ...orderParams, qty: symbolMaxLotSize };
+            const closePositionRes = await this.#restClientV5.submitOrder(requestParams);
+            return {closePositionRes,arrayWithQuantitiesLeftToExecute};
+            
+        }
     }
+   
 
     /**
      * 
@@ -140,9 +247,27 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
     }
 
 
-    /**
-    * @param {import("bybit-api").GetAccountOrdersParams} getAccountOrdersParams
-    */
+    // /**
+    // * @param {import("bybit-api").GetAccountOrdersParams} positionInfoParamsV5
+    // */
+    // async getTotalOpenPositionsUSDTValue(positionInfoParamsV5){
+    //     await this.#rateLimiter.addJob();
+    //     console.log("[method: getTotalOpenPositionsUSDTValue]");
+    //     const activeOrders_Res = await this.getPositionInfo_Realtime(positionInfoParamsV5);
+    //     if(activeOrders_Res.retCode!==0){
+    //         throw new Error(`[method: getTotalOpenPositionsUSDTValue] ${activeOrders_Res.retMsg}`);
+    //     }else {
+    //         let totalValue = 0;
+    //         for(const order of activeOrders_Res.result.list){
+    //             const orderValue = order.;
+    //             totalValue+= orderValue;
+    //         }
+    //         return totalValue;
+    //     }
+    // }
+    // /**
+    // * @param {import("bybit-api").GetAccountOrdersParams} getAccountOrdersParams
+    // */
     async getTotalOpenPositionsUSDTValue(getAccountOrdersParams){
         await this.#rateLimiter.addJob();
         console.log("[method: getTotalOpenPositionsUSDTValue]");

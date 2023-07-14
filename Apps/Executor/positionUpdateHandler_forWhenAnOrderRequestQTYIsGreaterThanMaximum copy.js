@@ -1,69 +1,67 @@
 //@ts-check
 const {Bybit} = require("../../Trader");
 
-const { newPositionSizingAlgorithm } = require("./algos/qty");
 
 
+
+// *      positionsStateDetector: import("../../MongoDatabase").PositionsStateDetector,
 /**
  * 
  * @param {{
 *      mongoDatabase: import("../../MongoDatabase").MongoDatabase,
 *      logger: import("../../Logger").Logger,
-*      positionsStateDetector: import("../../MongoDatabase").PositionsStateDetector,
+*      trader: import("../../MongoDatabase/collections/top_traders/types").TopTraderCollection_Document_Interface,
+*      position: import("../../MongoDatabase/collections/open_trades/types").OpenTrades_Collection_Document_Interface,
+*      user: import("../../MongoDatabase/collections/users/types").Users_Collection_Document_Interface,
+*      sizeToExecute: number,
 *      onErrorCb:(error:Error)=>any
 * }} param0 
 */
-module.exports.positionUpdateHandler = async function positionUpdateHandler({
-    logger, mongoDatabase, positionsStateDetector,onErrorCb
+module.exports.positionUpdateHandler_forWhenAnOrderRequestQTYIsGreaterThanMaximum = async function positionUpdateHandler_forWhenAnOrderRequestQTYIsGreaterThanMaximum({
+    logger, mongoDatabase, position,user,trader,sizeToExecute,onErrorCb
 }) {
-    console.log("fn:positionUpdateHandler");
-    positionsStateDetector.onUpdatePosition(async (previousPositionDocument,position, trader) => {
-        logger.info("Position updated On DB");
-        try {
-            /****
-             * Get all users cursor
-             * 
-             */
-            const users_Cursor = await mongoDatabase.collection.usersCollection.getAllDocumentsBy({
-                status: true
-            });
-            const users_array = await users_Cursor.toArray();
-            const promises = [];
-            for(const user of users_array){
-                try{
-                    
-                    promises.push(handler({
-                        logger,
-                        mongoDatabase,
-                        position,
-                        trader,
-                        user,
-                        onErrorCb:(error)=>{
-                            const newErrorMessage = `(fn:positionUpdateHandler)  trader :${trader.username}) and user :(${user.tg_user_id}) ${error.message}`;
-                            error.message = newErrorMessage;
-                            onErrorCb(error);
-                        }
-                    }));
+    const FUNCTON_NAME = "(fn:positionUpdateHandler_forWhenAnOrderRequestQTYIsGreaterThanMaximum)";
+    console.log(FUNCTON_NAME);
+    try {
+       
+        const users_array = [user];//await users_Cursor.toArray();
+        const promises = [];
+        for(const user of users_array){
+            try{
+                
+                promises.push(handler({
+                    logger,
+                    mongoDatabase,
+                    position,
+                    trader,
+                    user,
+                    sizeToExecute,
+                    onErrorCb:(error)=>{
+                        const newErrorMessage = `${FUNCTON_NAME}  trader :${trader.username}) and user :(${user.tg_user_id}) ${error.message}`;
+                        error.message = newErrorMessage;
+                        onErrorCb(error);
+                    }
+                }));
 
-                }catch(error){
-                    // Error thrown only for user but loop not to be stopped
-                    const newErrorMessage = `(fn:positionUpdateHandler) trader :${trader.username}) and user :(${user.tg_user_id}) ${error.message}`;
-                    error.message = newErrorMessage;
-                    onErrorCb(error);
-                }
-
+            }catch(error){
+                // Error thrown only for user but loop not to be stopped
+                const newErrorMessage = `${FUNCTON_NAME} trader :${trader.username}) and user :(${user.tg_user_id}) ${error.message}`;
+                error.message = newErrorMessage;
+                onErrorCb(error);
             }
-            await Promise.allSettled(promises);
 
-
-
-        } catch (error) {
-            console.log({ error });
-            let errorMsg = "(fn:positionUpdateHandler) " + (error && error.message ? error.message : "");
-            errorMsg += " (" + position.pair + ")";
-            logger.error(JSON.stringify(errorMsg));
         }
-    });
+        await Promise.allSettled(promises);
+
+
+
+    } catch (error) {
+        console.log({ error });
+        let errorMsg = "${FUNCTON_NAME} " + (error && error.message ? error.message : "");
+        errorMsg += " (" + position.pair + ")";
+        logger.error(JSON.stringify(errorMsg));
+    }
+
 
 };
 
@@ -76,11 +74,12 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
 *      position: import("../../MongoDatabase/collections/open_trades/types").OpenTrades_Collection_Document_Interface,
 *      trader: import("../../MongoDatabase/collections/top_traders/types").TopTraderCollection_Document_Interface,
 *      user: import("../../MongoDatabase/collections/users/types").Users_Collection_Document_Interface,
+*      sizeToExecute: number,
 *      onErrorCb:(error:Error)=>any
 * }} param0 
 */
 async function handler({ 
-    logger,mongoDatabase,position,trader,user,onErrorCb
+    logger,mongoDatabase,position,trader,user,sizeToExecute,onErrorCb
 }){
     try {
         /////////////////////////////////////////////
@@ -141,15 +140,15 @@ async function handler({
          * Calculate the updated qty
          */
         logger.info("Calculate percentageBased_DynamicPositionSizingAlgo");
-        const { sizeToExecute } = await newPositionSizingAlgorithm({
-            bybit,
-            position,
-            trader,
-            mongoDatabase,
-            action: "update",
-            user
-        });
-        if(sizeToExecute===0)throw new Error("sizeToExecute==="+sizeToExecute);
+        // const { sizeToExecute } = await newPositionSizingAlgorithm({
+        //     bybit,
+        //     position,
+        //     trader,
+        //     mongoDatabase,
+        //     action: "update",
+        //     user
+        // });
+        // if(sizeToExecute===0)throw new Error("sizeToExecute==="+sizeToExecute);
         const standardized_qty = sizeToExecute;
     
         if (standardized_qty == parseFloat(String(tradedPositionObj.size))) throw new Error("Not updating the position as qty not changed");
@@ -201,7 +200,7 @@ async function handler({
         });
         console.log({ updatePositionRes:updatePositionRes.result });
         if (!updatePositionRes || !updatePositionRes.result || !updatePositionRes.result.orderId) {
-            throw new Error(updatePositionRes.retMsg);
+            throw new Error("updatePositionRes: "+updatePositionRes.retMsg);
         }
         logger.info("Updated the position at bybit_RestClientV5");
     
@@ -212,12 +211,35 @@ async function handler({
             category: "linear",
             orderId: updatePositionRes.result.orderId
         });
-        if (Object.keys(getOrderHistory_Res2.result).length === 0) throw new Error(getOrderHistory_Res2.retMsg);
+        if (Object.keys(getOrderHistory_Res2.result).length === 0) throw new Error("getOrderHistory_Res2: "+getOrderHistory_Res2.retMsg);
         const orderObject2 = getOrderHistory_Res2.result.list.find((accountOrderV5_) => accountOrderV5_.orderId === updatePositionRes.result.orderId);
         if (!orderObject2) throw new Error("updated orderObject not found in order history");
         console.log({ orderObject2 });
+
+        // const getOrderHistory_Res2 = await bybit.clients.bybit_RestClientV5.getPositionInfo_Realtime({
+        //     category: "linear",
+        //     settleCoin:"USDT",
+        //     // orderId: updatePositionRes.result.orderId
+        // });
+        // if (Object.keys(getOrderHistory_Res2.result).length === 0) throw new Error("getOrderHistory_Res2: "+getOrderHistory_Res2.retMsg);
+        // const orderObject2 = getOrderHistory_Res2.result.list.find((accountOrderV5_) => {
+        //     if(accountOrderV5_.symbol===position.pair && accountOrderV5_.side===(position.direction==="LONG"?"Buy":"Short")){
+        //         return accountOrderV5_;
+        //     }
+        // });
+        // if (!orderObject2) throw new Error("updated orderObject not found in order history");
+        // console.log({ orderObject2 });
     
-    
+        // const roi = ()=>{
+        //     const currentValue = parseFloat(orderObject2.positionValue);
+        //     const positionSize = parseFloat(orderObject2.size);
+        //     const averageEntryPrice = parseFloat(orderObject2.avgPrice);
+
+        //     const initialCost = positionSize * averageEntryPrice;
+        //     const roi = (currentValue - initialCost) / initialCost;
+ 
+        //     return roi;
+        // };
         // update the TradedTrades db document
         await mongoDatabase.collection.tradedPositionsCollection.
             updateDocument(tradedPositionObj._id, {
@@ -238,6 +260,24 @@ async function handler({
                 document_last_edited_at_datetime: new Date(),
                 order_id: updatePositionRes.result.orderId
             });
+        // updateDocument(tradedPositionObj._id, {
+        //     close_price: parseFloat(orderObject2.markPrice),
+        //     closed_pnl: parseFloat(orderObject2.unrealisedPnl),//bybit.calculateAccountActiveOrderPNL(orderObject2),
+        //     closed_roi_percentage: roi(),
+        //     entry_price: tradedPositionObj.entry_price,
+        //     leverage: parseFloat(String(tradedPositionObj.leverage)),
+        //     pair: position.pair,
+        //     position_id_in_oldTradesCollection: undefined,
+        //     position_id_in_openTradesCollection: position._id,
+        //     server_timezone: process.env.TZ,
+        //     size: standardized_qty,//parseFloat(orderObject2.qty),
+        //     status: "OPEN",
+        //     trader_uid: trader.uid,
+        //     trader_username: trader.username,
+        //     traded_value: tradedPositionObj.traded_value + parseFloat(orderObject2.positionValue),
+        //     document_last_edited_at_datetime: new Date(),
+        //     order_id: updatePositionRes.result.orderId
+        // });
         logger.info("Updated position in tradedPositionCollection db");
 
     }catch(error){

@@ -2,6 +2,7 @@
 const {Bybit} = require("../../Trader");
 
 const {newPositionSizingAlgorithm} = require("./algos/qty");
+const { positionUpdateHandler_forWhenAnOrderRequestQTYIsGreaterThanMaximum } = require("./positionUpdateHandler_forWhenAnOrderRequestQTYIsGreaterThanMaximum");
 const { setUpSubAccountsForUser } = require("./setUpSubAccountsForUser");
 
 /**
@@ -16,7 +17,8 @@ const { setUpSubAccountsForUser } = require("./setUpSubAccountsForUser");
 module.exports.newPositionHandler = async function newPositionHandler({
     logger,mongoDatabase,positionsStateDetector,onErrorCb
 }){ 
-    console.log("fn:newPositionHandler");
+    const FUNCTION_NAME = "fn:newPositionHandler";
+    console.log(FUNCTION_NAME);
     positionsStateDetector.onNewPosition(async (position, trader) => {
         logger.info("New Position Added To DB");
         try{
@@ -30,7 +32,7 @@ module.exports.newPositionHandler = async function newPositionHandler({
             });
             const users_array = await users_Cursor.toArray();
             const promises = [];
-            for(const user of users_array){
+            for(const user of users_array){ 
                 try {
                     
                     console.log("Pushing handler async functions");
@@ -171,7 +173,7 @@ async function handler({
 
 
         logger.info("Calculate percentageBased_DynamicPositionSizingAlgo");
-        const {sizeToExecute} = await newPositionSizingAlgorithm({
+        const {sizesToExecute, symbolLotStepSize, symbolMaxLotSize} = await newPositionSizingAlgorithm({
             bybit,
             position,
             trader,
@@ -179,9 +181,12 @@ async function handler({
             action:"new_trade",
             user
         });
-        if(sizeToExecute===0)throw new Error("sizeToExecute==="+sizeToExecute);
-        const standardized_qty = sizeToExecute;
-                
+        const sizeToExecute = sizesToExecute[0];
+        console.log({sizesToExecute,sizeToExecute});
+        
+        if(sizeToExecute===0||!sizeToExecute)throw new Error("sizeToExecute==="+sizeToExecute);
+        const total_standardized_qty = sizesToExecute.reduce((a,b)=>a+b,0);
+        console.log({total_standardized_qty});
         // Switch position mode
         const switchPositionMode_Res = await bybit.clients.bybit_LinearClient.switchPositionMode({
             mode:"BothSide",// 3:Both Sides
@@ -218,51 +223,81 @@ async function handler({
             logger.error("setUserLeverage_Res: "+""+setUserLeverage_Res.ret_msg+"("+position.pair+")");
         }
         logger.info("Sending openANewPosition Order to bybit_RestClientV5");
-        const openPositionRes = await bybit.clients.bybit_RestClientV5.openANewPosition({
+        const {openPositionRes} = await bybit.clients.bybit_RestClientV5.openANewPosition({
+            orderParams: {
+                category:"linear",
+                orderType:"Market",
+                qty:String(total_standardized_qty),//String(symbolInfo.lot_size_filter.min_trading_qty),
+                side: position.direction==="LONG"?"Buy":"Sell",
+                symbol: position.pair,
+                positionIdx:position.direction==="LONG"?1:2, //Used to identify positions in different position modes. Under hedge-mode, this param is required 0: one-way mode  1: hedge-mode Buy side 2: hedge-mode Sell side
+            },
+            symbolLotStepSize,
+            symbolMaxLotSize
+        });
+        // const arrayWithQuantitiesLeftToExecute = sizesToExecute;
+        // console.log({openPositionRes,arrayWithQuantitiesLeftToExecute});
+        // if(!openPositionRes || !openPositionRes.result || Object.keys(openPositionRes.result).length==0){
+        //     throw new Error(`${openPositionRes.retMsg} standardized_qty:${standardized_qty}`);
+        // }
+        // logger.info("Got response from openANewPosition Order from bybit_RestClientV5");
+        // console.log({openPositionRes});
+        // logger.info("The openANewPosition response has a orderId Meaning order was successfull");
+        // logger.info("Getting a list of open active orders from bybit_RestClientV5");
+        // const getActiveOrders_Res = await bybit.clients.bybit_RestClientV5.getActiveOrders({
+        //     category:"linear",
+        //     symbol: position.pair, 
+        //     orderId: openPositionRes.result.orderId,
+        // });
+        // if(!getActiveOrders_Res ||!getActiveOrders_Res.result ||Object.keys(getActiveOrders_Res.result).length==0){
+        //     throw new Error(getActiveOrders_Res.retMsg);
+        // }
+        // logger.info("Got a list of active orders from bybit_RestClientV5");
+        // const orderInExchange = getActiveOrders_Res.result.list.find((accountOrderV5)=>accountOrderV5.orderId===openPositionRes.result.orderId);
+        // console.log({orderInExchange});
+        // if(!orderInExchange)throw new Error("Active order for opened order orderId: "+openPositionRes.result.orderId+" not found in active orders");
+        // logger.info("Saving the position to DB");
+        // // successfully placed a position
+
+        const getOpenPosition_Result =  await bybit.clients.bybit_RestClientV5.getPositionInfo_Realtime({
             category:"linear",
-            orderType:"Market",
-            qty:String(standardized_qty),//String(symbolInfo.lot_size_filter.min_trading_qty),
-            side: position.direction==="LONG"?"Buy":"Sell",
+            // settleCoin:"USDT"
             symbol: position.pair,
-            positionIdx:position.direction==="LONG"?1:2, //Used to identify positions in different position modes. Under hedge-mode, this param is required 0: one-way mode  1: hedge-mode Buy side 2: hedge-mode Sell side
+            
         });
-        if(!openPositionRes || !openPositionRes.result || Object.keys(openPositionRes.result).length==0){
-            throw new Error(`${openPositionRes.retMsg} standardized_qty:${standardized_qty}`);
-        }
-        logger.info("Got response from openANewPosition Order from bybit_RestClientV5");
-        console.log({openPositionRes});
-        logger.info("The openANewPosition response has a orderId Meaning order was successfull");
-        logger.info("Getting a list of open active orders from bybit_RestClientV5");
-        const getActiveOrders_Res = await bybit.clients.bybit_RestClientV5.getActiveOrders({
-            category:"linear",
-            symbol: position.pair, 
-            orderId: openPositionRes.result.orderId,
+
+        if(getOpenPosition_Result.retCode!==0)throw new Error(`getOpenPosition_Result: ${getOpenPosition_Result.retMsg}`);
+        // console.log({getOpenPosiion_Result});
+        const theTradeInBybit = getOpenPosition_Result.result.list.find((p)=>{
+            console.log({
+                p
+            });
+            if(
+                p.side===(position.direction==="LONG"?"Buy":"Sell")
+                &&
+                p.symbol===position.pair
+            ){
+                return p;
+            }
         });
-        if(!getActiveOrders_Res ||!getActiveOrders_Res.result ||Object.keys(getActiveOrders_Res.result).length==0){
-            throw new Error(getActiveOrders_Res.retMsg);
-        }
-        logger.info("Got a list of active orders from bybit_RestClientV5");
-        const orderInExchange = getActiveOrders_Res.result.list.find((accountOrderV5)=>accountOrderV5.orderId===openPositionRes.result.orderId);
-        console.log({orderInExchange});
-        if(!orderInExchange)throw new Error("Active order for opened order orderId: "+openPositionRes.result.orderId+" not found in active orders");
-        logger.info("Saving the position to DB");
-        // successfully placed a position
+
+        if(!theTradeInBybit)throw new Error(`(getOpenPosition_Result) theTradeInBybit is ${theTradeInBybit}`);
     
 
         const nowDate = new Date();
         await mongoDatabase.collection.tradedPositionsCollection.createNewDocument({
-            entry_price: parseFloat(orderInExchange.avgPrice),
+            entry_price: parseFloat(theTradeInBybit.avgPrice),
             testnet: user.testnet,
             leverage: position.leverage,
             pair: position.pair,
             position_id_in_openTradesCollection: position._id,
-            size: parseFloat(orderInExchange.qty),
+            size: parseFloat(theTradeInBybit.size),
             status: "OPEN",
             trader_uid: trader.uid,
             trader_username: trader.username?trader.username:"",
-            entry_datetime: new Date(parseFloat(orderInExchange.createdTime)),
+            entry_datetime: new Date(parseFloat(theTradeInBybit.createdTime)),
             direction: position.direction,
-            traded_value: (parseFloat(orderInExchange.cumExecValue) / position.leverage),
+            traded_value: (parseFloat(theTradeInBybit.positionValue) / position.leverage),
             order_id: openPositionRes.result.orderId,
             tg_user_id: user.tg_user_id,
             actual_position_leverage: position.leverage,
@@ -280,6 +315,15 @@ async function handler({
             
         });
         logger.info("Saved the position to DB");
+        // console.log({arrayWithQuantitiesLeftToExecute});
+        // // Update position with remaining quantities
+        // for(const qtyToExecute_ of arrayWithQuantitiesLeftToExecute){
+        //     console.log(" Running remaining qty");
+        //     await positionUpdateHandler_forWhenAnOrderRequestQTYIsGreaterThanMaximum({
+        //         logger,mongoDatabase,onErrorCb,position,trader,user,sizeToExecute:qtyToExecute_,
+        //         originalTradedPositionDocumentId: createNewDocumentResult.insertedId
+        //     });
+        // }
 
 
         

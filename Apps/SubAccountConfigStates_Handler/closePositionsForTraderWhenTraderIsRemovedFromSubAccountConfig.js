@@ -18,6 +18,11 @@ module.exports.closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig = 
     try{
         console.log(FUNCTION_NAME);
         /**
+         * Get the trader
+         */
+        const trader = await mongoDatabase.collection.topTradersCollection.findOne({_id:trader_uid});
+        if(!trader) throw new Error(`trader (trader_uid: ${trader_uid}) not found in DB`);
+        /**
          * Get the traders open positions documents
          */
         
@@ -84,7 +89,9 @@ module.exports.closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig = 
                 document_last_edited_at_datetime: datetimeNow,
                 server_timezone: process.env.TZ||"",
                 reason:config_type==="atomos"?"TRADER_REMOVED_FROM_ATOMOS_SUB_ACCOUNT_CONFIG":"TRADER_REMOVED_FROM_USER_CUSTOM_SUB_ACCOUNT_CONFIG",
-                tg_user_id:tg_user_id
+                tg_user_id:tg_user_id,
+                trader_today_estimated_balance: trader.today_estimated_balance,
+                trader_username: trader.username
             });
             // delete from openPositions collections
             // await mongoDatabase.collection.openTradesCollection.deleteManyDocumentsByIds([positionToClose_._id]);

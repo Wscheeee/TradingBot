@@ -97,6 +97,7 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
 
         // END
         console.log({
+            positionSize: position.size,
             entry_price: position.entry_price,
             // tradeAllocationPercentage,
             tradeValue,

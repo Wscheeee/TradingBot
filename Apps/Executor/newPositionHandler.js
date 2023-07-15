@@ -2,7 +2,6 @@
 const {Bybit} = require("../../Trader");
 
 const {newPositionSizingAlgorithm} = require("./algos/qty");
-const { positionUpdateHandler_forWhenAnOrderRequestQTYIsGreaterThanMaximum } = require("./positionUpdateHandler_forWhenAnOrderRequestQTYIsGreaterThanMaximum");
 const { setUpSubAccountsForUser } = require("./setUpSubAccountsForUser");
 
 /**
@@ -223,7 +222,7 @@ async function handler({
             logger.error("setUserLeverage_Res: "+""+setUserLeverage_Res.ret_msg+"("+position.pair+")");
         }
         logger.info("Sending openANewPosition Order to bybit_RestClientV5");
-        const {openPositionRes} = await bybit.clients.bybit_RestClientV5.openANewPosition({
+        const {openPositionsRes} = await bybit.clients.bybit_RestClientV5.openANewPosition({
             orderParams: {
                 category:"linear",
                 orderType:"Market",
@@ -235,6 +234,7 @@ async function handler({
             symbolLotStepSize,
             symbolMaxLotSize
         });
+        
         // const arrayWithQuantitiesLeftToExecute = sizesToExecute;
         // console.log({openPositionRes,arrayWithQuantitiesLeftToExecute});
         // if(!openPositionRes || !openPositionRes.result || Object.keys(openPositionRes.result).length==0){
@@ -259,71 +259,92 @@ async function handler({
         // logger.info("Saving the position to DB");
         // // successfully placed a position
 
-        const getOpenPosition_Result =  await bybit.clients.bybit_RestClientV5.getPositionInfo_Realtime({
-            category:"linear",
-            // settleCoin:"USDT"
-            symbol: position.pair,
-            
-        });
 
-        if(getOpenPosition_Result.retCode!==0)throw new Error(`getOpenPosition_Result: ${getOpenPosition_Result.retMsg}`);
-        // console.log({getOpenPosiion_Result});
-        const theTradeInBybit = getOpenPosition_Result.result.list.find((p)=>{
-            console.log({
-                p
-            });
-            if(
-                p.side===(position.direction==="LONG"?"Buy":"Sell")
-                &&
-                p.symbol===position.pair
-            ){
-                return p;
+        let someCloseIsSucccessful = false;
+        // const closedPositionAccumulatedDetails = {
+        //     closedlPNL:0,
+        //     avgExitPrice: 0,
+        //     leverage: 0,
+        //     qty: 0,
+        //     close_datetime:new Date(),
+        //     averageEntryPrice: 0,
+        //     positionCurrentValue: 0
+        // };
+        // Loop through closePositionsRes 
+        for (const openPositionResObj of openPositionsRes){
+            const openPositionRes = openPositionResObj.response;
+            if(openPositionRes.retCode!==0){
+                // throw new Error(openPositionRes.retMsg);
+                //instead send error message 
+                logger.error("openPositionRes:"+openPositionRes.retMsg);
+            }else {
+                someCloseIsSucccessful = true;
+                logger.info("Position closed on bybit_RestClientV5");
+                logger.info("Get closed position info");
             }
-        });
+        }
 
-        if(!theTradeInBybit)throw new Error(`(getOpenPosition_Result) theTradeInBybit is ${theTradeInBybit}`);
+        if(someCloseIsSucccessful){
+            const getOpenPosition_Result =  await bybit.clients.bybit_RestClientV5.getPositionInfo_Realtime({
+                category:"linear",
+                // settleCoin:"USDT"
+                symbol: position.pair,
+                
+            });
     
+            console.log({getOpenPosition_Result});
+            if(getOpenPosition_Result.retCode!==0)throw new Error(`getOpenPosition_Result: ${getOpenPosition_Result.retMsg}`);
+            const theTradeInBybit = getOpenPosition_Result.result.list.find((p)=>{
+                console.log({
+                    p
+                });
+                if(
+                    p.side===(position.direction==="LONG"?"Buy":"Sell")
+                    &&
+                    p.symbol===position.pair
+                ){
+                    return p;
+                }
+            });
+    
+            if(!theTradeInBybit)throw new Error(`(getOpenPosition_Result) theTradeInBybit is ${theTradeInBybit}`);
+            console.log({theTradeInBybit});
+     
+            const nowDate = new Date();
+            await mongoDatabase.collection.tradedPositionsCollection.createNewDocument({
+                entry_price: parseFloat(theTradeInBybit.avgPrice),
+                testnet: user.testnet,
+                leverage: position.leverage,
+                pair: position.pair,
+                position_id_in_openTradesCollection: position._id,
+                size: parseFloat(theTradeInBybit.size),
+                status: "OPEN",
+                trader_uid: trader.uid,
+                trader_username: trader.username?trader.username:"",
+                entry_datetime: new Date(parseFloat(theTradeInBybit.createdTime)),
+                direction: position.direction,
+                traded_value: (parseFloat(theTradeInBybit.positionValue) / position.leverage),
+                // order_id: openPositionRes[0].result.orderId,
+                tg_user_id: user.tg_user_id,
+                actual_position_leverage: position.leverage,
+                actual_position_original_size: position.size,
+                actual_position_size: position.size,
+                document_created_at_datetime: nowDate,
+                document_last_edited_at_datetime: nowDate,
+                //@ts-ignore
+                position_id_in_oldTradesCollection: null,
+                server_timezone: process.env.TZ?process.env.TZ:"",
+                closed_roi_percentage: 0,
+                close_price: 0,
+                closed_pnl: 0, 
+                
+                
+            });
+            logger.info("Saved the position to DB");
 
-        const nowDate = new Date();
-        await mongoDatabase.collection.tradedPositionsCollection.createNewDocument({
-            entry_price: parseFloat(theTradeInBybit.avgPrice),
-            testnet: user.testnet,
-            leverage: position.leverage,
-            pair: position.pair,
-            position_id_in_openTradesCollection: position._id,
-            size: parseFloat(theTradeInBybit.size),
-            status: "OPEN",
-            trader_uid: trader.uid,
-            trader_username: trader.username?trader.username:"",
-            entry_datetime: new Date(parseFloat(theTradeInBybit.createdTime)),
-            direction: position.direction,
-            traded_value: (parseFloat(theTradeInBybit.positionValue) / position.leverage),
-            order_id: openPositionRes.result.orderId,
-            tg_user_id: user.tg_user_id,
-            actual_position_leverage: position.leverage,
-            actual_position_original_size: position.size,
-            actual_position_size: position.size,
-            document_created_at_datetime: nowDate,
-            document_last_edited_at_datetime: nowDate,
-            //@ts-ignore
-            position_id_in_oldTradesCollection: null,
-            server_timezone: process.env.TZ?process.env.TZ:"",
-            closed_roi_percentage: 0,
-            close_price: 0,
-            closed_pnl: 0, 
-            
-            
-        });
-        logger.info("Saved the position to DB");
-        // console.log({arrayWithQuantitiesLeftToExecute});
-        // // Update position with remaining quantities
-        // for(const qtyToExecute_ of arrayWithQuantitiesLeftToExecute){
-        //     console.log(" Running remaining qty");
-        //     await positionUpdateHandler_forWhenAnOrderRequestQTYIsGreaterThanMaximum({
-        //         logger,mongoDatabase,onErrorCb,position,trader,user,sizeToExecute:qtyToExecute_,
-        //         originalTradedPositionDocumentId: createNewDocumentResult.insertedId
-        //     });
-        // }
+        }
+
+        
 
 
         

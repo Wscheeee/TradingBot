@@ -1,5 +1,5 @@
 "use-strict";
-
+//@ts-check
 const { RestClientV5} = require("bybit-api");
 
 const {RateLimiter} = require("../utils/RateLimiter");
@@ -22,16 +22,25 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
      */
     #rateLimiter;
 
+    /***
+     * @type {import("./Bybit").Bybit}
+     */
+    #bybit;
+
     /**
      * 
-     * @param {{restClientV5:import("bybit-api").RestClientV5,millisecondsToDelayBetweenRequests:number}} settings 
+     * @param {{
+     *      restClientV5:import("bybit-api").RestClientV5,millisecondsToDelayBetweenRequests:number,
+     *      bybit: import("./Bybit").Bybit
+     * }} settings 
      */
-    constructor({restClientV5,millisecondsToDelayBetweenRequests}){
+    constructor({restClientV5,millisecondsToDelayBetweenRequests,bybit}){
         this.#restClientV5 = restClientV5;
         this.#millisecondsToDelayBetweenRequests = millisecondsToDelayBetweenRequests;
         this.#rateLimiter = new RateLimiter({
             delayms: millisecondsToDelayBetweenRequests
         });
+        this.#bybit = bybit;
     }
 
     // STATIC
@@ -91,19 +100,25 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
         if(!symbolLotStepSize|!symbolMaxLotSize){
             // exeutte the request as is
             const openPositionRes = await this.#restClientV5.submitOrder(orderParams);
-            return {openPositionRes,arrayWithQuantitiesLeftToExecute:[]};
+            return {openPositionsRes:[{
+                response: openPositionRes,
+                executed_quantity:  parseFloat(orderParams.qty)
+            }]};
         }
         /**
          * @type {number[]}
          */
-        if (orderParams.qty <= symbolMaxLotSize) {
+        if (parseFloat(orderParams.qty) <= symbolMaxLotSize) {
             console.log(`${FUNCTION_NAME} [orderParams.qty <= symbolMaxLotSize] this.#restClientV5.submitOrder(orderParams) :orderParams ` ,);
             console.log({orderParams});
             const openPositionRes = await this.#restClientV5.submitOrder(orderParams);
-            return {openPositionRes,arrayWithQuantitiesLeftToExecute:[]};
+            return {openPositionsRes:[{
+                response: openPositionRes,
+                executed_quantity:  parseFloat(orderParams.qty)
+            }]};
         } else {
             console.log(`${FUNCTION_NAME} [orderParams.qty > symbolMaxLotSize] this.#restClientV5.submitOrder(orderParams) :orderParams ` ,);
-            const numRequests = Math.floor(orderParams.qty / symbolMaxLotSize);
+            const numRequests = Math.floor(parseFloat(orderParams.qty) / symbolMaxLotSize);
             const remainder = orderParams.qty % symbolMaxLotSize;
         
             /**
@@ -116,13 +131,19 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
                 arrayWithQuantitiesLeftToExecute.push(remainder);
             }
 
-            const qtyToExecute = arrayWithQuantitiesLeftToExecute.shift();
-            if(!qtyToExecute) throw new Error(FUNCTION_NAME+" Error: const qtyToExecute = arrayWithQuantitiesLeftToExecute.shift();");
-            const requestParams = { ...orderParams, qty: symbolMaxLotSize };
-            console.log(`${FUNCTION_NAME} [orderParams.qty > symbolMaxLotSize] this.#restClientV5.submitOrder(requestParams) :requestParams ` ,);
-            console.log({requestParams});
-            const openPositionRes = await this.#restClientV5.submitOrder(requestParams);
-            return {openPositionRes,arrayWithQuantitiesLeftToExecute};
+            const openPositionsRes = [];
+            for(const qtyToExecute of arrayWithQuantitiesLeftToExecute){
+                const standardized_qty = await this.#bybit.standardizeQuantity({quantity:qtyToExecute,symbol:orderParams.symbol});
+                const requestParams = { ...orderParams, qty: String(standardized_qty[0] ) };
+                const openPositionRes = await this.#restClientV5.submitOrder(requestParams);
+                openPositionsRes.push({
+                    response: openPositionRes,
+                    executed_quantity: qtyToExecute
+                });
+
+            }
+         
+            return {openPositionsRes};
         }
     }
 
@@ -152,7 +173,7 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
     // }
 
     /**
-     * 
+     * Eecute onlyy one qty are returns the other remaining qty to execute
      * @param {{
     *      orderParams: import("bybit-api").OrderParamsV5,
     *      symbolMaxLotSize?: number,
@@ -167,18 +188,24 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
         console.log({ orderParams, symbolLotStepSize, symbolMaxLotSize });
         if(!symbolLotStepSize||!symbolMaxLotSize){
             const closePositionRes = await this.#restClientV5.submitOrder(orderParams);
-            return {closePositionRes,arrayWithQuantitiesLeftToExecute:[]};
-        }
+            return {closePositionsRes:[{
+                response: closePositionRes,
+                executed_quantity: parseFloat(orderParams.qty)
+            }]};
+        } 
         /**
          * @type {number[]}
          */
-        if (orderParams.qty <= symbolMaxLotSize) {
+        if (parseFloat(orderParams.qty) <= symbolMaxLotSize) {
             const closePositionRes = await this.#restClientV5.submitOrder(orderParams);
-            return {closePositionRes,arrayWithQuantitiesLeftToExecute:[]};
+            return {closePositionsRes:[{
+                response: closePositionRes,
+                executed_quantity: parseFloat(orderParams.qty)
+            }]};
         } else {
-            const numRequests = Math.floor(orderParams.qty / symbolMaxLotSize);
+            const numRequests = Math.floor(parseFloat(orderParams.qty) / symbolMaxLotSize);
             const remainder = orderParams.qty % symbolMaxLotSize;
-        
+            
             /**
              * @type {number[]}
              */
@@ -188,12 +215,20 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
             if (remainder > 0) {
                 arrayWithQuantitiesLeftToExecute.push(remainder);
             }
+            const closePositionsRes = [];
+            for(const qtyToExecute of arrayWithQuantitiesLeftToExecute){
+                // const requestParams = { ...orderParams, qty: String(qtyToExecute) };
+                const standardized_qty = await this.#bybit.standardizeQuantity({quantity:qtyToExecute,symbol:orderParams.symbol});
+                const requestParams = { ...orderParams, qty: String(standardized_qty[0] ) };
+                const closePositionRes = await this.#restClientV5.submitOrder(requestParams);
+                closePositionsRes.push({
+                    response: closePositionRes,
+                    executed_quantity: qtyToExecute
+                });
 
-            const qtyToExecute = arrayWithQuantitiesLeftToExecute.shift();
-            if(!qtyToExecute) throw new Error(FUNCTION_NAME+" Error: const qtyToExecute = arrayWithQuantitiesLeftToExecute.shift();");
-            const requestParams = { ...orderParams, qty: symbolMaxLotSize };
-            const closePositionRes = await this.#restClientV5.submitOrder(requestParams);
-            return {closePositionRes,arrayWithQuantitiesLeftToExecute};
+            }
+         
+            return {closePositionsRes};
             
         }
     }
@@ -317,7 +352,7 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
      */
     async getClosedPositionInfo(getAccountOrdersParams){
         await this.#rateLimiter.addJob();
-        await this.#rateLimiter.addJob();
+        // await this.#rateLimiter.addJob();
         console.log("[method: getClosedPositionInfo]");
         const res = await this.#restClientV5.getHistoricOrders(getAccountOrdersParams);
         return res;
@@ -330,7 +365,7 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
      */
     async getClosedPositionPNL(getClosedPnLParamsV5){
         await this.#rateLimiter.addJob();
-        await this.#rateLimiter.addJob();
+        // await this.#rateLimiter.addJob();
         console.log("[method: getClosedPositionInfo]");
         const res = await this.#restClientV5.getClosedPnL(getClosedPnLParamsV5);
         return res;

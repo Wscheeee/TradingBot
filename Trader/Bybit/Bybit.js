@@ -100,7 +100,8 @@ module.exports.Bybit = class Bybit {
             restClientV5: Bybit_RestClientV5.createRestClientV5({
                 privateKey,publicKey,testnet
             }),
-            millisecondsToDelayBetweenRequests
+            millisecondsToDelayBetweenRequests,
+            bybit:this
         });
 
         this.#clients.bybit_AccountAssetClientV3 = new Bybit_AccountAssetClientV3({
@@ -262,6 +263,22 @@ module.exports.Bybit = class Bybit {
         const currentValue = parseFloat(closedPnLV5.cumExitValue);
         const positionSize = parseFloat(closedPnLV5.qty);
         const averageEntryPrice = parseFloat(closedPnLV5.avgEntryPrice);
+
+        const initialCost = positionSize * averageEntryPrice;
+        const roi = (currentValue - initialCost) / initialCost;
+
+        return roi;
+    }
+    /**
+      * @param {{
+      *     positionCurrentValue: number,
+      *     positionSize: number,
+      *     averageEntryPrice: Number
+      * }} param 
+      * @returns {number}
+      */
+    calculateClosedPositionROI({averageEntryPrice,positionCurrentValue,positionSize}) {
+        const currentValue = positionCurrentValue;
 
         const initialCost = positionSize * averageEntryPrice;
         const roi = (currentValue - initialCost) / initialCost;

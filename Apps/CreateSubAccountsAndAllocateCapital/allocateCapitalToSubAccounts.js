@@ -10,11 +10,12 @@ const { performUniversalTransfer } = require("./performUniversalTransfer");
  * @param {{
 *      user: import("../../MongoDatabase/collections/users/types").Users_Collection_Document_Interface,
 *      mongoDatabase: import("../../MongoDatabase").MongoDatabase,
-*      bybit: import("../../Trader").Bybit 
+*      bybit: import("../../Trader").Bybit ,
+*      onError: (error:Error)=>any
 * }} param0
 */
 module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSubAccounts({
-    mongoDatabase,user,bybit
+    mongoDatabase,user,bybit,onError
 }){ 
     try {
         console.log("(fn:allocateCapitalToSubAccounts)");
@@ -124,17 +125,23 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                         publicKey:subAccountDoc.public_api,
                         testnet: user.testnet 
                     });
+                    // const trader = await mongoDatabase.collection.topTradersCollection.findOne({_id:trader_uid});
+                    // if(!trader) throw new Error(`trader (trader_uid: ${trader_uid}) not found in DB`);
                     await closeAllPositionsInASubAccount({
-                        bybit:subAccountBybit
+                        bybit:subAccountBybit,
+                        onError,
+                        mongoDatabase,
+                        // trader,
+                        user
                     });
-                    if(subAccountDoc.trader_uid){
-                        await markPositionsInDB_asClosedForATrader({
-                            mongoDatabase,
-                            trader_uid:subAccountDoc.trader_uid ,
-                            config_type:user.atomos===true?"atomos":"user_custom",
-                            tg_user_id: user.tg_user_id
-                        });
-                    }
+                    // if(subAccountDoc.trader_uid){
+                    //     await markPositionsInDB_asClosedForATrader({
+                    //         mongoDatabase,
+                    //         trader_uid:subAccountDoc.trader_uid ,
+                    //         config_type:user.atomos===true?"atomos":"user_custom",
+                    //         tg_user_id: user.tg_user_id
+                    //     });
+                    // }
 
                 }
             }

@@ -17,6 +17,7 @@ const {IS_LIVE} = require("../../appConfig");
 const dotEnvObj = readAndConfigureDotEnv(IS_LIVE); 
 const {Telegram} = require("../../Telegram");
 const {Logger} = require("../../Logger");
+const { DateTime } = require("../../DateTime");
 const APP_NAME = "App:UpdateSavedTradersStats";
 const logger = new Logger({app_name:APP_NAME});
 
@@ -39,11 +40,13 @@ console.log(IS_LIVE);
     let run = true;
     while(run){
         // Run once at 4:am
-        const CURRENT_HOUR = new Date().getHours();
-        const TODAY_DAY_NUMBER = new Date().getDay();
+        const dateTimeNow = new DateTime().now();
+        const CURRENT_HOUR = dateTimeNow.hours;
+        const TODAY_DAY_NUMBER = dateTimeNow.day_index;
         while(lastScrapedDayNumber!==TODAY_DAY_NUMBER && CURRENT_HOUR===4){// Scrape when day changes
+            logger.error("RUNNING "+APP_NAME);
             let mongoDatabase = null;
-            let browser = null;
+            let browser = null; 
             try{
                 /**
                  * 0. Create db and Create a browser 

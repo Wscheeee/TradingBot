@@ -1,6 +1,5 @@
 /**
  * @typedef  {{
- *    order_id: string,
  *    testnet: boolean,
  *    tg_user_id: number,
  *    trader_uid: string,

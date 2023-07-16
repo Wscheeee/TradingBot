@@ -1,4 +1,5 @@
 //@ts-check
+const { DecimalMath } = require("../../DecimalMath");
 const {Bybit} = require("../../Trader");
 
 const {newPositionSizingAlgorithm} = require("./algos/qty");
@@ -323,8 +324,7 @@ async function handler({
                 trader_username: trader.username?trader.username:"",
                 entry_datetime: new Date(parseFloat(theTradeInBybit.createdTime)),
                 direction: position.direction,
-                traded_value: (parseFloat(theTradeInBybit.positionValue) / position.leverage),
-                // order_id: openPositionRes[0].result.orderId,
+                traded_value: new DecimalMath(parseFloat(theTradeInBybit.positionValue)).divide(position.leverage).getResult(),
                 tg_user_id: user.tg_user_id,
                 actual_position_leverage: position.leverage,
                 actual_position_original_size: position.size,

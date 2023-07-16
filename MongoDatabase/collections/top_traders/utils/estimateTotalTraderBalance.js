@@ -40,7 +40,7 @@ module.exports.estimateTotalTraderBalance = async function estimateTotalTraderBa
         let estimateDaily = new DecimalMath(traderDocument.daily_pnl).multiply(ratio).getResult();
         // Make sure estimateDaily is always positive
         estimateDaily = Math.abs(estimateDaily);
-        const today_estimated_balance = estimateDaily + totalPositionsValue;
+        const today_estimated_balance = estimateDaily - totalPositionsValue;
         return today_estimated_balance;
 
     }catch(error){

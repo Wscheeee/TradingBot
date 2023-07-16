@@ -226,13 +226,14 @@ async function handler({
         console.log({closePositionsRes});
         let someCloseIsSucccessful = false;
         const closedPositionAccumulatedDetails = {
-            closedlPNL:0,
+            closedPNL:0,
             avgExitPrice: 0,
             leverage: 0,
             qty: 0,
             close_datetime:new Date(),
             averageEntryPrice: 0,
-            positionCurrentValue: 0
+            positionCurrentValue: 0,
+            tradedValue:0
         };
         // Loop through closePositionsRes 
         for (const closePositionResObj of closePositionsRes){
@@ -284,13 +285,14 @@ async function handler({
                 if(!closedPositionPNLObj)throw new Error("closedPositionPNLObj not found for closed partial position:");
             
                 let closedPartialPNL  = parseFloat(closedPositionPNLObj.closedPnl);
-                closedPositionAccumulatedDetails.closedlPNL+=closedPartialPNL;
+                closedPositionAccumulatedDetails.closedPNL+=closedPartialPNL;
                 closedPositionAccumulatedDetails.avgExitPrice =  parseFloat(closedPositionPNLObj.avgExitPrice);
                 closedPositionAccumulatedDetails.leverage =  parseFloat(closedPositionPNLObj.leverage);
                 closedPositionAccumulatedDetails.qty +=  parseFloat(closedPositionPNLObj.qty);
                 closedPositionAccumulatedDetails.close_datetime =  new Date(parseFloat(closedPositionPNLObj.updatedTime));
                 closedPositionAccumulatedDetails.averageEntryPrice =  parseFloat(closedPositionPNLObj.avgEntryPrice);
                 closedPositionAccumulatedDetails.positionCurrentValue +=  parseFloat(closedPositionPNLObj.cumExitValue);
+                closedPositionAccumulatedDetails.tradedValue +=  parseFloat(closedPositionPNLObj.cumExitValue);
             }
 
         }
@@ -322,7 +324,7 @@ async function handler({
             await mongoDatabase.collection.tradedPositionsCollection.
                 updateDocument(tradedOpenPositionDocument._id,{
                     close_price: closedPositionAccumulatedDetails.avgExitPrice,
-                    closed_pnl: closedPositionAccumulatedDetails.closedlPNL,
+                    closed_pnl: closedPositionAccumulatedDetails.closedPNL,
                     closed_roi_percentage: bybit.calculateClosedPositionROI({
                         averageEntryPrice: closedPositionAccumulatedDetails.averageEntryPrice,
                         positionCurrentValue:  closedPositionAccumulatedDetails.positionCurrentValue,

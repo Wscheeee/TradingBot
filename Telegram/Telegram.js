@@ -64,7 +64,7 @@ module.exports.Telegram = class Telegram {
 
 
     /**
-     * @param {string} chatId
+     * @param {string|number} chatId
      * @param {string} message 
      * @param {{}} [form] 
      */

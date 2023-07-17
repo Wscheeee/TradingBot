@@ -1,6 +1,10 @@
 //@ts-check
 const { DecimalMath } = require("../../DecimalMath");
 const {Bybit} = require("../../Trader");
+const {
+    sendTradeLeverageUpdateExecutedMessage_toUser,
+    sendTradeUpdateSizeExecutedMessage_toUser
+} = require("../../Telegram/message_templates/trade_execution");
 
 const { newPositionSizingAlgorithm } = require("./algos/qty");
 
@@ -11,11 +15,12 @@ const { newPositionSizingAlgorithm } = require("./algos/qty");
 *      mongoDatabase: import("../../MongoDatabase").MongoDatabase,
 *      logger: import("../../Logger").Logger,
 *      positionsStateDetector: import("../../MongoDatabase").PositionsStateDetector,
+*      bot: import("../../Telegram").Telegram,
 *      onErrorCb:(error:Error)=>any
 * }} param0 
 */
 module.exports.positionUpdateHandler = async function positionUpdateHandler({
-    logger, mongoDatabase, positionsStateDetector,onErrorCb
+    logger, mongoDatabase, positionsStateDetector,bot,onErrorCb
 }) {
     console.log("fn:positionUpdateHandler");
     positionsStateDetector.onUpdatePosition(async (previousPositionDocument,position, trader) => {
@@ -39,6 +44,7 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
                         position,
                         trader,
                         user,
+                        bot,
                         onErrorCb:(error)=>{
                             const newErrorMessage = `(fn:positionUpdateHandler)  trader :${trader.username}) and user :(${user.tg_user_id}) ${error.message}`;
                             error.message = newErrorMessage;
@@ -77,11 +83,12 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
 *      position: import("../../MongoDatabase/collections/open_trades/types").OpenTrades_Collection_Document_Interface,
 *      trader: import("../../MongoDatabase/collections/top_traders/types").TopTraderCollection_Document_Interface,
 *      user: import("../../MongoDatabase/collections/users/types").Users_Collection_Document_Interface,
+*      bot: import("../../Telegram").Telegram,
 *      onErrorCb:(error:Error)=>any
 * }} param0 
 */
 async function handler({ 
-    logger,mongoDatabase,position,trader,user,onErrorCb
+    logger,mongoDatabase,position,trader,user,bot,onErrorCb
 }){
     try {
         /////////////////////////////////////////////
@@ -205,7 +212,7 @@ async function handler({
             position,
             trader,
             mongoDatabase,
-            action:"trade_close",
+            action:"new_trade",
             user
         });
         const sizeToExecute = sizesToExecute[0];
@@ -217,12 +224,14 @@ async function handler({
 
         if(parseFloat(theTradeInBybit.size)<total_standardized_qty){
             console.log("Position Size increased");
+            const qty_to_execute = total_standardized_qty - parseFloat(theTradeInBybit.size);
+            console.log({qty_to_execute});
             // Means that size was added
             const {openPositionsRes} = await bybit.clients.bybit_RestClientV5.openANewPosition({
                 orderParams: {
                     category:"linear",
                     orderType:"Market",
-                    qty:String(total_standardized_qty),//String(symbolInfo.lot_size_filter.min_trading_qty),
+                    qty:String(qty_to_execute),//String(symbolInfo.lot_size_filter.min_trading_qty),
                     side: position.direction==="LONG"?"Buy":"Sell",
                     symbol: position.pair,
                     positionIdx:position.direction==="LONG"?1:2, //Used to identify positions in different position modes. Under hedge-mode, this param is required 0: one-way mode  1: hedge-mode Buy side 2: hedge-mode Sell side
@@ -307,7 +316,7 @@ async function handler({
         });
 
         if(!theTradeInBybit_again)throw new Error(`(getOpenPosition_Result_again) theTradeInBybit_again is ${theTradeInBybit_again}`);
-    
+        console.log({theTradeInBybit_again});
     
         // update the TradedTrades db document
         await mongoDatabase.collection.tradedPositionsCollection.
@@ -316,7 +325,7 @@ async function handler({
                 // closed_pnl: bybit.calculateAccountActiveOrderPNL(orderObject2),
                 // closed_roi_percentage: bybit.calculateAccountActiveOrderROI(orderObject2),
                 // entry_price: tradedPositionObj.entry_price,
-                leverage: parseFloat(String(tradedPositionObj.leverage)),
+                leverage: parseFloat(String(theTradeInBybit_again.leverage||tradedPositionObj.leverage)),
                 // pair: position.pair,
                 // position_id_in_oldTradesCollection: undefined,
                 // position_id_in_openTradesCollection: position._id,
@@ -331,6 +340,43 @@ async function handler({
                 // order_id: updatePositionRes.result.orderId
             });
         logger.info("Updated position in tradedPositionCollection db");
+
+
+ 
+        if(parseFloat(theTradeInBybit.size)<total_standardized_qty){
+            // size changed
+            await sendTradeUpdateSizeExecutedMessage_toUser({
+                bot,
+                position_direction:tradedPositionObj.direction,
+                position_entry_price: tradedPositionObj.entry_price,
+                position_leverage:tradedPositionObj.leverage,
+                position_pair: tradedPositionObj.pair,
+                chatId: user.tg_user_id,
+                trader_username: trader.username,
+                change_by: (parseFloat(theTradeInBybit_again.size)-parseFloat(theTradeInBybit.size)),
+                change_percentage:(parseFloat(theTradeInBybit_again.size)*100)/parseFloat(theTradeInBybit.size),
+                // position_roi:position.roi,
+                // position_pnl: position.pnl
+            });
+        }
+
+        if(theTradeInBybit.leverage && theTradeInBybit_again.leverage && parseFloat(theTradeInBybit.leverage)!==position.leverage){
+            // leverage changed
+            await sendTradeLeverageUpdateExecutedMessage_toUser({
+                bot,
+                position_direction:position.direction,
+                position_entry_price: position.entry_price,
+                position_leverage:position.leverage,
+                position_pair: position.pair,
+                chatId: user.tg_user_id,
+                trader_username: trader.username,
+                change_by: (parseFloat(theTradeInBybit_again.leverage)-parseFloat(theTradeInBybit.leverage)),
+                change_percentage:(parseFloat(theTradeInBybit_again.leverage)*100)/parseFloat(theTradeInBybit.leverage),
+
+                // position_roi:position.roi,
+                // position_pnl: position.pnl
+            });
+        }
 
     }catch(error){
         const newErrorMessage = `user:${user.tg_user_id} (fn:handler) ${error.message}`;

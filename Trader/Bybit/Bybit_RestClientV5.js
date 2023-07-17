@@ -3,7 +3,7 @@
 const { RestClientV5} = require("bybit-api");
 
 const {RateLimiter} = require("../utils/RateLimiter");
-
+const {DecimalMath} = require("../../DecimalMath");
 
 module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
 
@@ -98,8 +98,10 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
         console.log(FUNCTION_NAME);
         console.log({ orderParams, symbolLotStepSize, symbolMaxLotSize });
         if(!symbolLotStepSize|!symbolMaxLotSize){
+            const standardized_qty = await this.#bybit.standardizeQuantity({quantity:orderParams.qty,symbol:orderParams.symbol});
+            const requestParams = { ...orderParams, qty: String(standardized_qty[0] ) };
             // exeutte the request as is
-            const openPositionRes = await this.#restClientV5.submitOrder(orderParams);
+            const openPositionRes = await this.#restClientV5.submitOrder(requestParams);
             return {openPositionsRes:[{
                 response: openPositionRes,
                 executed_quantity:  parseFloat(orderParams.qty)
@@ -111,7 +113,10 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
         if (parseFloat(orderParams.qty) <= symbolMaxLotSize) {
             console.log(`${FUNCTION_NAME} [orderParams.qty <= symbolMaxLotSize] this.#restClientV5.submitOrder(orderParams) :orderParams ` ,);
             console.log({orderParams});
-            const openPositionRes = await this.#restClientV5.submitOrder(orderParams);
+            const standardized_qty = await this.#bybit.standardizeQuantity({quantity:orderParams.qty,symbol:orderParams.symbol});
+            const requestParams = { ...orderParams, qty: String(standardized_qty[0] ) };
+            // exeutte the request as is
+            const openPositionRes = await this.#restClientV5.submitOrder(requestParams);
             return {openPositionsRes:[{
                 response: openPositionRes,
                 executed_quantity:  parseFloat(orderParams.qty)
@@ -187,7 +192,9 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
    
         console.log({ orderParams, symbolLotStepSize, symbolMaxLotSize });
         if(!symbolLotStepSize||!symbolMaxLotSize){
-            const closePositionRes = await this.#restClientV5.submitOrder(orderParams);
+            const standardized_qty = await this.#bybit.standardizeQuantity({quantity:orderParams.qty,symbol:orderParams.symbol});
+            const requestParams = { ...orderParams, qty: String(standardized_qty[0] ) };
+            const closePositionRes = await this.#restClientV5.submitOrder(requestParams);
             return {closePositionsRes:[{
                 response: closePositionRes,
                 executed_quantity: parseFloat(orderParams.qty)
@@ -197,7 +204,9 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
          * @type {number[]}
          */
         if (parseFloat(orderParams.qty) <= symbolMaxLotSize) {
-            const closePositionRes = await this.#restClientV5.submitOrder(orderParams);
+            const standardized_qty = await this.#bybit.standardizeQuantity({quantity:orderParams.qty,symbol:orderParams.symbol});
+            const requestParams = { ...orderParams, qty: String(standardized_qty[0] ) };
+            const closePositionRes = await this.#restClientV5.submitOrder(requestParams);
             return {closePositionsRes:[{
                 response: closePositionRes,
                 executed_quantity: parseFloat(orderParams.qty)
@@ -300,20 +309,22 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
     //         return totalValue;
     //     }
     // }
-    // /**
-    // * @param {import("bybit-api").GetAccountOrdersParams} getAccountOrdersParams
-    // */
-    async getTotalOpenPositionsUSDTValue(getAccountOrdersParams){
+
+    /**
+     * 
+     * @param {import("bybit-api").PositionInfoParamsV5} positionsInfoParamsV5 
+    */
+    async getTotalOpenPositionsUSDTValue(positionsInfoParamsV5){
         await this.#rateLimiter.addJob();
         console.log("[method: getTotalOpenPositionsUSDTValue]");
-        const activeOrders_Res = await this.getActiveOrders(getAccountOrdersParams);
-        if(activeOrders_Res.retCode!==0){
-            throw new Error(`[method: getTotalOpenPositionsUSDTValue] ${activeOrders_Res.retMsg}`);
+        const openPositions_Res = await this.getPositionInfo_Realtime(positionsInfoParamsV5);
+        if(openPositions_Res.retCode!==0){
+            throw new Error(`[method: getTotalOpenPositionsUSDTValue] ${openPositions_Res.retMsg}`);
         }else {
             let totalValue = 0;
-            for(const order of activeOrders_Res.result.list){
-                const orderValue = order.cumExecValue;
-                totalValue+= orderValue;
+            for(const position of openPositions_Res.result.list){
+                const positionValue = new DecimalMath(parseFloat(position.positionValue)).divide(parseFloat(position.leverage||1)).getResult();
+                totalValue+= positionValue;
             }
             return totalValue;
         }

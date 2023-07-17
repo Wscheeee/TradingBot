@@ -45,7 +45,7 @@ process.env.TZ = dotEnvObj.TZ;
     let mongoDatabase = null;
     try {
         
-        logger.info("Start App");
+        logger.info("Start "+APP_NAME);
         /***
 		 * Error Telegram bot for sendding error messages to Telegram error channel.
 		 */
@@ -62,7 +62,7 @@ process.env.TZ = dotEnvObj.TZ;
                 if(message.includes(filterText)){
                     return filterText;
 
-                }
+                } 
             });
             if(messageIsUnwanted.length===0){
                 await errorbot.sendMessage(dotEnvObj.TELEGRAM_ERROR_CHHANNEL_ID,message);
@@ -72,6 +72,8 @@ process.env.TZ = dotEnvObj.TZ;
             logger.info("Send error message to telegram error channel");
         });
 
+        const userMessagingBot = new Telegram({telegram_bot_token:dotEnvObj.TELEGRAM_BOT_TOKEN,requestDelay:5000});
+        logger.info("Create Telegram user messaging bot");
 
 
         logger.info("Create Bybit Client");
@@ -89,6 +91,7 @@ process.env.TZ = dotEnvObj.TZ;
             logger,
             mongoDatabase,
             positionsStateDetector,
+            bot: userMessagingBot,
             onErrorCb:(error)=>{
                 logger.error(error.message);
             } 
@@ -96,8 +99,8 @@ process.env.TZ = dotEnvObj.TZ;
         await positionUpdateHandler({
             logger,
             mongoDatabase,
-            positionsStateDetector,
-            
+            positionsStateDetector, 
+            bot: userMessagingBot,
             onErrorCb:(error)=>{
                 logger.error(error.message);
             }
@@ -106,6 +109,7 @@ process.env.TZ = dotEnvObj.TZ;
             logger,
             mongoDatabase,
             positionsStateDetector,
+            bot: userMessagingBot,
             onErrorCb:(error)=>{
                 logger.error(error.message);
             }
@@ -114,6 +118,7 @@ process.env.TZ = dotEnvObj.TZ;
             logger,
             mongoDatabase,
             positionsStateDetector,
+            bot: userMessagingBot,
             onErrorCb:(error)=>{
                 logger.error(error.message);
             } 

@@ -117,10 +117,14 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
                     // const previousDoc = this.#mongoDatabase.collection.openTradesCollection.previousDocumentsForUpdates_Object[fullDocumentAfterUpdate._id.toString()];
                     // const previousDocBeforeUpdate = await this.#mongoDatabase.collection.openTradesCollection.previousOpenTradesBeforeUpdate_Collection.findOne({original_document_id: fullDocumentAfterUpdate._id});
                     const previousDocBeforeUpdate = change.fullDocumentBeforeChange;
-                    console.log("OpenTrades Document has real changes!");
-                    this.#onUpdatePositionCallbacks.forEach((cb) => {
-                        cb(previousDocBeforeUpdate,fullDocumentAfterUpdate, trader);
-                    });
+                    if(previousDocBeforeUpdate && ( (previousDocBeforeUpdate.leverage!==fullDocumentAfterUpdate.leverage) || (previousDocBeforeUpdate.size<fullDocumentAfterUpdate.size) )){
+                        // Run only if leverage changed or size increased
+                        console.log("OpenTrades Document has real changes!");
+                        this.#onUpdatePositionCallbacks.forEach((cb) => {
+                            cb(previousDocBeforeUpdate,fullDocumentAfterUpdate, trader);
+                        });
+
+                    }
                 } else {
                     // console.log("OpenTrades Document has no real changes.");
                 } 

@@ -27,6 +27,24 @@ module.exports.TradedPositionsCollection =  class TradedPositionsCollection{
         this.#database = database;
         this.#collection = this.#database.collection(this.#COLLECTION_NAME);
     }
+
+    async runOnInitImmediatelyAfterConnect(){
+        const FUNCTION_NAME="(class:"+this.#COLLECTION_NAME+")(method:runOnInitImmediatelyAfterConnect)";
+        console.log(FUNCTION_NAME);
+        try{
+            console.log("Creating collecion "+ this.#COLLECTION_NAME + " if not yet created");
+            await this.#database.createCollection(this.#COLLECTION_NAME,{changeStreamPreAndPostImages:{
+                enabled: true
+            }});
+            console.log("Created collecion "+ this.#COLLECTION_NAME);
+        }catch(error){
+            console.log(`Collection ${this.#COLLECTION_NAME} already created`);
+            const newErrorMessage = `${FUNCTION_NAME}: ${error.message}`;
+            error.message = newErrorMessage;
+            console.log(error.message);
+            // throw error;
+        }
+    } 
     
     async createIndexes(){
         await this.#collection.createIndex("_id");
@@ -72,7 +90,10 @@ module.exports.TradedPositionsCollection =  class TradedPositionsCollection{
     // added
     watchCollection(){
         console.log("Setting watch listener");
-        const eventListenter =  this.#collection.watch();
+        const eventListenter =  this.#collection.watch(undefined,{
+            fullDocumentBeforeChange:"whenAvailable",
+            fullDocument: "updateLookup"
+        });
         this.#eventListenersArray.push(eventListenter);
         return eventListenter;
     }

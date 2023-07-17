@@ -37,7 +37,7 @@ module.exports.OpenTradesCollection =  class OpenTradesCollection{
         this.#database = database;
         this.#collection = this.#database.collection(this.#COLLECTION_NAME);
         // this.previousOpenTradesBeforeUpdate_Collection = previousOpenTradesBeforeUpdate_Collection;
-    }
+    } 
 
     async runOnInitImmediatelyAfterConnect(){
         const FUNCTION_NAME="(class:OpenTrades)(method:runOnInitImmediatelyAfterConnect)";

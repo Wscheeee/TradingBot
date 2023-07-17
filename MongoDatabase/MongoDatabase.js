@@ -125,6 +125,7 @@ module.exports.MongoDatabase =  class MongoDatabase{
                 await this.collection.usersCollection.runOnInitImmediatelyAfterConnect();
                 await this.collection.subAccountsConfigCollection.runOnInitImmediatelyAfterConnect();
                 await this.collection.openTradesCollection.runOnInitImmediatelyAfterConnect();
+                await this.collection.tradedPositionsCollection.runOnInitImmediatelyAfterConnect();
                 
                 // Ping the DB every 30 min
                 // Set an interval for sending a ping message every 30 minutes (1800000 ms)

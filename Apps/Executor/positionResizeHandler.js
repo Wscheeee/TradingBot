@@ -1,6 +1,7 @@
 //@ts-check
 
 const { DecimalMath } = require("../../DecimalMath");
+const { sendTradePartialCloseExecutedMessage_toUser } = require("../../Telegram/message_templates/trade_execution");
 const {Bybit} = require("../../Trader");
 
 const {newPositionSizingAlgorithm} = require("./algos/qty");
@@ -11,11 +12,12 @@ const {newPositionSizingAlgorithm} = require("./algos/qty");
 *      mongoDatabase: import("../../MongoDatabase").MongoDatabase,
 *      logger: import("../../Logger").Logger,
 *      positionsStateDetector: import("../../MongoDatabase").PositionsStateDetector,
+*      bot: import("../../Telegram").Telegram,
 *      onErrorCb:(error:Error)=>any
 * }} param0 
 */
 module.exports.positionResizeHandler = async function positionResizeHandler({
-    logger,mongoDatabase,positionsStateDetector,onErrorCb
+    logger,mongoDatabase,positionsStateDetector,bot,onErrorCb
 }){
     console.log("fn:positionResizeHandler");
     positionsStateDetector.onPositionResize(async (originalPosition,position,trader)=>{
@@ -40,6 +42,7 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
                         position,
                         trader,
                         user,
+                        bot,
                         onErrorCb:(error)=>{
                             const newErrorMessage = `(fn:positionResizeHandler)  trader :${trader.username}) and user :(${user.tg_user_id}) ${error.message}`;
                             error.message = newErrorMessage;
@@ -76,11 +79,12 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
 *      position: import("../../MongoDatabase/collections/open_trades/types").OpenTrades_Collection_Document_Interface,
 *      trader: import("../../MongoDatabase/collections/top_traders/types").TopTraderCollection_Document_Interface,
 *      user: import("../../MongoDatabase/collections/users/types").Users_Collection_Document_Interface,
+*      bot: import("../../Telegram").Telegram,
 *      onErrorCb:(error:Error)=>any
 *}} param0 
 */
 async function handler({
-    logger,mongoDatabase,position,trader,user,onErrorCb
+    logger,mongoDatabase,position,trader,user,bot,onErrorCb
 }){
 
     try {
@@ -165,7 +169,7 @@ async function handler({
         });
 
         if(!theTradeInBybit)throw new Error(`(getOpenPosition_Result) theTradeInBybit is ${theTradeInBybit}`);
-       
+        //    position.previous_size_before_partial_close
     
         /**
          * Get the qty of the partial to close
@@ -175,7 +179,7 @@ async function handler({
             position,
             trader,
             mongoDatabase,
-            action:"trade_close",
+            action:"resize",
             user
         });
         const sizeToExecute = sizesToExecute[0];
@@ -366,6 +370,27 @@ async function handler({
             });
         logger.info("Updated position in tradedPositionCollection db");
 
+        const finalUpdatedTradedPosition = await mongoDatabase.collection.tradedPositionsCollection.findOne({_id:tradedPositionObj._id});
+        if(finalUpdatedTradedPosition){
+            await sendTradePartialCloseExecutedMessage_toUser({
+                bot,
+                position_direction:tradedPositionObj.direction,
+                position_entry_price: tradedPositionObj.entry_price,
+                position_leverage:finalUpdatedTradedPosition.leverage,
+                position_pair: tradedPositionObj.pair,
+                chatId: user.tg_user_id,
+                trader_username: trader.username,
+                change_by: -(tradedPositionObj.size-finalUpdatedTradedPosition.size),
+                change_by_percentage:0,
+                position_roi:bybit.calculateClosedPositionROI({
+                    averageEntryPrice: closedPositionAccumulatedDetails.averageEntryPrice,
+                    positionCurrentValue:  closedPositionAccumulatedDetails.positionCurrentValue,
+                    positionSize: closedPositionAccumulatedDetails.qty
+                }),
+                position_pnl: closedPositionAccumulatedDetails.closedPNL
+            });
+
+        }
     }catch(error){
         const newErrorMessage = `user:${user.username}(tgId:${user.tg_user_id}) (fn:handler) ${error.message}`;
         error.message = newErrorMessage;

@@ -2,6 +2,7 @@
 //@ts-check
 
 const {Bybit} = require("../../Trader");
+const {sendTradeFullCloseEecutedMessage_toUser} = require("../../Telegram/message_templates/trade_execution");
 
 const {newPositionSizingAlgorithm} = require("./algos/qty");
 
@@ -11,11 +12,12 @@ const {newPositionSizingAlgorithm} = require("./algos/qty");
 *      mongoDatabase: import("../../MongoDatabase").MongoDatabase,
 *      logger: import("../../Logger").Logger,
 *      positionsStateDetector: import("../../MongoDatabase").PositionsStateDetector,
+*      bot: import("../../Telegram").Telegram,
 *      onErrorCb:(error:Error)=>any
 * }} param0 
 */
 module.exports.positionCloseHandler_forWhenTraderIsRemovedFromSubAccountConfig = async function positionCloseHandler_forWhenTraderIsRemovedFromSubAccountConfig({
-    logger,mongoDatabase,positionsStateDetector,onErrorCb
+    logger,mongoDatabase,positionsStateDetector,bot,onErrorCb
 }){
     const FUNCTION_NAME = "(fn:positionCloseHandler_forWhenTraderIsRemovedFromSubAccountConfig)";
     console.log(FUNCTION_NAME);
@@ -45,6 +47,7 @@ module.exports.positionCloseHandler_forWhenTraderIsRemovedFromSubAccountConfig =
                         position,
                         trader, 
                         user,
+                        bot,
                         onErrorCb:(error)=>{
                             const newErrorMessage = `${FUNCTION_NAME}  trader :${trader.username}) and user :(${user.tg_user_id}) ${error.message}`;
                             error.message = newErrorMessage;
@@ -98,6 +101,7 @@ module.exports.positionCloseHandler_forWhenTraderIsRemovedFromSubAccountConfig =
                         position,
                         trader, 
                         user,
+                        bot, 
                         onErrorCb:(error)=>{
                             const newErrorMessage = `${FUNCTION_NAME}  trader :${trader.username}) and user :(${user.tg_user_id}) ${error.message}`;
                             error.message = newErrorMessage;
@@ -138,11 +142,12 @@ module.exports.positionCloseHandler_forWhenTraderIsRemovedFromSubAccountConfig =
 *      position: import("../../MongoDatabase/collections/open_trades/types").OpenTrades_Collection_Document_Interface,
 *      trader: import("../../MongoDatabase/collections/top_traders/types").TopTraderCollection_Document_Interface,
 *      user: import("../../MongoDatabase/collections/users/types").Users_Collection_Document_Interface,
+*      bot: import("../../Telegram").Telegram,
 *      onErrorCb:(error:Error)=>any
 *}} param0 
 */
 async function handler({
-    logger,mongoDatabase,position,trader,user,onErrorCb
+    logger,mongoDatabase,position,trader,user,bot,onErrorCb
 }){
     try {
         /////////////////////////////////////////////
@@ -394,9 +399,26 @@ async function handler({
                     document_last_edited_at_datetime: new Date(),
                 });
             logger.info("Closed position in tradedPositionCollection db");
+            // Send message to user
+            await sendTradeFullCloseEecutedMessage_toUser({
+                bot,
+                position_direction:tradedOpenPositionDocument.direction,
+                position_entry_price: tradedOpenPositionDocument.entry_price,
+                position_leverage:tradedOpenPositionDocument.leverage,
+                position_pair: tradedOpenPositionDocument.pair,
+                chatId: user.tg_user_id,
+                trader_username: trader.username,
+                position_roi: bybit.calculateClosedPositionROI({
+                    averageEntryPrice: closedPositionAccumulatedDetails.averageEntryPrice,
+                    positionCurrentValue:  closedPositionAccumulatedDetails.positionCurrentValue,
+                    positionSize: closedPositionAccumulatedDetails.qty
+                }),
+                position_pnl: closedPositionAccumulatedDetails.closedlPNL
+            });
         }
         // Delete tthe added oldTradedDOCUMENT.
         await mongoDatabase.collection.oldTradesCollection.deleteManyDocumentsByIds([position._id]);
+
 
     }catch(error){
         const newErrorMessage = `user:${user.tg_user_id} (fn:handler) ${error.message}`;

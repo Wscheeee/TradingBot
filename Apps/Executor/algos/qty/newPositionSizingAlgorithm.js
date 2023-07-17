@@ -60,7 +60,7 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
             settleCoin:"USDT"
         });
         console.log({openPositionsTotalUSDTValue});
-        const totalUSDT_balance = new DecimalMath(parseFloat(accountBalance_Resp.result.balance.walletBalance)).add(openPositionsTotalUSDTValue).getResult();
+        const totalUSDT_balance = new DecimalMath(parseFloat(accountBalance_Resp.result.balance.walletBalance)).subtract(openPositionsTotalUSDTValue).getResult();
         console.log({totalUSDT_balance});
         /** TRADE VALUE
         * - Get the trade size + entry price + leverage
@@ -137,9 +137,38 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
         // Calculate the amount to cut for the user's trade
         const cutPercentage = Math.abs((position.previous_size_before_partial_close - position.size) / position.previous_size_before_partial_close);
         console.log({cutPercentage});
-        const valueToCut = userTrade_Doc.traded_value * cutPercentage;
-        const qty = valueToCut / position.entry_price;
-        const qtyToByWith = qty;
+        /**
+         * Get the position
+         */
+        const getOpenPosition_Result =  await bybit.clients.bybit_RestClientV5.getPositionInfo_Realtime({
+            category:"linear",
+            // settleCoin:"USDT"
+            symbol: position.pair,
+            
+        });
+
+        if(getOpenPosition_Result.retCode!==0)throw new Error(`getOpenPosition_Result: ${getOpenPosition_Result.retMsg}`);
+        // console.log({getOpenPosiion_Result});
+        const theTradeInBybit = getOpenPosition_Result.result.list.find((p)=>{
+            console.log({
+                p
+            });
+            if(
+                p.side===(position.direction==="LONG"?"Buy":"Sell")
+                &&
+                p.symbol===position.pair
+            ){
+                return p;
+            }
+        });
+
+        if(!theTradeInBybit)throw new Error(`(getOpenPosition_Result) theTradeInBybit is ${theTradeInBybit}`);
+        console.log({
+            UserPositionQtyRetrievedUsingGetPositionMethod:theTradeInBybit.size
+        });
+        const valueToCut = parseFloat(theTradeInBybit.size) * cutPercentage;
+        console.log({valueToCut});
+        const qtyToByWith = valueToCut;
         // standardize the qty
         const standardizedQuantities_array = await bybit.standardizeQuantity({ quantity: qtyToByWith, symbol: position.pair });
         console.log({ standardizedQuantities_array }); 

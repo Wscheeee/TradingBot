@@ -1,5 +1,6 @@
 //@ts-check
 
+const { sendTradeFullCloseEecutedMessage_toUser } = require("../../Telegram/message_templates/trade_execution");
 const {Bybit} = require("../../Trader");
 
 const {newPositionSizingAlgorithm} = require("./algos/qty");
@@ -10,11 +11,12 @@ const {newPositionSizingAlgorithm} = require("./algos/qty");
 *      mongoDatabase: import("../../MongoDatabase").MongoDatabase,
 *      logger: import("../../Logger").Logger,
 *      positionsStateDetector: import("../../MongoDatabase").PositionsStateDetector,
+*      bot: import("../../Telegram").Telegram,
 *      onErrorCb:(error:Error)=>any
 * }} param0 
 */
 module.exports.positionCloseHandler = async function positionCloseHandler({
-    logger,mongoDatabase,positionsStateDetector,onErrorCb
+    logger,mongoDatabase,positionsStateDetector,bot,onErrorCb
 }){
     console.log("fn:positionCloseHandler");
     positionsStateDetector.onPositionClose(async (position, trader) => {
@@ -40,6 +42,7 @@ module.exports.positionCloseHandler = async function positionCloseHandler({
                         position,
                         trader, 
                         user,
+                        bot,
                         onErrorCb:(error)=>{
                             const newErrorMessage = `(fn:positionCloseHandler)  trader :${trader.username}) and user :(${user.tg_user_id}) ${error.message}`;
                             error.message = newErrorMessage;
@@ -80,11 +83,12 @@ module.exports.positionCloseHandler = async function positionCloseHandler({
 *      position: import("../../MongoDatabase/collections/open_trades/types").OpenTrades_Collection_Document_Interface,
 *      trader: import("../../MongoDatabase/collections/top_traders/types").TopTraderCollection_Document_Interface,
 *      user: import("../../MongoDatabase/collections/users/types").Users_Collection_Document_Interface,
+*      bot: import("../../Telegram").Telegram,
 *      onErrorCb:(error:Error)=>any
 *}} param0 
 */
 async function handler({
-    logger,mongoDatabase,position,trader,user,onErrorCb
+    logger,mongoDatabase,position,trader,user,bot,onErrorCb
 }){
     try {
         /////////////////////////////////////////////
@@ -338,6 +342,23 @@ async function handler({
                     document_last_edited_at_datetime: new Date(),
                 });
             logger.info("Closed position in tradedPositionCollection db");
+
+            // Send message to user
+            await sendTradeFullCloseEecutedMessage_toUser({
+                bot,
+                position_direction:tradedOpenPositionDocument.direction,
+                position_entry_price: tradedOpenPositionDocument.entry_price,
+                position_leverage:tradedOpenPositionDocument.leverage,
+                position_pair: tradedOpenPositionDocument.pair,
+                chatId: user.tg_user_id,
+                trader_username: trader.username,
+                position_roi: bybit.calculateClosedPositionROI({
+                    averageEntryPrice: closedPositionAccumulatedDetails.averageEntryPrice,
+                    positionCurrentValue:  closedPositionAccumulatedDetails.positionCurrentValue,
+                    positionSize: closedPositionAccumulatedDetails.qty
+                }),
+                position_pnl: closedPositionAccumulatedDetails.closedlPNL
+            });
         }
 
     }catch(error){

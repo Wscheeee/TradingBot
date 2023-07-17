@@ -1,9 +1,12 @@
 //@ts-check
 const { DecimalMath } = require("../../DecimalMath");
 const {Bybit} = require("../../Trader");
+const {sendNewTradeExecutedMessage_toUser} = require("../../Telegram/message_templates/trade_execution");
 
 const {newPositionSizingAlgorithm} = require("./algos/qty");
 const { setUpSubAccountsForUser } = require("./setUpSubAccountsForUser");
+
+
 
 /**
  * 
@@ -11,11 +14,12 @@ const { setUpSubAccountsForUser } = require("./setUpSubAccountsForUser");
  *      mongoDatabase: import("../../MongoDatabase").MongoDatabase,
  *      logger: import("../../Logger").Logger,
  *      positionsStateDetector: import("../../MongoDatabase").PositionsStateDetector,
+ *      bot: import("../../Telegram").Telegram,
  *      onErrorCb:(error:Error)=>any
  * }} param0 
  */
 module.exports.newPositionHandler = async function newPositionHandler({
-    logger,mongoDatabase,positionsStateDetector,onErrorCb
+    logger,mongoDatabase,positionsStateDetector,bot,onErrorCb
 }){ 
     const FUNCTION_NAME = "fn:newPositionHandler";
     console.log(FUNCTION_NAME);
@@ -39,6 +43,7 @@ module.exports.newPositionHandler = async function newPositionHandler({
                     promises.push(handler({
                         // bybit:bybitSubAccount,
                         logger,mongoDatabase,position,trader,user,
+                        bot,
                         onErrorCb:(error)=>{
                             const newErrorMessage = `(fn:newPositionHandler)  trader :${trader.username}) and user :(${user.tg_user_id}) ${error.message}`;
                             error.message = newErrorMessage;
@@ -78,13 +83,14 @@ module.exports.newPositionHandler = async function newPositionHandler({
 *      position: import("../../MongoDatabase/collections/open_trades/types").OpenTrades_Collection_Document_Interface,
 *      trader: import("../../MongoDatabase/collections/top_traders/types").TopTraderCollection_Document_Interface,
 *      user: import("../../MongoDatabase/collections/users/types").Users_Collection_Document_Interface,
+*      bot: import("../../Telegram").Telegram,
 *      onErrorCb:(error:Error)=>any
 *}} param0 
 
 */
 async function handler({
     // bybit,
-    logger,mongoDatabase,position,trader,user,onErrorCb
+    logger,mongoDatabase,position,trader,user,bot,onErrorCb
 }){
     try{ 
         const compareArrays = function(array1, array2) {
@@ -312,6 +318,7 @@ async function handler({
             console.log({theTradeInBybit});
      
             const nowDate = new Date();
+            const tradedValue = new DecimalMath(parseFloat(theTradeInBybit.positionValue)).divide(position.leverage).getResult();
             await mongoDatabase.collection.tradedPositionsCollection.createNewDocument({
                 entry_price: parseFloat(theTradeInBybit.avgPrice),
                 testnet: user.testnet,
@@ -324,7 +331,7 @@ async function handler({
                 trader_username: trader.username?trader.username:"",
                 entry_datetime: new Date(parseFloat(theTradeInBybit.createdTime)),
                 direction: position.direction,
-                traded_value: new DecimalMath(parseFloat(theTradeInBybit.positionValue)).divide(position.leverage).getResult(),
+                traded_value: tradedValue,
                 tg_user_id: user.tg_user_id,
                 actual_position_leverage: position.leverage,
                 actual_position_original_size: position.size,
@@ -341,6 +348,20 @@ async function handler({
                 
             });
             logger.info("Saved the position to DB");
+
+            const subCapital = 0;//@todo hho to calculate this
+            // Send message to user
+            await sendNewTradeExecutedMessage_toUser({
+                bot,
+                position_direction:position.direction,
+                position_entry_price: position.entry_price,
+                position_leverage:position.leverage,
+                position_pair: position.pair,
+                chatId: user.tg_user_id,
+                trader_username: trader.username,
+                position_value: tradedValue,
+                position_value_percentage_of_sub_capital: (tradedValue/subCapital)*10
+            });
 
         }
 

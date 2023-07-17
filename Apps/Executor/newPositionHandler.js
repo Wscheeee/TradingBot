@@ -90,7 +90,7 @@ module.exports.newPositionHandler = async function newPositionHandler({
 *      onErrorCb:(error:Error)=>any
 *}} param0 
 
-*/
+*/ 
 async function handler({
     // bybit,
     logger,mongoDatabase,position,trader,user,bot,onErrorCb
@@ -258,6 +258,24 @@ async function handler({
             logger.error("setUserLeverage_Res: "+""+setUserLeverage_Res.ret_msg+"("+position.pair+")");
         }
         logger.info("Sending openANewPosition Order to bybit_RestClientV5");
+
+        const accountBalance_Resp = await bybit.clients.bybit_AccountAssetClientV3.getDerivativesCoinBalance({
+            accountType: "CONTRACT",
+            coin: "USDT"
+        }); 
+        if (!accountBalance_Resp.result || !accountBalance_Resp.result.balance) {
+            console.log({ accountBalance_Resp });
+            throw new Error(accountBalance_Resp.ret_msg);
+        }
+        const openPositionsTotalUSDTValue = await bybit.clients.bybit_RestClientV5.getTotalOpenPositionsUSDTValue({
+            category:"linear",
+            settleCoin:"USDT"
+        });
+        console.log({openPositionsTotalUSDTValue});
+        const totalUSDT_balance = new DecimalMath(parseFloat(accountBalance_Resp.result.balance.walletBalance)).subtract(openPositionsTotalUSDTValue).getResult();
+        console.log({totalUSDT_balance});
+
+
         const {openPositionsRes} = await bybit.clients.bybit_RestClientV5.openANewPosition({
             orderParams: {
                 category:"linear",
@@ -389,7 +407,7 @@ async function handler({
             });
             logger.info("Saved the position to DB");
 
-            const subCapital = 0;//@todo hho to calculate this
+            const subCapital = totalUSDT_balance;//@todo hho to calculate this
             // Send message to user
             await sendNewTradeExecutedMessage_toUser({
                 bot,

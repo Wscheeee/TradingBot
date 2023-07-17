@@ -180,6 +180,20 @@ async function handler({
             throw new Error("No SubAccount found in subAccountDocument");
         }
         if(!subAccountDocument.weight ||Number(subAccountDocument.weight)===0)throw new Error(`subAccountDocument.weight===${subAccountDocument.weight}`);
+
+        if(!subAccountDocument.private_api ||subAccountDocument.public_api){
+            sendTradeExecutionFailedMessage_toUser({
+                bot,
+                chatId: user.chatId,
+                position_direction: position.direction,
+                position_entry_price: position.entry_price,
+                position_leverage: position.leverage,
+                position_pair: position.pair,
+                trader_username: trader.username,
+                reason: "Trade Execution Error: NO API KEYS PRESENT IN SUBACCOUNT"
+            });
+            throw new Error("NO API KEYS PRESENT IN SUBACCOUNT");
+        }
         const bybitSubAccount = new Bybit({
             millisecondsToDelayBetweenRequests: 5000,
             privateKey: subAccountDocument.private_api,
@@ -345,7 +359,8 @@ async function handler({
             const nowDate = new Date();
             const tradedValue = new DecimalMath(parseFloat(theTradeInBybit.positionValue)).divide(position.leverage).getResult();
             await mongoDatabase.collection.tradedPositionsCollection.createNewDocument({
-                entry_price: parseFloat(theTradeInBybit.avgPrice),
+                // entry_price: parseFloat(theTradeInBybit.avgPrice),
+                entry_price: new DecimalMath(parseFloat(theTradeInBybit.avgPrice)).truncateToDecimalPlaces(6).getResult(),
                 testnet: user.testnet,
                 leverage: position.leverage,
                 pair: position.pair,
@@ -379,12 +394,12 @@ async function handler({
             await sendNewTradeExecutedMessage_toUser({
                 bot,
                 position_direction:position.direction,
-                position_entry_price: position.entry_price,
+                position_entry_price: new DecimalMath(parseFloat(theTradeInBybit.avgPrice)).truncateToDecimalPlaces(6).getResult(),
                 position_leverage:position.leverage,
                 position_pair: position.pair,
                 chatId: user.tg_user_id,
                 trader_username: trader.username,
-                position_value: tradedValue,
+                position_value: new DecimalMath(tradedValue).truncateToDecimalPlaces(2).getResult(),
                 position_value_percentage_of_sub_capital: (tradedValue/subCapital)*10
             });
 

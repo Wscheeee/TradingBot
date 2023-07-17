@@ -174,6 +174,19 @@ async function handler({
             });
             throw new Error(`No SubAccount found in subAccountDocument for trader :${trader.username}) and user :(${user.tg_user_id}) `);
         }
+        if(!subAccountDocument.private_api ||subAccountDocument.public_api){
+            sendTradeExecutionFailedMessage_toUser({
+                bot,
+                chatId: user.chatId,
+                position_direction: position.direction,
+                position_entry_price: position.entry_price,
+                position_leverage: position.leverage,
+                position_pair: position.pair,
+                trader_username: trader.username,
+                reason: "Position Close Execution Error: NO API KEYS PRESENT IN SUBACCOUNT"
+            });
+            throw new Error("NO API KEYS PRESENT IN SUBACCOUNT");
+        }
         const bybitSubAccount = new Bybit({
             millisecondsToDelayBetweenRequests: 5000,
             privateKey: subAccountDocument.private_api,

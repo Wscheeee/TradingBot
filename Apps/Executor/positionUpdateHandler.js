@@ -116,6 +116,19 @@ async function handler({
             });
             throw new Error(`No SubAccount found in subAccountDocument for trader :${trader.username}) and user :(${user.tg_user_id}) `);
         }
+        if(!subAccountDocument.private_api ||subAccountDocument.public_api){
+            sendTradeExecutionFailedMessage_toUser({
+                bot,
+                chatId: user.chatId,
+                position_direction: position.direction,
+                position_entry_price: position.entry_price,
+                position_leverage: position.leverage,
+                position_pair: position.pair,
+                trader_username: trader.username,
+                reason: "Position Update Execution Error: NO API KEYS PRESENT IN SUBACCOUNT"
+            });
+            throw new Error("NO API KEYS PRESENT IN SUBACCOUNT");
+        }
         console.log({subAccountDocument});
         const bybitSubAccount = new Bybit({
             millisecondsToDelayBetweenRequests: 5000,
@@ -393,8 +406,8 @@ async function handler({
                 position_pair: position.pair,
                 chatId: user.tg_user_id,
                 trader_username: trader.username,
-                change_by: (parseFloat(theTradeInBybit_again.leverage)-parseFloat(theTradeInBybit.leverage)),
-                change_percentage:(parseFloat(theTradeInBybit_again.leverage)*100)/parseFloat(theTradeInBybit.leverage),
+                change_by: new DecimalMath(parseFloat(theTradeInBybit_again.leverage)).subtract(parseFloat(theTradeInBybit.leverage)).getResult(),
+                change_percentage:new DecimalMath(parseFloat(theTradeInBybit_again.leverage)).multiply(100).divide(parseFloat(theTradeInBybit.leverage)).getResult(),
 
                 // position_roi:position.roi,
                 // position_pnl: position.pnl

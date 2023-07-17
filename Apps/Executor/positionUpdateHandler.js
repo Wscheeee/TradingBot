@@ -3,7 +3,8 @@ const { DecimalMath } = require("../../DecimalMath");
 const {Bybit} = require("../../Trader");
 const {
     sendTradeLeverageUpdateExecutedMessage_toUser,
-    sendTradeUpdateSizeExecutedMessage_toUser
+    sendTradeUpdateSizeExecutedMessage_toUser,
+    sendTradeExecutionFailedMessage_toUser
 } = require("../../Telegram/message_templates/trade_execution");
 
 const { newPositionSizingAlgorithm } = require("./algos/qty");
@@ -102,7 +103,19 @@ async function handler({
         });
         console.log({trader});
         console.log({subAccountDocument});
-        if(!subAccountDocument) throw new Error(`No SubAccount found in subAccountDocument for trader :${trader.username}) and user :(${user.tg_user_id}) `);
+        if(!subAccountDocument) {
+            await sendTradeExecutionFailedMessage_toUser({
+                bot,
+                chatId: user.chatId,
+                position_direction: position.direction,
+                position_entry_price: position.entry_price,
+                position_leverage: position.leverage,
+                position_pair: position.pair,
+                trader_username: trader.username,
+                reason: "Position Update Execution Error: No SubAccount found for trader"
+            });
+            throw new Error(`No SubAccount found in subAccountDocument for trader :${trader.username}) and user :(${user.tg_user_id}) `);
+        }
         console.log({subAccountDocument});
         const bybitSubAccount = new Bybit({
             millisecondsToDelayBetweenRequests: 5000,
@@ -258,6 +271,16 @@ async function handler({
                 // throw new Error(openPositionRes.retMsg);
                 //instead send error message 
                     logger.error("openPositionRes:"+openPositionRes.retMsg);
+                    sendTradeExecutionFailedMessage_toUser({
+                        bot,
+                        chatId: user.chatId,
+                        position_direction: position.direction,
+                        position_entry_price: position.entry_price,
+                        position_leverage: position.leverage,
+                        position_pair: position.pair,
+                        trader_username: trader.username,
+                        reason: "Update Position Error: "+openPositionRes.retMsg
+                    });
                 }else {
                     someCloseIsSucccessful = true;
                     logger.info("Position closed on bybit_RestClientV5");

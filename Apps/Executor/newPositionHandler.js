@@ -196,7 +196,7 @@ async function handler({
             throw new Error(`subAccountDocument.weight===${subAccountDocument.weight}`);
         }
 
-        if(!subAccountDocument.private_api ||!subAccountDocument.public_api){
+        if(!subAccountDocument.private_api.trim() ||!subAccountDocument.public_api.trim()){
             await sendTradeExecutionFailedMessage_toUser({
                 bot,
                 chatId: user.chatId,
@@ -290,7 +290,7 @@ async function handler({
                  * Switch Margin
                  */
         const setPositionLeverage_Resp = await bybit.clients.bybit_LinearClient.switchMargin({
-            is_isolated: true,
+            is_isolated: false,
             buy_leverage:1,
             sell_leverage:1,
             symbol: position.pair,

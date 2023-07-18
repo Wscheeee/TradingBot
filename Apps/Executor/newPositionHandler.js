@@ -181,7 +181,7 @@ async function handler({
         }
         if(!subAccountDocument.weight ||Number(subAccountDocument.weight)===0)throw new Error(`subAccountDocument.weight===${subAccountDocument.weight}`);
 
-        if(!subAccountDocument.private_api ||subAccountDocument.public_api){
+        if(!subAccountDocument.private_api ||!subAccountDocument.public_api){
             sendTradeExecutionFailedMessage_toUser({
                 bot,
                 chatId: user.chatId,

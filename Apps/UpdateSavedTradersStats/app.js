@@ -39,11 +39,12 @@ console.log(IS_LIVE);
     });
     let run = true;
     while(run){
-        // Run once at 4:am
+        // Run once at 2:05:am
         const dateTimeNow = new DateTime().now();
         const CURRENT_HOUR = dateTimeNow.hours;
         const TODAY_DAY_NUMBER = dateTimeNow.day_index;
-        while(lastScrapedDayNumber!==TODAY_DAY_NUMBER && CURRENT_HOUR===4){// Scrape when day changes
+        const CURRENT_MINUTE = dateTimeNow.minutes;
+        while(lastScrapedDayNumber!==TODAY_DAY_NUMBER && CURRENT_HOUR===2 && CURRENT_MINUTE>5){// Scrape when day changes
             logger.error("RUNNING "+APP_NAME);
             let mongoDatabase = null;
             let browser = null; 

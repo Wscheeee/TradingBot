@@ -60,7 +60,7 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
             settleCoin:"USDT"
         });
         console.log({openPositionsTotalUSDTValue});
-        const totalUSDT_balance = new DecimalMath(parseFloat(accountBalance_Resp.result.balance.walletBalance)).subtract(openPositionsTotalUSDTValue).getResult();
+        const totalUSDT_balance = new DecimalMath(parseFloat(accountBalance_Resp.result.balance.walletBalance)).add(openPositionsTotalUSDTValue).getResult();
         console.log({totalUSDT_balance});
         /** TRADE VALUE
         * - Get the trade size + entry price + leverage

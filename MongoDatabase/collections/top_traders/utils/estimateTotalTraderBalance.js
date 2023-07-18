@@ -41,7 +41,8 @@ module.exports.estimateTotalTraderBalance = async function estimateTotalTraderBa
         // Make sure estimateDaily is always positive
         estimateDaily = Math.abs(estimateDaily);
         const today_estimated_balance = estimateDaily - totalPositionsValue;
-        return today_estimated_balance;
+        
+        return isNaN(today_estimated_balance)?0:today_estimated_balance;
 
     }catch(error){
         const newErrorMessage = `${FUNCTION_NAME}: ${error.message}`;

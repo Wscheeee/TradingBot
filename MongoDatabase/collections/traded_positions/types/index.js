@@ -4,6 +4,7 @@
  *    tg_user_id: number,
  *    trader_uid: string,
  *    trader_username: string,
+ *    trader_today_estimated_balance: number|undefined,
  *    position_id_in_oldTradesCollection: import("mongodb").ObjectId,
  *    position_id_in_openTradesCollection: import("mongodb").ObjectId,
  *    direction:"LONG"|"SHORT",

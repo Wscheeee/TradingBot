@@ -345,7 +345,7 @@ async function handler({
             symbolLotStepSize,
             symbolMaxLotSize
         });
-        
+         
         // const arrayWithQuantitiesLeftToExecute = sizesToExecute;
         // console.log({openPositionRes,arrayWithQuantitiesLeftToExecute});
         // if(!openPositionRes || !openPositionRes.result || Object.keys(openPositionRes.result).length==0){
@@ -444,7 +444,6 @@ async function handler({
                 status: "OPEN",
                 trader_uid: trader.uid,
                 trader_username: trader.username?trader.username:"",
-                trader_today_estimated_balance: trader.today_estimated_balance,
                 entry_datetime: new Date(parseFloat(theTradeInBybit.createdTime)),
                 direction: position.direction,
                 traded_value: tradedValue,

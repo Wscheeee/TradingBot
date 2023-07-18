@@ -394,7 +394,6 @@ async function handler({
             status: "CLOSED",
             trader_uid: trader.uid,
             trader_username: trader.username?trader.username:"",
-            trader_today_estimated_balance: trader.today_estimated_balance,
             direction: position.direction,
             entry_datetime: tradedPositionObj.entry_datetime,
             close_datetime: new Date(timestampNow),

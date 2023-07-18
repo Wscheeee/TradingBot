@@ -34,34 +34,22 @@ module.exports.positionCloseHandler = async function positionCloseHandler({
             const promises = [];
             for(const user of users_array){
                 try{
-                    if(!user.privateKey.trim() ||!user.publicKey.trim()){
-                        await sendTradeExecutionFailedMessage_toUser({
-                            bot,
-                            chatId: user.chatId,
-                            position_direction: position.direction,
-                            position_entry_price: position.entry_price,
-                            position_leverage: position.leverage,
-                            position_pair: position.pair,
-                            trader_username: user.atomos?"Anonymous":trader.username,
-                            reason: "Trade Execution Error: NO API KEYS PRESENT IN USER DOCUMENT"
-                        });
-                        onErrorCb(new Error("Trade Execution Error: NO API KEYS PRESENT IN USER DOCUMENT"));
-                    }else {
-                        promises.push(handler({
-                            // bybit:bybitSubAccount,
-                            logger,
-                            mongoDatabase,
-                            position,
-                            trader, 
-                            user,
-                            bot,
-                            onErrorCb:(error)=>{
-                                const newErrorMessage = `(fn:positionCloseHandler)  trader :${trader.username}) and user :(${user.tg_user_id}) ${error.message}`;
-                                error.message = newErrorMessage;
-                                onErrorCb(error);
-                            }
-                        }));
-                    }
+                    
+                    promises.push(handler({
+                        // bybit:bybitSubAccount,
+                        logger,
+                        mongoDatabase,
+                        position,
+                        trader, 
+                        user,
+                        bot,
+                        onErrorCb:(error)=>{
+                            const newErrorMessage = `(fn:positionCloseHandler)  trader :${trader.username}) and user :(${user.tg_user_id}) ${error.message}`;
+                            error.message = newErrorMessage;
+                            onErrorCb(error);
+                        }
+                    }));
+                    
                 
                     
                 }catch(error){
@@ -104,6 +92,19 @@ async function handler({
     logger,mongoDatabase,position,trader,user,bot,onErrorCb
 }){
     try {
+        if(!user.privateKey.trim() ||!user.publicKey.trim()){
+            sendTradeExecutionFailedMessage_toUser({
+                bot,
+                chatId: user.chatId,
+                position_direction: position.direction,
+                position_entry_price: position.entry_price,
+                position_leverage: position.leverage,
+                position_pair: position.pair,
+                trader_username: user.atomos?"Anonymous":trader.username,
+                reason: "Trade Execution Error: NO API KEYS PRESENT IN USER DOCCUMENT"
+            });
+            throw new Error("Trade Execution Error: NO API KEYS PRESENT IN USER DOCUMENT");
+        }
         /////////////////////////////////////////////
 
         /**

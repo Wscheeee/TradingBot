@@ -21,7 +21,7 @@
 *      close_datetime: Date,
 *      pnl: number,
 *      roi: number,
-*      roi_percentage: number,
+*      roi_percentage?: number,
 *      status: "OPEN"|"CLOSED",
 *      followed: boolean,
 *      copied: boolean,

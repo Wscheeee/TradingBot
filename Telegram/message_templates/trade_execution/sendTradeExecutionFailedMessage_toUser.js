@@ -19,6 +19,7 @@ module.exports.sendTradeExecutionFailedMessage_toUser = async function ({
     const FUNCTION_NAME = "(fn:sendTradeExecutionFailedMessage_toUser)";
     console.log(FUNCTION_NAME);
     try{
+        if(reason.includes("key")===false)return; // filter out some messages
         bot.sendMessage(chatId,
             `⚠️ Trade Execution Failed ‼️
 

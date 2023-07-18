@@ -254,7 +254,7 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
             
         });
 
-        if(getOpenPosition_Result.retCode!==0)throw new Error(`getActiveOrders_Result: ${getOpenPosition_Result.retMsg}`);
+        if(getOpenPosition_Result.retCode!==0)throw new Error(`getOpenPosition_Result: ${getOpenPosition_Result.retMsg}`);
         // console.log({getOpenPosiion_Result});
         const theTradeInBybit = getOpenPosition_Result.result.list.find((p)=>{
             console.log({

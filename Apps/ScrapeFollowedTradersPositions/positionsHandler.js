@@ -9,6 +9,8 @@
 const {DecimalMath} = require("../../DecimalMath/DecimalMath");
 
 const {calculateRoiFromPosition} = require("./calculateRoiFromPosition");
+const {calculatePnlFromPosition} = require("./calculatePnlFromPosition");
+
 /**
  * 
  * @param {{
@@ -53,6 +55,11 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                                 currentPositionsTotalParts = savedPosition_.total_parts+1;
                                 // means that a partial position was closed
                                 const partialPositionsSize = new DecimalMath(Math.abs(savedPosition_.size)).subtract(Math.abs(position_.amount)).getResult();
+                                const roi = calculateRoiFromPosition({
+                                    close_price: savedPosition_.mark_price,
+                                    entry_price: savedPosition_.entry_price,
+                                    leverage: savedPosition_.leverage
+                                });
                                 await mongoDatabase.collection.oldTradesCollection.createNewDocument({
                                     original_position_id: savedPosition_._id,
                                     close_datetime: new Date(),
@@ -67,17 +74,13 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                                     original_size: savedPosition_.original_size,
                                     pair:savedPosition_.pair,
                                     part: savedPosition_.total_parts,
-                                    pnl: new DecimalMath(Math.abs(savedPosition_.pnl)).subtract(Math.abs(position_.pnl)).getResult(),
-                                    roi: calculateRoiFromPosition({
-                                        close_price: savedPosition_.mark_price,
+                                    pnl: calculatePnlFromPosition({
+                                        roi: roi,
                                         entry_price: savedPosition_.entry_price,
-                                        leverage: savedPosition_.leverage
-                                    })/100,//new DecimalMath(Math.abs(savedPosition_.roi)).subtract(Math.abs(position_.roe)).getResult(),
-                                    roi_percentage: calculateRoiFromPosition({
-                                        close_price: savedPosition_.mark_price,
-                                        entry_price: savedPosition_.entry_price,
+                                        size: partialPositionsSize,
                                         leverage: savedPosition_.leverage
                                     }),
+                                    roi: roi,
                                     size: partialPositionsSize,
                                     previous_size_before_partial_close: savedPosition_.size,
                                     status: "CLOSED",
@@ -133,7 +136,7 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                                 console.log("Size did not change");
                             }
     
-                            // Check for leaverage change
+                            // Check for leverage change
                             if(savedPosition_.leverage!=position_.leverage){
                                 // update leverage incase of change
                                 await mongoDatabase.collection.openTradesCollection.updateDocument(savedPosition_._id,{
@@ -145,9 +148,6 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
     
                             await mongoDatabase.collection.openTradesCollection.updateDocument(savedPosition_._id,{
                                 mark_price: position_.markPrice,
-                                pnl:position_.pnl,
-                                roi: position_.roe,
-                                roi_percentage: position_.roe*100,
                                 document_last_edited_at_datetime: new Date(),
                                 server_timezone: process.env.TZ
                             });
@@ -155,7 +155,7 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                         }// End of isPositionRunning
      
                         // if(savedPosition_.size<position_.amount){
-                        // means that a size was added :: might happen even when posiition is not running
+                        // means that a size was added :: might happen even when position is not running
                         // update even if nothing changed
                         // so update the position 
                         await mongoDatabase.collection.openTradesCollection.updateDocument(savedPosition_._id,{
@@ -172,9 +172,6 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                             original_size: savedPosition_.original_size<position_.amount?position_.amount:savedPosition_.original_size, // Adjust original size incase of size increase
                             pair: savedPosition_.pair,
                             part: savedPosition_.part,
-                            pnl:position_.pnl,
-                            roi: position_.roe,
-                            roi_percentage: position_.roe*100,
                             size: position_.amount,
                             previous_size_before_partial_close: (position_.amount!=savedPosition_.size?position_.amount:savedPosition_.previous_size_before_partial_close),
                             status: savedPosition_.status,
@@ -195,7 +192,6 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                         trader_uid: savedTraderDbDoc.uid, 
                         trader_username: savedTraderDbDoc.username,
                         trader_today_estimated_balance: savedTraderDbDoc.today_estimated_balance?savedTraderDbDoc.today_estimated_balance:0,
-                        close_datetime: new Date(),
                         direction: position_.direction,
                         entry_price: position_.entryPrice,
                         followed: savedTraderDbDoc && savedTraderDbDoc.followed?true:false,
@@ -206,10 +202,13 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                         open_datetime: new Date(position_.updateTimeStamp),
                         original_size: position_.amount,
                         pair: position_.symbol,
-                        part:0,
                         pnl:position_.pnl,
-                        roi: position_.roe,
-                        roi_percentage: position_.roe*100,
+                        roi:calculateRoiFromPosition({
+                            close_price: position_.markPrice,
+                            entry_price: position_.entryPrice,
+                            leverage: position_.leverage
+                        }),
+                        part:0,
                         size: position_.amount,
                         previous_size_before_partial_close: position_.amount,
                         status: "OPEN",
@@ -245,9 +244,14 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                         positionsToClose.push(savedPosition_);
                     } 
                 }
-                // loop through the closed positions and close them andd delete them from openPositions collection
+                // loop through the closed positions and close them and delete them from openPositions collection
                 for(const positionToClose_ of positionsToClose){
                     const datetimeNow = new Date();
+                    const roi = calculateRoiFromPosition({
+                        close_price: positionToClose_.mark_price,
+                        entry_price: positionToClose_.entry_price,
+                        leverage: positionToClose_.leverage
+                    });
                     await mongoDatabase.collection.oldTradesCollection.createNewDocument({
                         original_position_id: positionToClose_._id,
                         close_datetime: new Date(),
@@ -262,9 +266,13 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                         original_size: positionToClose_.original_size,
                         pair:positionToClose_.pair,
                         part: positionToClose_.part,
-                        pnl: positionToClose_.pnl,
-                        roi: positionToClose_.roi,
-                        roi_percentage: positionToClose_.roi_percentage,
+                        pnl: calculatePnlFromPosition({
+                            roi: roi,
+                            entry_price: positionToClose_.entry_price,
+                            size: positionToClose_.size,
+                            leverage: positionToClose_.leverage
+                        }),
+                        roi: roi,
                         size: positionToClose_.size,
                         previous_size_before_partial_close: positionToClose_.previous_size_before_partial_close,
                         status: "CLOSED",
@@ -292,4 +300,3 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
         throw error;
     }
 };
-

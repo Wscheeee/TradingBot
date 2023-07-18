@@ -143,7 +143,7 @@ async function handler({
             throw new Error("NO API KEYS PRESENT IN SUBACCOUNT");
         }
         const bybitSubAccount = new Bybit({
-            millisecondsToDelayBetweenRequests: 5000,
+            millisecondsToDelayBetweenRequests: 7000,
             privateKey: subAccountDocument.private_api,
             publicKey: subAccountDocument.public_api,
             testnet: subAccountDocument.testnet===false?false:true
@@ -407,7 +407,7 @@ async function handler({
                     positionCurrentValue:  closedPositionAccumulatedDetails.positionCurrentValue,
                     positionSize: closedPositionAccumulatedDetails.qty
                 }),
-                position_pnl: closedPositionAccumulatedDetails.closedlPNL
+                position_pnl: closedPositionAccumulatedDetails.closedPNL
             });
         }
 

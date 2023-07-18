@@ -145,7 +145,7 @@ async function handler({
         }
         console.log({subAccountDocument});
         const bybitSubAccount = new Bybit({
-            millisecondsToDelayBetweenRequests: 5000,
+            millisecondsToDelayBetweenRequests: 7000,
             privateKey: subAccountDocument.private_api,
             publicKey: subAccountDocument.public_api,
             testnet: subAccountDocument.testnet===false?false:true

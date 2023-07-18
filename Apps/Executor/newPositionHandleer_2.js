@@ -41,17 +41,32 @@ module.exports.newPositionHandler = async function newPositionHandler({
             const promises = [];
             for(const user of users_array){ 
                 try {
-                    console.log("Pushing handler async functions");
-                    promises.push(handler({
-                        // bybit:bybitSubAccount,
-                        logger,mongoDatabase,position,trader,user,
-                        bot,
-                        onErrorCb:(error)=>{
-                            const newErrorMessage = `(fn:newPositionHandler)  trader :${trader.username}) and user :(${user.tg_user_id}) ${error.message}`;
-                            error.message = newErrorMessage;
-                            onErrorCb(error);
-                        }
-                    }));
+                    if(!user.privateKey.trim() ||!user.publicKey.trim()){
+                        await sendTradeExecutionFailedMessage_toUser({
+                            bot,
+                            chatId: user.chatId,
+                            position_direction: position.direction,
+                            position_entry_price: position.entry_price,
+                            position_leverage: position.leverage,
+                            position_pair: position.pair,
+                            trader_username: user.atomos?"Anonymous":trader.username,
+                            reason: "Trade Execution Error: NO API KEYS PRESENT IN USER DOCCUMENT"
+                        });
+                        onErrorCb(new Error("Trade Execution Error: NO API KEYS PRESENT IN USER DOCUMENT"));
+                    }else {
+
+                        console.log("Pushing handler async functions");
+                        promises.push(handler({
+                            // bybit:bybitSubAccount,
+                            logger,mongoDatabase,position,trader,user,
+                            bot,
+                            onErrorCb:(error)=>{
+                                const newErrorMessage = `(fn:newPositionHandler)  trader :${trader.username}) and user :(${user.tg_user_id}) ${error.message}`;
+                                error.message = newErrorMessage;
+                                onErrorCb(error);
+                            }
+                        }));
+                    }
                     
 
                 }catch(error){
@@ -96,19 +111,6 @@ async function handler({
     logger,mongoDatabase,position,trader,user,bot,onErrorCb
 }){
     try{ 
-        if(!user.privateKey.trim() ||!user.publicKey.trim()){
-            sendTradeExecutionFailedMessage_toUser({
-                bot,
-                chatId: user.chatId,
-                position_direction: position.direction,
-                position_entry_price: position.entry_price,
-                position_leverage: position.leverage,
-                position_pair: position.pair,
-                trader_username: user.atomos?"Anonymous":trader.username,
-                reason: "Trade Execution Error: NO API KEYS PRESENT IN USER DOCCUMENT"
-            });
-            throw new Error("Trade Execution Error: NO API KEYS PRESENT IN USER DOCUMENT");
-        }
         const compareArrays = function(array1, array2) {
             let allSynced = true;
             array1.forEach(obj1 => {
@@ -233,7 +235,7 @@ async function handler({
 
         /////////////////////////////////////////
         const bybit = bybitSubAccount;
-
+        
         const accountBalance_Resp = await bybit.clients.bybit_AccountAssetClientV3.getDerivativesCoinBalance({
             accountType: "CONTRACT",
             coin: "USDT"
@@ -249,7 +251,6 @@ async function handler({
         console.log({totalUSDT_balance});
         console.log({leftBalance});
         console.log({totalPositionsValue});
-
 
         logger.info("Calculate percentageBased_DynamicPositionSizingAlgo");
         const {sizesToExecute, symbolLotStepSize, symbolMaxLotSize} = await newPositionSizingAlgorithm({
@@ -269,7 +270,6 @@ async function handler({
         const total_standardized_qty = sizesToExecute.reduce((a,b)=>a+b,0);
         console.log({total_standardized_qty});
 
-        
         /***
          * SECURITY:
          * don't execute if more than 35% of capital is used
@@ -476,7 +476,7 @@ async function handler({
                 chatId: user.tg_user_id,
                 trader_username:  user.atomos?"Anonymous":trader.username,
                 position_value: new DecimalMath(tradedValue).truncateToDecimalPlaces(2).getResult(),
-                position_value_percentage_of_sub_capital: (tradedValue/subCapital)*10
+                position_value_percentage_of_sub_capital: new DecimalMath(tradedValue/subCapital).multiply(10).truncateToDecimalPlaces(2).getResult()
             });
 
         }

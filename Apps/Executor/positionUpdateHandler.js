@@ -240,8 +240,24 @@ async function handler({
             logger.error("setUserLeverage_Res: " + setUserLeverage_Res.ret_msg + "(" + position.pair + ")");
         }
 
+        /**
+         * Get total USDT balance
+         */
+        const accountBalance_Resp = await bybit.clients.bybit_AccountAssetClientV3.getDerivativesCoinBalance({
+            accountType: "CONTRACT",
+            coin: "USDT"
+        }); 
+        if (!accountBalance_Resp.result || !accountBalance_Resp.result.balance) {
+            console.log({ accountBalance_Resp });
+            throw new Error(accountBalance_Resp.ret_msg);
+        }
+        const totalUSDT_balance = new DecimalMath(parseFloat(accountBalance_Resp.result.balance.walletBalance)).getResult();
+        const leftBalance = new DecimalMath(parseFloat(accountBalance_Resp.result.balance.transferBalance)).getResult();
+        const totalPositionsValue = totalUSDT_balance - leftBalance;
 
-        
+        console.log({totalUSDT_balance});
+        console.log({leftBalance});
+        console.log({totalPositionsValue});
 
         /**
          * Calculate the updated qty
@@ -253,7 +269,8 @@ async function handler({
             trader,
             mongoDatabase,
             action:"new_trade",
-            user
+            user,
+            totalUSDT_balance
         });
         const sizeToExecute = sizesToExecute[0];
         console.log({sizesToExecute,sizeToExecute});
@@ -261,21 +278,6 @@ async function handler({
         if(sizeToExecute===0||!sizeToExecute)throw new Error("sizeToExecute==="+sizeToExecute);
         const total_standardized_qty = sizesToExecute.reduce((a,b)=>a+b,0);
         console.log({total_standardized_qty});
-        const accountBalance_Resp = await bybit.clients.bybit_AccountAssetClientV3.getDerivativesCoinBalance({
-            accountType: "CONTRACT",
-            coin: "USDT"
-        }); 
-        if (!accountBalance_Resp.result || !accountBalance_Resp.result.balance) {
-            console.log({ accountBalance_Resp });
-            throw new Error(accountBalance_Resp.ret_msg);
-        }
-        const openPositionsTotalUSDTValue = await bybit.clients.bybit_RestClientV5.getTotalOpenPositionsUSDTValue({
-            category:"linear",
-            settleCoin:"USDT"
-        });
-        console.log({openPositionsTotalUSDTValue});
-        const totalUSDT_balance = new DecimalMath(parseFloat(accountBalance_Resp.result.balance.walletBalance)).add(openPositionsTotalUSDTValue).getResult();
-        console.log({totalUSDT_balance});
         /***
          * SECURITY:
          * don't execute if more than 35% of capital is used
@@ -284,7 +286,7 @@ async function handler({
       
         // total opened valu / totalusdt capital *100
         // if value > 35
-        const openValuePercentageOfCapital = new DecimalMath(openPositionsTotalUSDTValue+tradeValue).divide(totalUSDT_balance).multiply(100).getResult();
+        const openValuePercentageOfCapital = new DecimalMath(totalPositionsValue+tradeValue).divide(totalUSDT_balance).multiply(100).getResult();
         if(openValuePercentageOfCapital>35){
             await sendTradeExecutionFailedMessage_toUser({
                 bot,

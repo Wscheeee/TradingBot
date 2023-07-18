@@ -9,7 +9,8 @@ const { DecimalMath } = require("../../../../DecimalMath");
  *      bybit: import("../../../../Trader").Bybit,
  *      trader: import("../../../../MongoDatabase/collections/top_traders/types").TopTraderCollection_Document_Interface,
  *      position: import("../../../../MongoDatabase/collections/open_trades/types").OpenTrades_Interface
- *      mongoDatabase: import("../../../../MongoDatabase").MongoDatabase
+ *      mongoDatabase: import("../../../../MongoDatabase").MongoDatabase,
+ *      totalUSDT_balance?: number,
  * }} param0
  */
 module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgorithm({
@@ -19,6 +20,7 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
     trader,
     bybit,
     mongoDatabase,
+    totalUSDT_balance
 }) {
     const FUNCTION_NAME = "(fn:newPositionSizingAlgorithm)";
     /**
@@ -39,6 +41,8 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
         const ACTION_NAME = "[Action:(new_trade)]";
         console.log(FUNCTION_NAME+" "+ACTION_NAME);
 
+        if(!totalUSDT_balance)throw new Error("totalUSDT_balance param is missing");
+
         /**
          *  - (METHOD: Get Single Coin Balance) check the total 
          * USDT balance of the user’s sub account (Total Balance)
@@ -46,21 +50,21 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
         if (position.pair.toLowerCase().includes("usdt") === false) {
             throw new Error("Coin does not include usdt: " + position.pair);
         }
-        const COIN = "USDT";//position.pair.toLowerCase().replace("usdt","").toUpperCase();
-        const accountBalance_Resp = await bybit.clients.bybit_AccountAssetClientV3.getDerivativesCoinBalance({
-            accountType: "CONTRACT",
-            coin: COIN
-        }); 
-        if (!accountBalance_Resp.result || !accountBalance_Resp.result.balance) {
-            console.log({ accountBalance_Resp });
-            throw new Error(accountBalance_Resp.ret_msg);
-        }
-        const openPositionsTotalUSDTValue = await bybit.clients.bybit_RestClientV5.getTotalOpenPositionsUSDTValue({
-            category:"linear",
-            settleCoin:"USDT"
-        });
-        console.log({openPositionsTotalUSDTValue});
-        const totalUSDT_balance = new DecimalMath(parseFloat(accountBalance_Resp.result.balance.walletBalance)).add(openPositionsTotalUSDTValue).getResult();
+        // const COIN = "USDT";//position.pair.toLowerCase().replace("usdt","").toUpperCase();
+        // const accountBalance_Resp = await bybit.clients.bybit_AccountAssetClientV3.getDerivativesCoinBalance({
+        //     accountType: "CONTRACT",
+        //     coin: COIN
+        // }); 
+        // if (!accountBalance_Resp.result || !accountBalance_Resp.result.balance) {
+        //     console.log({ accountBalance_Resp });
+        //     throw new Error(accountBalance_Resp.ret_msg);
+        // }
+        // const openPositionsTotalUSDTValue = await bybit.clients.bybit_RestClientV5.getTotalOpenPositionsUSDTValue({
+        //     category:"linear",
+        //     settleCoin:"USDT"
+        // });
+        // console.log({openPositionsTotalUSDTValue});
+        // const totalUSDT_balance = new DecimalMath(parseFloat(accountBalance_Resp.result.balance.walletBalance)).add(openPositionsTotalUSDTValue).getResult();
         console.log({totalUSDT_balance});
         /** TRADE VALUE
         * - Get the trade size + entry price + leverage

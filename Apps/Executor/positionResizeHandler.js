@@ -112,7 +112,7 @@ async function handler({
             throw new Error(`No SubAccount found in subAccountDocument for trader :${trader.username}) and user :(${user.tg_user_id}) `);
         }
         if(!subAccountDocument.private_api ||!subAccountDocument.public_api){
-            sendTradeExecutionFailedMessage_toUser({
+            await sendTradeExecutionFailedMessage_toUser({
                 bot,
                 chatId: user.chatId,
                 position_direction: position.direction,

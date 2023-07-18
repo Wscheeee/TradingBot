@@ -88,6 +88,8 @@ process.env.TZ = dotEnvObj.TZ;
                                 trader_username: trader.username
                             });
 
+                        }else {
+                            console.log("User:"+user.username+" has no subaccount for trader:"+trader.username);
                         }
     
                     }

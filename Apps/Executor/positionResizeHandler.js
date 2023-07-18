@@ -98,7 +98,7 @@ async function handler({
                 position_leverage: position.leverage,
                 position_pair: position.pair,
                 trader_username: user.atomos?"Anonymous":trader.username,
-                reason: "Trade Execution Error: NO API KEYS PRESENT IN USER DOCCUMENT"
+                reason: "Trade Execution Error: NO API KEYS PRESENT IN USER DOCUMENT"
             });
             throw new Error("Trade Execution Error: NO API KEYS PRESENT IN USER DOCUMENT");
         }

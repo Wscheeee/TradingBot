@@ -1,5 +1,8 @@
 //@ts-check
 "use-strict";
+
+const { DecimalMath } = require("../../../DecimalMath");
+
 /**
  * @param {{
  *    bot: import("../..").Telegram,
@@ -25,7 +28,7 @@ module.exports.sendTradePartialCloseExecutedMessage_toUser = async function ({
         bot.sendMessage(chatId,
             `🟣 Trade Partial Close Executed
 ${trader_username}⏐${position_pair}⏐${position_direction}⏐x${position_leverage}
-${position_entry_price}⏐ ${change_by} ⏐ ${change_by_percentage}%
+${position_entry_price}⏐ ${change_by} ⏐ ${new DecimalMath(change_by_percentage).truncateToDecimalPlaces(2).getResult()}%
 ROI: ${position_roi}|${position_pnl}`
         );
     }catch(error){

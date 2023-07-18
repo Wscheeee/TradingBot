@@ -105,7 +105,7 @@ async function handler({
                 position_leverage: position.leverage,
                 position_pair: position.pair,
                 trader_username: user.atomos?"Anonymous":trader.username,
-                reason: "Trade Execution Error: NO API KEYS PRESENT IN USER DOCCUMENT"
+                reason: "Trade Execution Error: NO API KEYS PRESENT IN USER DOCUMENT"
             });
             throw new Error("Trade Execution Error: NO API KEYS PRESENT IN USER DOCUMENT");
         }
@@ -476,7 +476,7 @@ async function handler({
                 chatId: user.tg_user_id,
                 trader_username:  user.atomos?"Anonymous":trader.username,
                 position_value: new DecimalMath(tradedValue).truncateToDecimalPlaces(2).getResult(),
-                position_value_percentage_of_sub_capital: (tradedValue/subCapital)*10
+                position_value_percentage_of_sub_capital: (tradedValue/subCapital)*100
             });
 
         }

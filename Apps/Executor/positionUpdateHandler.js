@@ -38,20 +38,33 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
             const promises = [];
             for(const user of users_array){
                 try{
-                    
-                    promises.push(handler({
-                        logger,
-                        mongoDatabase,
-                        position,
-                        trader,
-                        user,
-                        bot,
-                        onErrorCb:(error)=>{
-                            const newErrorMessage = `(fn:positionUpdateHandler)  trader :${trader.username}) and user :(${user.tg_user_id}) ${error.message}`;
-                            error.message = newErrorMessage;
-                            onErrorCb(error);
-                        }
-                    }));
+                    if(!user.privateKey.trim() ||!user.publicKey.trim()){
+                        await sendTradeExecutionFailedMessage_toUser({
+                            bot,
+                            chatId: user.chatId,
+                            position_direction: position.direction,
+                            position_entry_price: position.entry_price,
+                            position_leverage: position.leverage,
+                            position_pair: position.pair,
+                            trader_username: user.atomos?"Anonymous":trader.username,
+                            reason: "Trade Execution Error: NO API KEYS PRESENT IN USER DOCUMENT"
+                        });
+                        onErrorCb(new Error("Trade Execution Error: NO API KEYS PRESENT IN USER DOCUMENT"));
+                    }else {
+                        promises.push(handler({
+                            logger,
+                            mongoDatabase,
+                            position,
+                            trader,
+                            user,
+                            bot,
+                            onErrorCb:(error)=>{
+                                const newErrorMessage = `(fn:positionUpdateHandler)  trader :${trader.username}) and user :(${user.tg_user_id}) ${error.message}`;
+                                error.message = newErrorMessage;
+                                onErrorCb(error);
+                            }
+                        }));
+                    }
 
                 }catch(error){
                     // Error thrown only for user but loop not to be stopped

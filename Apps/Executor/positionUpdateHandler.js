@@ -111,7 +111,7 @@ async function handler({
                 position_entry_price: position.entry_price,
                 position_leverage: position.leverage,
                 position_pair: position.pair,
-                trader_username: trader.username,
+                trader_username:  user.atomos?"Anonymous":trader.username,
                 reason: "Position Update Execution Error: No SubAccount found for trader"
             });
             throw new Error(`No SubAccount found in subAccountDocument for trader :${trader.username}) and user :(${user.tg_user_id}) `);
@@ -124,7 +124,7 @@ async function handler({
                 position_entry_price: position.entry_price,
                 position_leverage: position.leverage,
                 position_pair: position.pair,
-                trader_username: trader.username,
+                trader_username:  user.atomos?"Anonymous":trader.username,
                 reason: "Position Update Execution Error: NO API KEYS PRESENT IN SUBACCOUNT"
             });
             throw new Error("NO API KEYS PRESENT IN SUBACCOUNT");
@@ -291,7 +291,7 @@ async function handler({
                         position_entry_price: position.entry_price,
                         position_leverage: position.leverage,
                         position_pair: position.pair,
-                        trader_username: trader.username,
+                        trader_username:  user.atomos?"Anonymous":trader.username,
                         reason: "Update Position Error: "+openPositionRes.retMsg
                     });
                 }else {
@@ -388,7 +388,7 @@ async function handler({
                 position_leverage:tradedPositionObj.leverage,
                 position_pair: tradedPositionObj.pair,
                 chatId: user.tg_user_id,
-                trader_username: trader.username,
+                trader_username:  user.atomos?"Anonymous":trader.username,
                 change_by: (parseFloat(theTradeInBybit_again.size)-parseFloat(theTradeInBybit.size)),
                 change_percentage:(parseFloat(theTradeInBybit_again.size)*100)/parseFloat(theTradeInBybit.size),
                 // position_roi:position.roi,
@@ -405,7 +405,7 @@ async function handler({
                 position_leverage:position.leverage,
                 position_pair: position.pair,
                 chatId: user.tg_user_id,
-                trader_username: trader.username,
+                trader_username:  user.atomos?"Anonymous":trader.username,
                 change_by: new DecimalMath(parseFloat(theTradeInBybit_again.leverage)).subtract(parseFloat(theTradeInBybit.leverage)).getResult(),
                 change_percentage:new DecimalMath(parseFloat(theTradeInBybit_again.leverage)).multiply(100).divide(parseFloat(theTradeInBybit.leverage)).getResult(),
 

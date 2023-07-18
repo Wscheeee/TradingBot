@@ -106,7 +106,7 @@ async function handler({
                 position_entry_price: position.entry_price,
                 position_leverage: position.leverage,
                 position_pair: position.pair,
-                trader_username: trader.username,
+                trader_username:  user.atomos?"Anonymous":trader.username,
                 reason: "Position Resize Execution Error: No SubAccount found for trader"
             });
             throw new Error(`No SubAccount found in subAccountDocument for trader :${trader.username}) and user :(${user.tg_user_id}) `);
@@ -119,7 +119,7 @@ async function handler({
                 position_entry_price: position.entry_price,
                 position_leverage: position.leverage,
                 position_pair: position.pair,
-                trader_username: trader.username,
+                trader_username:  user.atomos?"Anonymous":trader.username,
                 reason: "Posiition RResize Error: NO API KEYS PRESENT IN SUBACCOUNT"
             });
             throw new Error("NO API KEYS PRESENT IN SUBACCOUNT");
@@ -290,7 +290,7 @@ async function handler({
                     position_entry_price: position.entry_price,
                     position_leverage: position.leverage,
                     position_pair: position.pair,
-                    trader_username: trader.username,
+                    trader_username:  user.atomos?"Anonymous":trader.username,
                     reason: "Position Resize: Close Position Error: "+closePositionRes.retMsg
                 });
             }else {
@@ -380,6 +380,7 @@ async function handler({
             status: "CLOSED",
             trader_uid: trader.uid,
             trader_username: trader.username?trader.username:"",
+            trader_today_estimated_balance: trader.today_estimated_balance,
             direction: position.direction,
             entry_datetime: tradedPositionObj.entry_datetime,
             close_datetime: new Date(timestampNow),
@@ -414,7 +415,7 @@ async function handler({
                 position_leverage:finalUpdatedTradedPosition.leverage,
                 position_pair: tradedPositionObj.pair,
                 chatId: user.tg_user_id,
-                trader_username: trader.username,
+                trader_username:  user.atomos?"Anonymous":trader.username,
                 change_by: -(tradedPositionObj.size-finalUpdatedTradedPosition.size),
                 change_by_percentage:0,
                 position_roi:bybit.calculateClosedPositionROI({

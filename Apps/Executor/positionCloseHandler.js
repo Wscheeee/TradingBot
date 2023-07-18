@@ -110,7 +110,7 @@ async function handler({
                 position_entry_price: position.entry_price,
                 position_leverage: position.leverage,
                 position_pair: position.pair,
-                trader_username: trader.username,
+                trader_username:  user.atomos?"Anonymous":trader.username,
                 reason: "Position Full Close Execution Error: No SubAccount found for trader"
             });
             throw new Error(`No SubAccount found in subAccountDocument for trader :${trader.username}) and user :(${user.tg_user_id}) `);
@@ -123,7 +123,7 @@ async function handler({
                 position_entry_price: position.entry_price,
                 position_leverage: position.leverage,
                 position_pair: position.pair,
-                trader_username: trader.username,
+                trader_username:  user.atomos?"Anonymous":trader.username,
                 reason: "Position Full Close Execution Error: NO API KEYS PRESENT IN SUBACCOUNT"
             });
             throw new Error("NO API KEYS PRESENT IN SUBACCOUNT");
@@ -279,7 +279,7 @@ async function handler({
                     position_entry_price: position.entry_price,
                     position_leverage: position.leverage,
                     position_pair: position.pair,
-                    trader_username: trader.username,
+                    trader_username:  user.atomos?"Anonymous":trader.username,
                     reason: "Position Full Close Error: "+closePositionRes.retMsg
                 });
             }else {
@@ -387,7 +387,7 @@ async function handler({
                 position_leverage:tradedOpenPositionDocument.leverage,
                 position_pair: tradedOpenPositionDocument.pair,
                 chatId: user.tg_user_id,
-                trader_username: trader.username,
+                trader_username:  user.atomos?"Anonymous":trader.username,
                 position_roi: bybit.calculateClosedPositionROI({
                     averageEntryPrice: closedPositionAccumulatedDetails.averageEntryPrice,
                     positionCurrentValue:  closedPositionAccumulatedDetails.positionCurrentValue,

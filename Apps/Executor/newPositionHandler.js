@@ -246,6 +246,9 @@ async function handler({
             console.log({ accountBalance_Resp });
             throw new Error(accountBalance_Resp.ret_msg);
         }
+        console.log({
+            accountBalance_Resp:accountBalance_Resp.result
+        });
         const openPositionsTotalUSDTValue = await bybit.clients.bybit_RestClientV5.getTotalOpenPositionsUSDTValue({
             category:"linear",
             settleCoin:"USDT"

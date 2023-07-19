@@ -240,7 +240,8 @@ async function handler({
             trader,
             mongoDatabase,
             action:"trade_close",
-            user
+            user,
+            telegram_userMessagingBot:bot
         });
         const sizeToExecute = sizesToExecute[0];
         console.log({sizesToExecute,sizeToExecute});

@@ -1,5 +1,6 @@
 //@ts-check
 const { DecimalMath } = require("../../../../DecimalMath");
+const {sendTradeExecutionFailedMessage_toUser} = require("../../../../Telegram/message_templates/trade_execution");
 
 /**
  * @description New position sizing algorithm
@@ -10,6 +11,7 @@ const { DecimalMath } = require("../../../../DecimalMath");
  *      trader: import("../../../../MongoDatabase/collections/top_traders/types").TopTraderCollection_Document_Interface,
  *      position: import("../../../../MongoDatabase/collections/open_trades/types").OpenTrades_Interface
  *      mongoDatabase: import("../../../../MongoDatabase").MongoDatabase,
+ *      telegram_userMessagingBot: import("../../../../Telegram").Telegram,
  *      totalUSDT_balance?: number,
  * }} param0
  */
@@ -20,6 +22,7 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
     trader,
     bybit,
     mongoDatabase,
+    telegram_userMessagingBot,
     totalUSDT_balance
 }) {
     const FUNCTION_NAME = "(fn:newPositionSizingAlgorithm)";
@@ -81,9 +84,33 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
 
         // - Calculate the trader balance for today + yesterday
         const trader_balance_today = trader.today_estimated_balance;
-        if(!trader_balance_today)throw new Error(`trader.today_estimated_balance is ${trader.today_estimated_balance} for trader: ${trader.username}`);
+        if(!trader_balance_today){
+            await sendTradeExecutionFailedMessage_toUser({
+                bot:telegram_userMessagingBot,
+                chatId: user.chatId,
+                position_direction: position.direction,
+                position_entry_price: position.entry_price,
+                position_leverage: position.leverage,
+                position_pair: position.pair,
+                trader_username: user.atomos?"Anonymous":trader.username,
+                reason: "Trade Execution Error: "+`trader.today_estimated_balance is ${trader.today_estimated_balance} for trader: ${trader.username}`
+            });
+            throw new Error(`trader.today_estimated_balance is ${trader.today_estimated_balance} for trader: ${trader.username}`);
+        }
         const trader_balance_yesterday = trader.yesterday_estimated_balance;
-        if(!trader_balance_yesterday)throw new Error(`trader.yesterday_estimated_balance is ${trader.yesterday_estimated_balance} for trader: ${trader.username}`);
+        if(!trader_balance_yesterday){
+            await sendTradeExecutionFailedMessage_toUser({
+                bot:telegram_userMessagingBot,
+                chatId: user.chatId,
+                position_direction: position.direction,
+                position_entry_price: position.entry_price,
+                position_leverage: position.leverage,
+                position_pair: position.pair,
+                trader_username: user.atomos?"Anonymous":trader.username,
+                reason: "Trade Execution Error: "+`trader.yesterday_estimated_balance is ${trader.yesterday_estimated_balance} for trader: ${trader.username}`
+            });
+            throw new Error(`trader.yesterday_estimated_balance is ${trader.yesterday_estimated_balance} for trader: ${trader.username}`);
+        }
         // - Check if balance changed more than 15% from yesterday (this is to prevent from innacurate balance calculations)
         // const diff = Math.abs((trader_balance_today - trader_balance_yesterday).dividedBy(trader_balance_yesterday)) * 100;
         const diff = Math.abs(new DecimalMath((trader_balance_today - trader_balance_yesterday)).divide(trader_balance_yesterday).getResult()) * 100;

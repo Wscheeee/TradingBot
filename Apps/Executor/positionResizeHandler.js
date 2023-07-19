@@ -167,7 +167,19 @@ async function handler({
             });
         logger.info("Return from mongoDatabase.collection.tradedPositionsCollection.getOneOpenPositionBy");
                         
-        if(!tradedPositionObj)throw new Error("Position to resize not in DB meaning it was not traded");
+        if(!tradedPositionObj){
+            await sendTradeExecutionFailedMessage_toUser({
+                bot,
+                chatId: user.chatId,
+                position_direction: position.direction,
+                position_entry_price: position.entry_price,
+                position_leverage: position.leverage,
+                position_pair: position.pair,
+                trader_username: user.atomos?"Anonymous":trader.username,
+                reason: "Trade Execution Error: Position to resize is not in DB meaning it was not traded"
+            });
+            throw new Error("Position to resize is not in DB meaning it was not traded");
+        }
                     
         logger.info("Position found in db: Working on it");
     
@@ -219,7 +231,8 @@ async function handler({
             trader,
             mongoDatabase,
             action:"resize",
-            user
+            user,
+            telegram_userMessagingBot:bot
         });
         const sizeToExecute = sizesToExecute[0];
         console.log({sizesToExecute,sizeToExecute});
@@ -347,7 +360,19 @@ async function handler({
                 console.log({closedPartialPNL_res: closedPartialPNL_res.result});
                 const closedPositionPNLObj = closedPartialPNL_res.result.list.find((closedPnlV5) => closedPnlV5.orderId===closePositionRes.result.orderId );
             
-                if(!closedPositionPNLObj)throw new Error("closedPositionPNLObj not found for closed partial position:");
+                if(!closedPositionPNLObj){
+                    await sendTradeExecutionFailedMessage_toUser({
+                        bot,
+                        chatId: user.chatId,
+                        position_direction: position.direction,
+                        position_entry_price: position.entry_price,
+                        position_leverage: position.leverage,
+                        position_pair: position.pair,
+                        trader_username: user.atomos?"Anonymous":trader.username,
+                        reason: "Trade Close Execcuted but PNL query  Error: closedPositionPNLObj not found for closed partial position"
+                    });
+                    throw new Error("closedPositionPNLObj not found for closed partial position");
+                }
             
                 let closedPartialPNL  = parseFloat(closedPositionPNLObj.closedPnl);
                 closedPositionAccumulatedDetails.closedPNL+=closedPartialPNL;

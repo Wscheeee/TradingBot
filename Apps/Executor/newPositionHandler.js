@@ -260,7 +260,8 @@ async function handler({
             action:"new_trade",
             user,
             //need to pass totalUSDT_balance in newPositionSizingAlgorithm
-            totalUSDT_balance
+            totalUSDT_balance,
+            telegram_userMessagingBot:bot
         });
         const sizeToExecute = sizesToExecute[0];
         console.log({sizesToExecute,sizeToExecute});

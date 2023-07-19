@@ -169,7 +169,19 @@ async function handler({
             });
         logger.info("Return from mongoDatabase.collection.tradedPositionsCollection.getOneOpenPositionBy");
     
-        if (!tradedPositionObj) throw new Error("Position to update not in DB meaning itt was not traded");
+        if (!tradedPositionObj) {
+            await sendTradeExecutionFailedMessage_toUser({
+                bot,
+                chatId: user.chatId,
+                position_direction: position.direction,
+                position_entry_price: position.entry_price,
+                position_leverage: position.leverage,
+                position_pair: position.pair,
+                trader_username: user.atomos?"Anonymous":trader.username,
+                reason: "Trade update Error: Position to update not in DB meaning it was not traded"
+            });
+            throw new Error("Position to update not in DB meaning it was not traded");
+        }
         logger.info("Position found in db: Working on it");
     
         /**

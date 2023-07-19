@@ -281,7 +281,7 @@ async function handler({
         console.log({closePositionsRes});
         let someCloseIsSucccessful = false;
         const closedPositionAccumulatedDetails = {
-            closedlPNL:0,
+            closedPNL:0,
             avgExitPrice: 0,
             leverage: 0,
             qty: 0,
@@ -350,7 +350,7 @@ async function handler({
                 if(!closedPositionPNLObj)throw new Error("closedPositionPNLObj not found for closed partial position:");
             
                 let closedPartialPNL  = parseFloat(closedPositionPNLObj.closedPnl);
-                closedPositionAccumulatedDetails.closedlPNL+=closedPartialPNL;
+                closedPositionAccumulatedDetails.closedPNL+=closedPartialPNL;
                 closedPositionAccumulatedDetails.avgExitPrice =  parseFloat(closedPositionPNLObj.avgExitPrice);
                 closedPositionAccumulatedDetails.leverage =  parseFloat(closedPositionPNLObj.leverage);
                 closedPositionAccumulatedDetails.qty +=  parseFloat(closedPositionPNLObj.qty);

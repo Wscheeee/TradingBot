@@ -27,7 +27,7 @@ module.exports.sendTradeFullCloseEecutedMessage_toUser = async function ({
             `🔴 Trade Full Close Executed
 ${trader_username}⏐${position_pair}⏐${position_direction}⏐x${position_leverage}
 ${position_entry_price}
-ROI: ${new DecimalMath(position_roi).truncateToDecimalPlaces(2).getResult()}|${position_pnl}`
+ROI: ${new DecimalMath(position_roi).truncateToDecimalPlaces(2).getResult()}% | ${position_pnl}$`
         );
     }catch(error){
         error.message = `${FUNCTION_NAME} ${error.message}`;

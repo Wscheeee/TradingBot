@@ -30,7 +30,7 @@ module.exports.sendTradePartialClosedDetectedMessage_toUser = async function ({
 
 ${trader_username}⏐${position_pair}⏐${position_direction}⏐x${position_leverage}
 ${position_entry_price}⏐ ${change_by} ⏐ ${new DecimalMath(change_by_percentage).truncateToDecimalPlaces(2).getResult()}%
-ROI ${new DecimalMath(position_roi).truncateToDecimalPlaces(2).getResult()}|${position_pnl}`
+ROI ${new DecimalMath(position_roi).truncateToDecimalPlaces(2).getResult()}% | ${position_pnl}$`
         );
     }catch(error){
         error.message = `${FUNCTION_NAME} ${error.message}`;

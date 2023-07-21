@@ -27,7 +27,7 @@ module.exports.sendTradeUpdateSizeExecutedMessage_toUser = async function ({
             `🚨 Trade Update Executed: Size 🟧
 
 ${trader_username}⏐${position_pair}⏐${position_direction}⏐x${position_leverage}
-${position_entry_price}🟧${change_by}🟧${new DecimalMath(change_percentage).truncateToDecimalPlaces(2).getResult()}`
+${new DecimalMath(position_entry_price).truncateToDecimalPlaces(5).getResult()}🟧${change_by}🟧${new DecimalMath(change_percentage).truncateToDecimalPlaces(2).getResult()}`
         );
     }catch(error){
         error.message = `${FUNCTION_NAME} ${error.message}`;
@@ -58,7 +58,7 @@ module.exports.sendTradeLeverageUpdateExecutedMessage_toUser = async function ({
             `🚨 Trade Update Executed: Leverage 🟧
 
 ${trader_username}⏐${position_pair}⏐${position_direction}⏐x${position_leverage}
-${position_entry_price}🟧${change_by}🟧${new DecimalMath(change_percentage).truncateToDecimalPlaces(2).getResult()}`
+${new DecimalMath(position_entry_price).truncateToDecimalPlaces(2).getResult()}🟧${change_by}🟧${new DecimalMath(change_percentage).truncateToDecimalPlaces(2).getResult()}`
         );
     }catch(error){
         error.message = `${FUNCTION_NAME} ${error.message}`;

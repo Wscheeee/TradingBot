@@ -28,8 +28,8 @@ module.exports.sendTradePartialCloseExecutedMessage_toUser = async function ({
         bot.sendMessage(chatId,
             `🟣 Trade Partial Close Executed
 ${trader_username}⏐${position_pair}⏐${position_direction}⏐x${position_leverage}
-${position_entry_price}⏐ ${change_by} ⏐ ${new DecimalMath(change_by_percentage).truncateToDecimalPlaces(2).getResult()}%
-ROI: ${new DecimalMath(position_roi).truncateToDecimalPlaces(2).getResult()}% | ${position_pnl}$`
+${new DecimalMath(position_entry_price).truncateToDecimalPlaces(5).getResult()}⏐ ${change_by} ⏐ ${new DecimalMath(change_by_percentage).truncateToDecimalPlaces(2).getResult()}%
+ROI: ${new DecimalMath(position_roi).truncateToDecimalPlaces(2).getResult()}% | ${new DecimalMath(position_pnl).truncateToDecimalPlaces(2).getResult()}$`
         );
     }catch(error){
         error.message = `${FUNCTION_NAME} ${error.message}`;

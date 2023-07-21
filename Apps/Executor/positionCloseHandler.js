@@ -175,7 +175,7 @@ async function handler({
                 position_leverage: position.leverage,
                 position_pair: position.pair,
                 trader_username: user.atomos?"Anonymous":trader.username,
-                reason: "Trade Execution Error: Position setting out to close was never traded/open"
+                reason: "Position Full Close Execution Error: Position setting out to close was never traded/open"
             });
             throw new Error("Position setting out to close was never traded/open");
         }

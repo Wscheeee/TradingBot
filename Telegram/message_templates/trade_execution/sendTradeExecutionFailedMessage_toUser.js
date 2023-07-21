@@ -1,5 +1,8 @@
 //@ts-check
 "use-strict";
+
+const { DecimalMath } = require("../../../DecimalMath");
+
 /**
  * @param {{
  *    bot: import("../..").Telegram,
@@ -24,7 +27,7 @@ module.exports.sendTradeExecutionFailedMessage_toUser = async function ({
             `⚠️ Trade Execution Failed ‼️
 
 ${trader_username}⏐${position_pair}⏐${position_direction}⏐x${position_leverage}
-${position_entry_price}
+${new DecimalMath(position_entry_price).truncateToDecimalPlaces(5).getResult()}
 Reason: ${reason}`
         );
     }catch(error){

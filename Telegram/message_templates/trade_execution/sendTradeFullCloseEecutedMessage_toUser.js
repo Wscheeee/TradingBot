@@ -26,8 +26,8 @@ module.exports.sendTradeFullCloseEecutedMessage_toUser = async function ({
         bot.sendMessage(chatId,
             `🔴 Trade Full Close Executed
 ${trader_username}⏐${position_pair}⏐${position_direction}⏐x${position_leverage}
-${position_entry_price}
-ROI: ${new DecimalMath(position_roi).truncateToDecimalPlaces(2).getResult()}% | ${position_pnl}$`
+${new DecimalMath(position_entry_price).truncateToDecimalPlaces(5).getResult()}
+ROI: ${new DecimalMath(position_roi).truncateToDecimalPlaces(2).getResult()}% | ${new DecimalMath(position_pnl).truncateToDecimalPlaces(2).getResult()}$`
         );
     }catch(error){
         error.message = `${FUNCTION_NAME} ${error.message}`;

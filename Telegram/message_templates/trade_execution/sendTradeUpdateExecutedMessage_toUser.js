@@ -26,7 +26,7 @@ module.exports.sendTradeUpdateSizeExecutedMessage_toUser = async function ({
         bot.sendMessage(chatId,
             `🚨 Trade Update Executed: Size 🟧
 ${trader_username} ⏐ ${position_pair} ⏐ ${position_direction} ⏐ x${position_leverage}
-${new DecimalMath(position_entry_price).truncateToDecimalPlaces(5).getResult()} ⏐ ${change_by} ⏐ ${new DecimalMath(change_percentage).truncateToDecimalPlaces(2).getResult()}%`
+${new DecimalMath(position_entry_price).truncateToDecimalPlaces(5).getResult()} ⏐ +${change_by} ⏐ +${new DecimalMath(change_percentage).truncateToDecimalPlaces(2).getResult()}%`
         );
     }catch(error){
         error.message = `${FUNCTION_NAME} ${error.message}`;

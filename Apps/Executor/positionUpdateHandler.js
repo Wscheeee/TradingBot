@@ -459,8 +459,6 @@ async function handler({
                 trader_username:  user.atomos?"Anonymous":trader.username,
                 change_by: new DecimalMath(parseFloat(theTradeInBybit_again.size)).subtract(parseFloat(theTradeInBybit.size)).getResult(),
                 change_percentage: calculatePercentageChange(parseFloat(theTradeInBybit_again.size),parseFloat(theTradeInBybit.size)),
-                // position_roi:position.roi,
-                // position_pnl: position.pnl
             });
         }
 

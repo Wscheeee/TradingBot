@@ -20,6 +20,7 @@ const {
 const APP_NAME = "App:TradeSignals";
 const logger = new Logger({app_name:APP_NAME});
 const {IS_LIVE} = require("../../appConfig");
+const { calculatePercentageChange } = require("../../Math/calculatePercentageChange");
 const dotEnvObj = readAndConfigureDotEnv(IS_LIVE);
 process.env.TZ = dotEnvObj.TZ;
 
@@ -160,7 +161,7 @@ process.env.TZ = dotEnvObj.TZ;
                                 chatId: user.tg_user_id,
                                 trader_username: trader.username,
                                 change_by: -(closedPartPosition.size),
-                                change_by_percentage:0,
+                                change_by_percentage: calculatePercentageChange(originalPosition.size,originalPosition.previous_size_before_partial_close),
                                 position_roi:closedPartPosition.roi,
                                 position_pnl: closedPartPosition.pnl
                             });
@@ -200,10 +201,8 @@ process.env.TZ = dotEnvObj.TZ;
                                     position_pair: position.pair,
                                     chatId: user.tg_user_id,
                                     trader_username: trader.username,
-                                    change_by: (previousPositionDocument.size-position.size),
-                                    change_percentage:0,
-                                    // position_roi:position.roi,
-                                    // position_pnl: position.pnl
+                                    change_by: (position.size-previousPositionDocument.size),
+                                    change_percentage: calculatePercentageChange(position.size,previousPositionDocument.size),
                                 });
                             }
 
@@ -217,11 +216,9 @@ process.env.TZ = dotEnvObj.TZ;
                                     position_pair: position.pair,
                                     chatId: user.tg_user_id,
                                     trader_username: trader.username,
-                                    change_by: (previousPositionDocument.leverage-position.leverage),
-                                    change_percentage:0,
+                                    change_by: (position.leverage-previousPositionDocument.leverage),
+                                    change_percentage: calculatePercentageChange(position.leverage,previousPositionDocument.leverage),
 
-                                    // position_roi:position.roi,
-                                    // position_pnl: position.pnl
                                 });
                             }
 

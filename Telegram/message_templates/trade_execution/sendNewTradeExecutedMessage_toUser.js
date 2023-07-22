@@ -1,7 +1,7 @@
 //@ts-check
 "use-strict";
 
-const { DecimalMath } = require("../../../DecimalMath");
+const { DecimalMath } = require("../../../Math");
 
 /**
  * @param {{

@@ -1,6 +1,7 @@
 //@ts-check
 
-const { DecimalMath } = require("../../DecimalMath");
+const { DecimalMath } = require("../../Math");
+const { calculatePercentageChange } = require("../../Math/calculatePercentageChange");
 const { sendTradePartialCloseExecutedMessage_toUser, sendTradeExecutionFailedMessage_toUser } = require("../../Telegram/message_templates/trade_execution");
 const {Bybit} = require("../../Trader");
 
@@ -455,7 +456,7 @@ async function handler({
                 chatId: user.tg_user_id,
                 trader_username:  user.atomos?"Anonymous":trader.username,
                 change_by: -(tradedPositionObj.size-finalUpdatedTradedPosition.size),
-                change_by_percentage:0,
+                change_by_percentage:calculatePercentageChange(finalUpdatedTradedPosition.size,tradedPositionObj.size),
                 position_roi:bybit.calculateClosedPositionROI({
                     averageEntryPrice: closedPositionAccumulatedDetails.averageEntryPrice,
                     positionCurrentValue:  closedPositionAccumulatedDetails.positionCurrentValue,

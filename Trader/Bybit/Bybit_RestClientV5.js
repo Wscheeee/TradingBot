@@ -3,7 +3,7 @@
 const { RestClientV5} = require("bybit-api");
 
 const {RateLimiter} = require("../utils/RateLimiter");
-const {DecimalMath} = require("../../DecimalMath");
+const {DecimalMath} = require("../../Math");
 
 module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
 

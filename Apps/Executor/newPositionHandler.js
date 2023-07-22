@@ -1,5 +1,5 @@
 //@ts-check
-const { DecimalMath } = require("../../DecimalMath");
+const { DecimalMath } = require("../../Math");
 const {Bybit} = require("../../Trader");
 const {
     sendNewTradeExecutedMessage_toUser,

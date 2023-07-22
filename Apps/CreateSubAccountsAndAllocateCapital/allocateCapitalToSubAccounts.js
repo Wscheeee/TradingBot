@@ -1,7 +1,7 @@
 //@ts-check
-const {DecimalMath} = require("../../DecimalMath");
+const {DecimalMath} = require("../../Math");
 const { closeAllPositionsInASubAccount } = require("./closeAllPositionsInASubAccount");
-const { markPositionsInDB_asClosedForATrader } = require("./markPositionsInDB_asClosedForATrader");
+// const { markPositionsInDB_asClosedForATrader } = require("./markPositionsInDB_asClosedForATrader");
 
 //locals
 const { performUniversalTransfer } = require("./performUniversalTransfer");
@@ -350,7 +350,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
         }
 
         return await allocateCapitalToSubAccounts({
-            bybit, mongoDatabase,user
+            bybit, mongoDatabase,user,onError
         });
        
     }catch(error){

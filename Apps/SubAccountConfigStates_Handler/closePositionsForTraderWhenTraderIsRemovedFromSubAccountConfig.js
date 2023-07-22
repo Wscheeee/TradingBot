@@ -78,7 +78,7 @@ module.exports.closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig = 
                 part: positionToClose_.part,
                 pnl: positionToClose_.pnl,
                 roi: positionToClose_.roi,
-                roi_percentage: positionToClose_.roi_percentage,
+                roi_percentage: positionToClose_.roi,
                 size: positionToClose_.size,
                 previous_size_before_partial_close: positionToClose_.previous_size_before_partial_close,
                 status: "CLOSED",
@@ -90,7 +90,7 @@ module.exports.closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig = 
                 server_timezone: process.env.TZ||"",
                 reason:config_type==="atomos"?"TRADER_REMOVED_FROM_ATOMOS_SUB_ACCOUNT_CONFIG":"TRADER_REMOVED_FROM_USER_CUSTOM_SUB_ACCOUNT_CONFIG",
                 tg_user_id:tg_user_id,
-                trader_today_estimated_balance: trader.today_estimated_balance,
+                trader_today_estimated_balance: trader.today_estimated_balance||0,
                 trader_username: trader.username
             });
             // delete from openPositions collections

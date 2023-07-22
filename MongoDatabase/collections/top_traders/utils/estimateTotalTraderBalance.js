@@ -1,7 +1,7 @@
 //@ts-check
 
 
-const {DecimalMath} = require("../../../../DecimalMath");
+const {DecimalMath} = require("../../../../Math");
 /**
  * @param {{
  *      traderDocument: import("../types").TopTraderCollection_Document_Interface,

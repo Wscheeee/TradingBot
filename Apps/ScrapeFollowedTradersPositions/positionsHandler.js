@@ -6,7 +6,7 @@
  * : Leverage change
  * : Update other values e.g Markprice and roe
  */
-const {DecimalMath} = require("../../DecimalMath/DecimalMath");
+const {DecimalMath} = require("../../Math");
 
 const {calculateRoiFromPosition} = require("./calculateRoiFromPosition");
 const {calculatePnlFromPosition} = require("./calculatePnlFromPosition");

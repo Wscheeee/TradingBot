@@ -12,7 +12,7 @@ const {Bybit_LinearClient} = require("./Bybit_LinearClient");
 const {Bybit_RestClientV5} = require("./Bybit_RestClientV5");
 const {Bybit_AccountAssetClientV3} = require("./Bybit_AccountAssetClientV3");
 
-const {DecimalMath} = require("../../DecimalMath/DecimalMath");
+const {DecimalMath} = require("../../Math/DecimalMath");
 
 /**
  * @typedef {{ sendOrders_taskRunnerInterval_duration:number}} Bybit_Settings_Interface

@@ -1,5 +1,5 @@
 //@ts-check
-const { DecimalMath } = require("../../DecimalMath");
+const { DecimalMath } = require("../../Math");
 const {Bybit} = require("../../Trader");
 const {
     sendTradeLeverageUpdateExecutedMessage_toUser,
@@ -8,6 +8,7 @@ const {
 } = require("../../Telegram/message_templates/trade_execution");
 
 const { newPositionSizingAlgorithm } = require("./algos/qty");
+const { calculatePercentageChange } = require("../../Math/calculatePercentageChange");
 
  
 /**
@@ -443,6 +444,7 @@ async function handler({
             });
         logger.info("Updated position in tradedPositionCollection db");
 
+        
 
  
         if(parseFloat(theTradeInBybit.size)<total_standardized_qty){
@@ -455,8 +457,8 @@ async function handler({
                 position_pair: tradedPositionObj.pair,
                 chatId: user.tg_user_id,
                 trader_username:  user.atomos?"Anonymous":trader.username,
-                change_by: (parseFloat(theTradeInBybit_again.size)-parseFloat(theTradeInBybit.size)),
-                change_percentage:(parseFloat(theTradeInBybit_again.size)*100)/parseFloat(theTradeInBybit.size),
+                change_by: new DecimalMath(parseFloat(theTradeInBybit_again.size)).subtract(parseFloat(theTradeInBybit.size)).getResult(),
+                change_percentage: calculatePercentageChange(parseFloat(theTradeInBybit_again.size),parseFloat(theTradeInBybit.size)),
                 // position_roi:position.roi,
                 // position_pnl: position.pnl
             });
@@ -473,8 +475,7 @@ async function handler({
                 chatId: user.tg_user_id,
                 trader_username:  user.atomos?"Anonymous":trader.username,
                 change_by: new DecimalMath(parseFloat(theTradeInBybit_again.leverage)).subtract(parseFloat(theTradeInBybit.leverage)).getResult(),
-                change_percentage:new DecimalMath(parseFloat(theTradeInBybit_again.leverage)).multiply(100).divide(parseFloat(theTradeInBybit.leverage)).getResult(),
-
+                change_percentage: calculatePercentageChange(parseFloat(theTradeInBybit_again.leverage),parseFloat(theTradeInBybit.leverage))
                 // position_roi:position.roi,
                 // position_pnl: position.pnl
             });

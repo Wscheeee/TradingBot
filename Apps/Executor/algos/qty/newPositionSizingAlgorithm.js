@@ -1,5 +1,5 @@
 //@ts-check
-const { DecimalMath } = require("../../../../DecimalMath");
+const { DecimalMath } = require("../../../../Math");
 const {sendTradeExecutionFailedMessage_toUser} = require("../../../../Telegram/message_templates/trade_execution");
 
 /**

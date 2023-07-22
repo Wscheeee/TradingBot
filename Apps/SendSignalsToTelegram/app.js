@@ -3,7 +3,7 @@ const { MongoDatabase , PositionsStateDetector} = require("../../MongoDatabase")
 const { sleepAsync } = require("../../Utils/sleepAsync");
 const {Telegram} = require("../../Telegram");
 const {Logger} = require("../../Logger");
-const {DecimalMath} = require("../../DecimalMath");
+const {DecimalMath} = require("../../Math");
 const { readAndConfigureDotEnv } = require("../../Utils/readAndConfigureDotEnv");
 
 

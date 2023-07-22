@@ -1,7 +1,7 @@
 //@ts-check
 "use-strict";
 
-const { DecimalMath } = require("../../../DecimalMath");
+const { DecimalMath } = require("../../../Math");
 
 /**
  * @param {{
@@ -22,8 +22,7 @@ module.exports.sendNewTradeDetectedMessage_toUser = async function ({
     try{
         bot.sendMessage(chatId,
             `🚨🟢 New Trade Detected
-
-${trader_username}⏐${position_pair}⏐${position_direction}⏐x${position_leverage}
+${trader_username} ⏐ ${position_pair} ⏐ ${position_direction} ⏐ x${position_leverage}
 ${new DecimalMath(position_entry_price).truncateToDecimalPlaces(5).getResult()}`
         );
     }catch(error){

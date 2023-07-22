@@ -1,7 +1,7 @@
 //@ts-check
 "use-strict";
 
-const { DecimalMath } = require("../../../DecimalMath");
+const { DecimalMath } = require("../../../Math");
 
 /**
  * @param {{
@@ -27,9 +27,8 @@ module.exports.sendTradePartialClosedDetectedMessage_toUser = async function ({
     try{
         bot.sendMessage(chatId,
             `🚨 Trade Partial Close Detected 🟪
-
-${trader_username}⏐${position_pair}⏐${position_direction}⏐x${position_leverage}
-${new DecimalMath(position_entry_price).truncateToDecimalPlaces(5).getResult()}⏐ ${change_by} ⏐ ${new DecimalMath(change_by_percentage).truncateToDecimalPlaces(2).getResult()}%
+${trader_username} ⏐ ${position_pair} ⏐ ${position_direction} ⏐ x${position_leverage}
+${new DecimalMath(position_entry_price).truncateToDecimalPlaces(5).getResult()} ⏐ ${change_by} ⏐ ${new DecimalMath(change_by_percentage).truncateToDecimalPlaces(2).getResult()}%
 ROI ${new DecimalMath(position_roi).truncateToDecimalPlaces(2).getResult()}% | ${new DecimalMath(position_pnl).truncateToDecimalPlaces(2).getResult()}$`
         );
     }catch(error){

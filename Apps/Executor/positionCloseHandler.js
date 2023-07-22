@@ -93,17 +93,17 @@ async function handler({
 }){
     try {
         if(!user.privateKey.trim() ||!user.publicKey.trim()){
-            sendTradeExecutionFailedMessage_toUser({
-                bot,
-                chatId: user.chatId,
-                position_direction: position.direction,
-                position_entry_price: position.entry_price,
-                position_leverage: position.leverage,
-                position_pair: position.pair,
-                trader_username: user.atomos?"Anonymous":trader.username,
-                reason: "Trade Execution Error: NO API KEYS PRESENT IN USER DOCUMENT"
-            });
-            throw new Error("Trade Execution Error: NO API KEYS PRESENT IN USER DOCUMENT");
+            // sendTradeExecutionFailedMessage_toUser({
+            //     bot,
+            //     chatId: user.chatId,
+            //     position_direction: position.direction,
+            //     position_entry_price: position.entry_price,
+            //     position_leverage: position.leverage,
+            //     position_pair: position.pair,
+            //     trader_username: user.atomos?"Anonymous":trader.username,
+            //     reason: "Trade Execution Error: NO API KEYS PRESENT IN USER DOCUMENT"
+            // });
+            throw new Error("Position Full Close Error: NO API KEYS PRESENT IN USER DOCUMENT");
         }
         /////////////////////////////////////////////
 
@@ -117,30 +117,31 @@ async function handler({
             testnet: user.testnet 
         });
         if(!subAccountDocument) {
-            await sendTradeExecutionFailedMessage_toUser({
-                bot,
-                chatId: user.chatId,
-                position_direction: position.direction,
-                position_entry_price: position.entry_price,
-                position_leverage: position.leverage,
-                position_pair: position.pair,
-                trader_username:  user.atomos?"Anonymous":trader.username,
-                reason: "Position Full Close Execution Error: No SubAccount found for trader"
-            });
-            throw new Error(`No SubAccount found in subAccountDocument for trader :${trader.username}) and user :(${user.tg_user_id}) `);
+            // await sendTradeExecutionFailedMessage_toUser({
+            //     bot,
+            //     chatId: user.chatId,
+            //     position_direction: position.direction,
+            //     position_entry_price: position.entry_price,
+            //     position_leverage: position.leverage,
+            //     position_pair: position.pair,
+            //     trader_username:  user.atomos?"Anonymous":trader.username,
+            //     reason: "Position Full Close Execution Error: No SubAccount found for trader"
+            // });
+            // onErrorCb(new Error(`Position Full Close Error: No SubAccount found in subAccountDocument for trader :${trader.username}) and user :(${user.tg_user_id})`));
+            throw new Error("Position Full Close Error: No SubAccount found in subAccountDocument for trader");
         }
         if(!subAccountDocument.private_api.trim() ||!subAccountDocument.public_api.trim()){
-            await sendTradeExecutionFailedMessage_toUser({
-                bot,
-                chatId: user.chatId,
-                position_direction: position.direction,
-                position_entry_price: position.entry_price,
-                position_leverage: position.leverage,
-                position_pair: position.pair,
-                trader_username:  user.atomos?"Anonymous":trader.username,
-                reason: "Position Full Close Execution Error: NO API KEYS PRESENT IN SUBACCOUNT"
-            });
-            throw new Error("NO API KEYS PRESENT IN SUBACCOUNT");
+            // await sendTradeExecutionFailedMessage_toUser({
+            //     bot,
+            //     chatId: user.chatId,
+            //     position_direction: position.direction,
+            //     position_entry_price: position.entry_price,
+            //     position_leverage: position.leverage,
+            //     position_pair: position.pair,
+            //     trader_username:  user.atomos?"Anonymous":trader.username,
+            //     reason: "Position Full Close Execution Error: NO API KEYS PRESENT IN SUBACCOUNT"
+            // });
+            throw new Error("Position Full Close Error: NO API KEYS PRESENT IN SUBACCOUNT");
         }
         const bybitSubAccount = new Bybit({
             millisecondsToDelayBetweenRequests: 7000,
@@ -167,17 +168,17 @@ async function handler({
             testnet: user.testnet
         });
         if(!tradedPositionObj){
-            await sendTradeExecutionFailedMessage_toUser({
-                bot,
-                chatId: user.chatId,
-                position_direction: position.direction,
-                position_entry_price: position.entry_price,
-                position_leverage: position.leverage,
-                position_pair: position.pair,
-                trader_username: user.atomos?"Anonymous":trader.username,
-                reason: "Position Full Close Execution Error: Position setting out to close was never traded/open"
-            });
-            throw new Error("Position setting out to close was never traded/open");
+            // await sendTradeExecutionFailedMessage_toUser({
+            //     bot,
+            //     chatId: user.chatId,
+            //     position_direction: position.direction,
+            //     position_entry_price: position.entry_price,
+            //     position_leverage: position.leverage,
+            //     position_pair: position.pair,
+            //     trader_username: user.atomos?"Anonymous":trader.username,
+            //     reason: "Position Full Close Execution Error: Position setting out to close was never traded/open"
+            // });
+            throw new Error("Position Full Close Error: Position setting out to close was never traded/open");
         }
     
         /**
@@ -195,7 +196,7 @@ async function handler({
         const sizeToExecute = sizesToExecute[0];
         console.log({sizesToExecute,sizeToExecute});
         
-        if(sizeToExecute===0||!sizeToExecute)throw new Error("sizeToExecute==="+sizeToExecute);
+        if(sizeToExecute===0||!sizeToExecute)throw new Error("Position Full Close Error: sizeToExecute==="+sizeToExecute);
         const total_standardized_qty = sizesToExecute.reduce((a,b)=>a+b,0);
         console.log({total_standardized_qty});
     
@@ -243,7 +244,7 @@ async function handler({
             
         });
 
-        if(getOpenPosition_Result.retCode!==0)throw new Error(`getOpenPosition_Result: ${getOpenPosition_Result.retMsg}`);
+        if(getOpenPosition_Result.retCode!==0)throw new Error(`Position Full Close Error: getOpenPosition_Result: ${getOpenPosition_Result.retMsg}`);
         // console.log({getOpenPosiion_Result});
         const theTradeInBybit = getOpenPosition_Result.result.list.find((p)=>{
             console.log({
@@ -258,7 +259,7 @@ async function handler({
             }
         });
 
-        if(!theTradeInBybit)throw new Error(`(getOpenPosition_Result) theTradeInBybit is ${theTradeInBybit}`);
+        if(!theTradeInBybit)throw new Error(`Position Full Close Error: (getOpenPosition_Result) theTradeInBybit is ${theTradeInBybit}`);
        
     
         /**
@@ -297,7 +298,7 @@ async function handler({
                 //instead send error message 
                 logger.error("closePositionRes:"+closePositionRes.retMsg);
 
-                sendTradeExecutionFailedMessage_toUser({
+                await sendTradeExecutionFailedMessage_toUser({
                     bot,
                     chatId: user.chatId,
                     position_direction: position.direction,
@@ -342,23 +343,23 @@ async function handler({
                 // orderId: '07d2a19c-7148-453a-b4d9-fa0f17b5746c'
                 console.log({closedPartialPNL_res});
                 if(!closedPartialPNL_res.result ||closedPartialPNL_res.result.list.length===0){
-                    logger.error("Position partial expected to be closed , it's close PNL not found.");
+                    logger.error("Position Full Close Error: Position partial expected to be closed , it's close PNL not found.");
                 }
                 console.log({closedPartialPNL_res: closedPartialPNL_res.result});
                 const closedPositionPNLObj = closedPartialPNL_res.result.list.find((closedPnlV5) => closedPnlV5.orderId===closePositionRes.result.orderId );
             
                 if(!closedPositionPNLObj){
-                    await sendTradeExecutionFailedMessage_toUser({
-                        bot,
-                        chatId: user.chatId,
-                        position_direction: position.direction,
-                        position_entry_price: position.entry_price,
-                        position_leverage: position.leverage,
-                        position_pair: position.pair,
-                        trader_username: user.atomos?"Anonymous":trader.username,
-                        reason: "Trade Close Executed but PNL query  Error: closedPositionPNLObj not found for closed partial position"
-                    });
-                    throw new Error("closedPositionPNLObj not found for closed partial position:");
+                    // await sendTradeExecutionFailedMessage_toUser({
+                    //     bot,
+                    //     chatId: user.chatId,
+                    //     position_direction: position.direction,
+                    //     position_entry_price: position.entry_price,
+                    //     position_leverage: position.leverage,
+                    //     position_pair: position.pair,
+                    //     trader_username: user.atomos?"Anonymous":trader.username,
+                    //     reason: "Trade Close Executed but PNL query  Error: closedPositionPNLObj not found for closed partial position"
+                    // });
+                    throw new Error("Position Full Close Error: Trade Close Executed but PNL query  Error: closedPositionPNLObj not found for closed partial position");
                 }
             
                 let closedPartialPNL  = parseFloat(closedPositionPNLObj.closedPnl);
@@ -376,8 +377,8 @@ async function handler({
  
         console.log({someCloseIsSucccessful});
         if(!someCloseIsSucccessful){
-            logger.error("None of the close position was successfull");
-            return;
+            throw new Error("Position Full Close Error: None of the close positions was successful");
+       
         }
 
         console.log({closedPositionAccumulatedDetails});
@@ -435,6 +436,16 @@ async function handler({
         }
 
     }catch(error){
+        sendTradeExecutionFailedMessage_toUser({
+            bot,
+            chatId: user.chatId,
+            position_direction: position.direction,
+            position_entry_price: position.entry_price,
+            position_leverage: position.leverage,
+            position_pair: position.pair,
+            trader_username: user.atomos?"Anonymous":trader.username,
+            reason: error.message
+        });
         const newErrorMessage = `user:${user.tg_user_id} (fn:handler) ${error.message}`;
         error.message = newErrorMessage;
         onErrorCb(error);

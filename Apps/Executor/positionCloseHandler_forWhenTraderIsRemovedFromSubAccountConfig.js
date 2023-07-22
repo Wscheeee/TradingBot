@@ -153,17 +153,17 @@ async function handler({
 }){
     try {
         if(!user.privateKey.trim() ||!user.publicKey.trim()){
-            sendTradeExecutionFailedMessage_toUser({
-                bot,
-                chatId: user.chatId,
-                position_direction: position.direction,
-                position_entry_price: position.entry_price,
-                position_leverage: position.leverage,
-                position_pair: position.pair,
-                trader_username: user.atomos?"Anonymous":trader.username,
-                reason: "Trade Execution Error: NO API KEYS PRESENT IN USER DOCUMENT"
-            });
-            throw new Error("Trade Execution Error: NO API KEYS PRESENT IN USER DOCUMENT");
+            // await sendTradeExecutionFailedMessage_toUser({
+            //     bot,
+            //     chatId: user.chatId,
+            //     position_direction: position.direction,
+            //     position_entry_price: position.entry_price,
+            //     position_leverage: position.leverage,
+            //     position_pair: position.pair,
+            //     trader_username: user.atomos?"Anonymous":trader.username,
+            //     reason: "Position Close Error: NO API KEYS PRESENT IN USER DOCUMENT"
+            // });
+            throw new Error("NO API KEYS PRESENT IN USER DOCUMENT");
         }
         /////////////////////////////////////////////
 
@@ -177,29 +177,29 @@ async function handler({
             testnet: user.testnet 
         });
         if(!subAccountDocument) {
-            await sendTradeExecutionFailedMessage_toUser({
-                bot,
-                chatId: user.chatId,
-                position_direction: position.direction,
-                position_entry_price: position.entry_price,
-                position_leverage: position.leverage,
-                position_pair: position.pair,
-                trader_username:  user.atomos?"Anonymous":trader.username,
-                reason: "Position Close Execution Error: No SubAccount found for trader"
-            });
-            throw new Error(`No SubAccount found in subAccountDocument for trader :${trader.username}) and user :(${user.tg_user_id}) `);
+            // await sendTradeExecutionFailedMessage_toUser({
+            //     bot,
+            //     chatId: user.chatId,
+            //     position_direction: position.direction,
+            //     position_entry_price: position.entry_price,
+            //     position_leverage: position.leverage,
+            //     position_pair: position.pair,
+            //     trader_username:  user.atomos?"Anonymous":trader.username,
+            //     reason: "Position Close Error: No SubAccount found for trader"
+            // });
+            throw new Error(`No SubAccount found for trader :${user.atomos===false?trader.username:"Anonymous"}) and user :(${user.tg_user_id}) `);
         }
         if(!subAccountDocument.private_api.trim() ||!subAccountDocument.public_api.trim()){
-            await sendTradeExecutionFailedMessage_toUser({
-                bot,
-                chatId: user.chatId,
-                position_direction: position.direction,
-                position_entry_price: position.entry_price,
-                position_leverage: position.leverage,
-                position_pair: position.pair,
-                trader_username:  user.atomos?"Anonymous":trader.username,
-                reason: "Position Close Execution Error: NO API KEYS PRESENT IN SUBACCOUNT"
-            });
+            // await sendTradeExecutionFailedMessage_toUser({
+            //     bot,
+            //     chatId: user.chatId,
+            //     position_direction: position.direction,
+            //     position_entry_price: position.entry_price,
+            //     position_leverage: position.leverage,
+            //     position_pair: position.pair,
+            //     trader_username:  user.atomos?"Anonymous":trader.username,
+            //     reason: "Position Close Error: NO API KEYS PRESENT IN SUBACCOUNT"
+            // });
             throw new Error("NO API KEYS PRESENT IN SUBACCOUNT");
         }
         const bybitSubAccount = new Bybit({
@@ -227,7 +227,7 @@ async function handler({
             testnet: user.testnet
         });
         if(!tradedPositionObj){
-            throw new Error("Position setting out to close was never trades/open");
+            throw new Error("Position setting out to close was never traded/open");
         }
 
     
@@ -345,7 +345,7 @@ async function handler({
                 // throw new Error(closePositionRes.retMsg);
                 //instead send error message 
                 logger.error("closePositionRes:"+closePositionRes.retMsg);
-                sendTradeExecutionFailedMessage_toUser({
+                await sendTradeExecutionFailedMessage_toUser({
                     bot,
                     chatId: user.chatId,
                     position_direction: position.direction,
@@ -353,7 +353,7 @@ async function handler({
                     position_leverage: position.leverage,
                     position_pair: position.pair,
                     trader_username:  user.atomos?"Anonymous":trader.username,
-                    reason: "Close Position Error: "+closePositionRes.retMsg
+                    reason: "Position Close Error: closePositionRes: "+closePositionRes.retMsg
                 });
             }else {
                 someCloseIsSucccessful = true;
@@ -411,8 +411,9 @@ async function handler({
      
         console.log({someCloseIsSucccessful});
         if(!someCloseIsSucccessful){
-            logger.error("None of the close position was successfull");
-            return;
+            throw new Error(" None of the close positions was successful");
+            // logger.error("None of the close position was successfull");
+            // return;
         }
     
         console.log({closedPositionAccumulatedDetails});
@@ -430,7 +431,17 @@ async function handler({
             });
         logger.info("Return from mongoDatabase.collection.tradedPositionsCollection.getOneOpenPositionBy");
         if(!tradedOpenPositionDocument){
-            logger.warn("Position open in Bybit is not found in DB");
+            await sendTradeExecutionFailedMessage_toUser({
+                bot,
+                chatId: user.chatId,
+                position_direction: position.direction,
+                position_entry_price: position.entry_price,
+                position_leverage: position.leverage,
+                position_pair: position.pair,
+                trader_username:  user.atomos?"Anonymous":trader.username,
+                reason: "Position Close Error: Position open in Bybit is not found in DB"
+            });
+            logger.warn("Position Close Error: Position open in Bybit is not found in DB");
         }else { 
             logger.info("Position in Bybit found in DB");
             await mongoDatabase.collection.tradedPositionsCollection.
@@ -472,7 +483,19 @@ async function handler({
 
 
     }catch(error){
-        const newErrorMessage = `user:${user.tg_user_id} (fn:handler) ${error.message}`;
+        error.message = "Position Close Error: "+error.message;
+        sendTradeExecutionFailedMessage_toUser({
+            bot,
+            chatId: user.chatId,
+            position_direction: position.direction,
+            position_entry_price: position.entry_price,
+            position_leverage: position.leverage,
+            position_pair: position.pair,
+            trader_username: user.atomos?"Anonymous":trader.username,
+            reason: error.message
+            // reason: "Position Close Error: NO API KEYS PRESENT IN USER DOCUMENT"
+        });
+        const newErrorMessage = `user:${user.tg_user_id} trader:${trader.username} (fn:handler) ${error.message}`;
         error.message = newErrorMessage;
         onErrorCb(error);
         // throw error;

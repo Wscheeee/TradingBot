@@ -94,17 +94,17 @@ async function handler({
 }){
     try {
         if(!user.privateKey.trim() ||!user.publicKey.trim()){
-            sendTradeExecutionFailedMessage_toUser({
-                bot,
-                chatId: user.chatId,
-                position_direction: position.direction,
-                position_entry_price: position.entry_price,
-                position_leverage: position.leverage,
-                position_pair: position.pair,
-                trader_username: user.atomos?"Anonymous":trader.username,
-                reason: "Trade Execution Error: NO API KEYS PRESENT IN USER DOCUMENT"
-            });
-            throw new Error("Trade Execution Error: NO API KEYS PRESENT IN USER DOCUMENT");
+            // sendTradeExecutionFailedMessage_toUser({
+            //     bot,
+            //     chatId: user.chatId,
+            //     position_direction: position.direction,
+            //     position_entry_price: position.entry_price,
+            //     position_leverage: position.leverage,
+            //     position_pair: position.pair,
+            //     trader_username: user.atomos?"Anonymous":trader.username,
+            //     reason: "Trade Execution Error: NO API KEYS PRESENT IN USER DOCUMENT"
+            // });
+            throw new Error("NO API KEYS PRESENT IN USER DOCUMENT");
         }
         /////////////////////////////////////////////
         /**
@@ -118,29 +118,29 @@ async function handler({
         console.log({trader});
         console.log({subAccountDocument});
         if(!subAccountDocument) {
-            await sendTradeExecutionFailedMessage_toUser({
-                bot,
-                chatId: user.chatId,
-                position_direction: position.direction,
-                position_entry_price: position.entry_price,
-                position_leverage: position.leverage,
-                position_pair: position.pair,
-                trader_username:  user.atomos?"Anonymous":trader.username,
-                reason: "Position Update Execution Error: No SubAccount found for trader"
-            });
-            throw new Error(`No SubAccount found in subAccountDocument for trader :${trader.username}) and user :(${user.tg_user_id}) `);
+            // await sendTradeExecutionFailedMessage_toUser({
+            //     bot,
+            //     chatId: user.chatId,
+            //     position_direction: position.direction,
+            //     position_entry_price: position.entry_price,
+            //     position_leverage: position.leverage,
+            //     position_pair: position.pair,
+            //     trader_username:  user.atomos?"Anonymous":trader.username,
+            //     reason: "Position Update Execution Error: No SubAccount found for trader"
+            // });
+            throw new Error("No SubAccount found in subAccountDocument for trader");
         }
         if(!subAccountDocument.private_api.trim() ||!subAccountDocument.public_api.trim()){
-            await sendTradeExecutionFailedMessage_toUser({
-                bot,
-                chatId: user.chatId,
-                position_direction: position.direction,
-                position_entry_price: position.entry_price,
-                position_leverage: position.leverage,
-                position_pair: position.pair,
-                trader_username:  user.atomos?"Anonymous":trader.username,
-                reason: "Position Update Execution Error: NO API KEYS PRESENT IN SUBACCOUNT"
-            });
+            // await sendTradeExecutionFailedMessage_toUser({
+            //     bot,
+            //     chatId: user.chatId,
+            //     position_direction: position.direction,
+            //     position_entry_price: position.entry_price,
+            //     position_leverage: position.leverage,
+            //     position_pair: position.pair,
+            //     trader_username:  user.atomos?"Anonymous":trader.username,
+            //     reason: "Position Update Execution Error: NO API KEYS PRESENT IN SUBACCOUNT"
+            // });
             throw new Error("NO API KEYS PRESENT IN SUBACCOUNT");
         }
         console.log({subAccountDocument});
@@ -170,16 +170,16 @@ async function handler({
         logger.info("Return from mongoDatabase.collection.tradedPositionsCollection.getOneOpenPositionBy");
     
         if (!tradedPositionObj) {
-            await sendTradeExecutionFailedMessage_toUser({
-                bot,
-                chatId: user.chatId,
-                position_direction: position.direction,
-                position_entry_price: position.entry_price,
-                position_leverage: position.leverage,
-                position_pair: position.pair,
-                trader_username: user.atomos?"Anonymous":trader.username,
-                reason: "Trade update Error: Position to update not in DB meaning it was not traded"
-            });
+            // await sendTradeExecutionFailedMessage_toUser({
+            //     bot,
+            //     chatId: user.chatId,
+            //     position_direction: position.direction,
+            //     position_entry_price: position.entry_price,
+            //     position_leverage: position.leverage,
+            //     position_pair: position.pair,
+            //     trader_username: user.atomos?"Anonymous":trader.username,
+            //     reason: "Trade update Error: Position to update not in DB meaning it was not traded"
+            // });
             throw new Error("Position to update not in DB meaning it was not traded");
         }
         logger.info("Position found in db: Working on it");
@@ -261,7 +261,7 @@ async function handler({
         }); 
         if (!accountBalance_Resp.result || !accountBalance_Resp.result.balance) {
             console.log({ accountBalance_Resp });
-            throw new Error(accountBalance_Resp.ret_msg);
+            throw new Error("accountBalance_Resp: "+accountBalance_Resp.ret_msg);
         }
         const totalUSDT_balance = new DecimalMath(parseFloat(accountBalance_Resp.result.balance.walletBalance)).getResult();
         const leftBalance = new DecimalMath(parseFloat(accountBalance_Resp.result.balance.transferBalance)).getResult();
@@ -301,16 +301,16 @@ async function handler({
         // if value > 35
         const openValuePercentageOfCapital = new DecimalMath(totalPositionsValue+tradeValue).divide(totalUSDT_balance).multiply(100).getResult();
         if(openValuePercentageOfCapital>35){
-            await sendTradeExecutionFailedMessage_toUser({
-                bot,
-                chatId: user.chatId,
-                position_direction: position.direction,
-                position_entry_price: position.entry_price,
-                position_leverage: position.leverage,
-                position_pair: position.pair,
-                trader_username: user.atomos?"Anonymous":trader.username,
-                reason: "Trade Execution Error: more than 35% of capital used for trader"
-            });
+            // await sendTradeExecutionFailedMessage_toUser({
+            //     bot,
+            //     chatId: user.chatId,
+            //     position_direction: position.direction,
+            //     position_entry_price: position.entry_price,
+            //     position_leverage: position.leverage,
+            //     position_pair: position.pair,
+            //     trader_username: user.atomos?"Anonymous":trader.username,
+            //     reason: "Trade Execution Error: more than 35% of capital used for trader"
+            // });
             throw new Error("more than 35% of capital used for trader");
         }
 
@@ -350,7 +350,7 @@ async function handler({
                 // throw new Error(openPositionRes.retMsg);
                 //instead send error message 
                     logger.error("openPositionRes:"+openPositionRes.retMsg);
-                    sendTradeExecutionFailedMessage_toUser({
+                    await sendTradeExecutionFailedMessage_toUser({
                         bot,
                         chatId: user.chatId,
                         position_direction: position.direction,
@@ -358,7 +358,7 @@ async function handler({
                         position_leverage: position.leverage,
                         position_pair: position.pair,
                         trader_username:  user.atomos?"Anonymous":trader.username,
-                        reason: "Update Position Error: "+openPositionRes.retMsg
+                        reason: "Position Update Error: openPositionRes:"+openPositionRes.retMsg
                     });
                 }else {
                     someCloseIsSucccessful = true;
@@ -481,6 +481,17 @@ async function handler({
         }
 
     }catch(error){
+        error.message = `Position Update Error: ${error.message}`;
+        sendTradeExecutionFailedMessage_toUser({
+            bot,
+            chatId: user.chatId,
+            position_direction: position.direction,
+            position_entry_price: position.entry_price,
+            position_leverage: position.leverage,
+            position_pair: position.pair,
+            trader_username: user.atomos?"Anonymous":trader.username,
+            reason: error.message
+        });
         const newErrorMessage = `user:${user.tg_user_id} (fn:handler) ${error.message}`;
         error.message = newErrorMessage;
         onErrorCb(error);

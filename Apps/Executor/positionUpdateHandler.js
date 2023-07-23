@@ -445,7 +445,10 @@ async function handler({
         logger.info("Updated position in tradedPositionCollection db");
 
         
-
+        console.log({
+            "theTradeInBybit_again.size":theTradeInBybit_again.size,
+            "theTradeInBybit.size":theTradeInBybit.size
+        });
  
         if(parseFloat(theTradeInBybit.size)<total_standardized_qty){
             // size changed

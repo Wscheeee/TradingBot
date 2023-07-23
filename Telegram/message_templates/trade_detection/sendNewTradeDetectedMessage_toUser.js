@@ -20,7 +20,7 @@ module.exports.sendNewTradeDetectedMessage_toUser = async function ({
     const FUNCTION_NAME = "(fn:sendNewTradeDetectedMessage)";
     console.log(FUNCTION_NAME);
     try{
-        bot.sendMessage(chatId,
+        await bot.sendMessage(chatId,
             `🚨 New Trade Detected 🟩
 ${trader_username} ⏐ ${position_pair} ⏐ ${position_direction} ⏐ x${position_leverage}
 ${new DecimalMath(position_entry_price).truncateToDecimalPlaces(5).getResult()}`

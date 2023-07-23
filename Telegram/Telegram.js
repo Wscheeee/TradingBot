@@ -70,7 +70,9 @@ module.exports.Telegram = class Telegram {
      */
     async sendMessage(chatId,message,form){ 
         await this.utils.sleepAsync();
-        return await this.telegramBot.sendMessage(chatId,message,form);
+        const resp = await this.telegramBot.sendMessage(chatId,message,form);
+        console.log("[telegram=>sendMessage] resp:",resp);
+        return resp;
     }
 
 

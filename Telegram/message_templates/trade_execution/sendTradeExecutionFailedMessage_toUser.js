@@ -23,7 +23,7 @@ module.exports.sendTradeExecutionFailedMessage_toUser = async function ({
     console.log(FUNCTION_NAME);
     try{
         if(reason.toLowerCase().includes("key")===false)return; // filter out some messages
-        bot.sendMessage(chatId,
+        await bot.sendMessage(chatId,
             `⚠️ Trade Execution Failed ‼️
 ${trader_username} ⏐ ${position_pair} ⏐ ${position_direction} ⏐ x${position_leverage}
 ${new DecimalMath(position_entry_price).truncateToDecimalPlaces(5).getResult()}

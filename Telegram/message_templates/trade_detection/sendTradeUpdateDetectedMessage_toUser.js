@@ -53,7 +53,7 @@ module.exports.sendTradeLeverageUpdateDetectedMessage_toUser = async function ({
     const FUNCTION_NAME = "(fn:sendTradeLeverageUpdateDetectedMessage_toUser)";
     console.log(FUNCTION_NAME);
     try{
-        bot.sendMessage(chatId,
+        await bot.sendMessage(chatId,
             `🚨 Trade Update Detected : Leverage 🟧
 ${trader_username} ⏐ ${position_pair} ⏐ ${position_direction} ⏐ x${position_leverage}
 ${new DecimalMath(position_entry_price).truncateToDecimalPlaces(5).getResult()} ⏐ +${change_by} ⏐ +${new DecimalMath(change_percentage).truncateToDecimalPlaces(2).getResult()}%`

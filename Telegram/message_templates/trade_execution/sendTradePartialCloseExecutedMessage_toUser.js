@@ -25,7 +25,7 @@ module.exports.sendTradePartialCloseExecutedMessage_toUser = async function ({
     const FUNCTION_NAME = "(fn:sendTradePartialCloseExecutedMessage_toUser)";
     console.log(FUNCTION_NAME);
     try{
-        bot.sendMessage(chatId,
+        await bot.sendMessage(chatId,
             `🟣 Trade Partial Close Executed
 ${trader_username} ⏐ ${position_pair} ⏐ ${position_direction} ⏐ x${position_leverage}
 ${new DecimalMath(position_entry_price).truncateToDecimalPlaces(5).getResult()} ⏐ ${change_by} ⏐ ${new DecimalMath(change_by_percentage).truncateToDecimalPlaces(2).getResult()}%

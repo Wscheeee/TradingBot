@@ -383,14 +383,14 @@ async function handler({
         //     averageEntryPrice: 0,
         //     positionCurrentValue: 0
         // };
-        // Loop through closePositionsRes 
+        // Loop through closePositionsRes  
         for (const openPositionResObj of openPositionsRes){
             const openPositionRes = openPositionResObj.response;
             if(openPositionRes.retCode!==0){
                 // throw new Error(openPositionRes.retMsg);
                 //instead send error message 
                 logger.error("openPositionRes:"+openPositionRes.retMsg);
-                sendTradeExecutionFailedMessage_toUser({
+                await sendTradeExecutionFailedMessage_toUser({
                     bot,
                     chatId: user.chatId,
                     position_direction: position.direction,
@@ -488,7 +488,7 @@ async function handler({
 
     }catch(error){
         error.message = "Trade Execution Error: "+error.message;
-        sendTradeExecutionFailedMessage_toUser({
+        await sendTradeExecutionFailedMessage_toUser({
             bot,
             chatId: user.chatId,
             position_direction: position.direction,

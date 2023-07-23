@@ -436,7 +436,7 @@ async function handler({
         }
 
     }catch(error){
-        sendTradeExecutionFailedMessage_toUser({
+        await sendTradeExecutionFailedMessage_toUser({
             bot,
             chatId: user.chatId,
             position_direction: position.direction,

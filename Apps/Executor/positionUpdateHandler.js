@@ -481,7 +481,7 @@ async function handler({
 
     }catch(error){
         error.message = `Position Update Error: ${error.message}`;
-        sendTradeExecutionFailedMessage_toUser({
+        await sendTradeExecutionFailedMessage_toUser({
             bot,
             chatId: user.chatId,
             position_direction: position.direction,

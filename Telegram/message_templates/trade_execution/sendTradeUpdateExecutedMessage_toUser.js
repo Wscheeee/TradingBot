@@ -24,7 +24,7 @@ module.exports.sendTradeUpdateSizeExecutedMessage_toUser = async function ({
     console.log(FUNCTION_NAME);
     try{
         bot.sendMessage(chatId,
-            `🚨 Trade Update Executed: Size 🟧
+            `🟠 Trade Update Executed: Size
 ${trader_username} ⏐ ${position_pair} ⏐ ${position_direction} ⏐ x${position_leverage}
 ${new DecimalMath(position_entry_price).truncateToDecimalPlaces(5).getResult()} ⏐ +${change_by} ⏐ +${new DecimalMath(change_percentage).truncateToDecimalPlaces(2).getResult()}%`
         );
@@ -54,7 +54,7 @@ module.exports.sendTradeLeverageUpdateExecutedMessage_toUser = async function ({
     console.log(FUNCTION_NAME);
     try{
         bot.sendMessage(chatId,
-            `🚨 Trade Update Executed: Leverage 🟧
+            `🟠 Trade Update Executed: Leverage
 ${trader_username} ⏐ ${position_pair} ⏐ ${position_direction} ⏐ x${position_leverage}
 ${new DecimalMath(position_entry_price).truncateToDecimalPlaces(2).getResult()} ⏐ +${change_by} ⏐ +${new DecimalMath(change_percentage).truncateToDecimalPlaces(2).getResult()}%`
         );

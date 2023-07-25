@@ -8,10 +8,10 @@ module.exports = {
             name: "Executor",
             script: "./Executor/app.js"
         },
-        {
-            name: "FX_TelegramChannelsSignals",
-            script: "./FX_TelegramChannelsSignals/app.js"
-        },
+        // {
+        //     name: "FX_TelegramChannelsSignals",
+        //     script: "./FX_TelegramChannelsSignals/app.js"
+        // },
         {
             name: "PerformanceCalc",
             script: "./PerformanceCalc/app.js"

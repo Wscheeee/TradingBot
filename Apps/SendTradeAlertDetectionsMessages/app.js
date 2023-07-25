@@ -31,7 +31,7 @@ process.env.TZ = dotEnvObj.TZ;
         /***
 		 * Error Telegram bot for sendding error messages to Telegram error channel.
 		 */
-        const errorbot = new Telegram({telegram_bot_token:dotEnvObj.TELEGRAM_BOT_TOKEN,requestDelay:2000});
+        const errorbot = new Telegram({telegram_bot_token:dotEnvObj.TELEGRAM_BOT_TOKEN});
         logger.info("Create Telegrambot");
         logger.addLogCallback("error",async (cbIndex,message)=>{
             // FILTER OUT SOME MESSAGES
@@ -62,7 +62,7 @@ process.env.TZ = dotEnvObj.TZ;
         logger.info("Create PositionsStateDetector and set listeners");
 
 
-        const bot = new Telegram({telegram_bot_token:dotEnvObj.TELEGRAM_BOT_TOKEN,requestDelay:5000});
+        const bot = new Telegram({telegram_bot_token:dotEnvObj.TELEGRAM_BOT_TOKEN});
         logger.info("Create Telegram signals bot");
 
         positionsStateDetector.onNewPosition(async (position,trader)=>{

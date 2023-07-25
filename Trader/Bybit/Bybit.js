@@ -282,7 +282,10 @@ module.exports.Bybit = class Bybit {
 
         const initialCost = positionSize * averageEntryPrice;
         const roi = (currentValue - initialCost) / initialCost;
-
+        console.log("[Bybit => calculateClosedPositionROI]",{
+            averageEntryPrice,positionCurrentValue,positionSize,roi
+        });
+       
         return roi;
     }
     /**
@@ -290,7 +293,7 @@ module.exports.Bybit = class Bybit {
       * @returns {number}
       */
     calculateAccountActiveOrderROI(accountOrderV5) {
-        const currentValue = parseFloat(accountOrderV5.cumExecValue);
+        const currentValue = parseFloat(accountOrderV5.cumExecValue); 
         const positionSize = parseFloat(accountOrderV5.qty);
         const averageEntryPrice = parseFloat(accountOrderV5.avgPrice);
 

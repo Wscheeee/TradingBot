@@ -11,13 +11,15 @@
     "Binance_Scraper:install": "cd Binance_Scraper && npm install",
     "Telegram:install": "cd Telegram && npm install",
     "TelegramChannelsSignalsProxy:install": "cd TelegramChannelsSignalsProxy && npm install",
-    "dep-install-npm": "npm install && npm run Trader:install && npm run MongoDatabase:install && npm run Binance_Scraper:install && npm run Telegram:install && npm run TelegramChannelsSignalsProxy:install",
+    "TaskRunner:install": "cd TaskRunner && npm install",
+    "dep-install-npm": "npm install && npm run Trader:install && npm run MongoDatabase:install && npm run Binance_Scraper:install && npm run Telegram:install && npm run TelegramChannelsSignalsProxy:install && npm run TaskRunner:install",
     "dep-install-yarn": "yarn install && yarn Trader:install && yarn MongoDatabase:install && yarn Binance_Scraper:install && yarn Telegram:install && yarn TelegramChannelsSignalsProxy:install"
   },
   "devDependencies": {
     "eslint": "^8.37.0"
   },
   "dependencies": {
+    "bottleneck": "^2.19.5",
     "luxon": "^3.3.0"
   }
 }

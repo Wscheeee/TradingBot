@@ -2,6 +2,7 @@
 
 const { AccountAssetClientV3,  } = require("bybit-api");
 const {RateLimiter} = require("../utils/RateLimiter");
+const {bottleneck} = require("./bottleneck");
 
 
 module.exports.Bybit_AccountAssetClientV3 = class Bybit_AccountAssetClientV3 {
@@ -47,8 +48,8 @@ module.exports.Bybit_AccountAssetClientV3 = class Bybit_AccountAssetClientV3 {
      * @param {import("bybit-api").SingleAccountCoinBalanceRequestV3} singleAccountCoinBalanceRequestV3 
      */
     async getDerivativesCoinBalance(singleAccountCoinBalanceRequestV3){
-        await this.#rateLimiter.addJob();
-        const getCoinInformation_Res = await this.#accountAssetClientV3.getAccountCoinBalance(singleAccountCoinBalanceRequestV3);
+        // await this.#rateLimiter.addJob();
+        const getCoinInformation_Res = await bottleneck.schedule(()=> this.#accountAssetClientV3.getAccountCoinBalance(singleAccountCoinBalanceRequestV3));
         return getCoinInformation_Res;
     }
 
@@ -74,16 +75,16 @@ module.exports.Bybit_AccountAssetClientV3 = class Bybit_AccountAssetClientV3 {
      * @param {import("bybit-api").CreateSubMemberRequestV3} createSubMemberRequestV3
      */
     async createSubAccount(createSubMemberRequestV3){
-        await this.#rateLimiter.addJob();
-        const createSubMember_Res = await this.#accountAssetClientV3.createSubMember(createSubMemberRequestV3);
+        // await this.#rateLimiter.addJob();
+        const createSubMember_Res = await bottleneck.schedule(()=> this.#accountAssetClientV3.createSubMember(createSubMemberRequestV3));
         return createSubMember_Res;
     }
     /**
      * @param {import("bybit-api").CreateSubMemberRequestV3} createSubMemberRequestV3
      */
     async getSubAccounts(){
-        await this.#rateLimiter.addJob();
-        const res = await this.#accountAssetClientV3.getSubAccounts();
+        // await this.#rateLimiter.addJob();
+        const res = await bottleneck.schedule(()=> this.#accountAssetClientV3.getSubAccounts());
         return res;
     }
 
@@ -93,8 +94,8 @@ module.exports.Bybit_AccountAssetClientV3 = class Bybit_AccountAssetClientV3 {
      * @param {import("bybit-api").CreateSubAPIKeyRequestV3} createSubAPIKeyRequestV3
      */
     async createSubAccountAPIKey(createSubAPIKeyRequestV3){
-        await this.#rateLimiter.addJob();
-        const res = await this.#accountAssetClientV3.createSubAPIKey(createSubAPIKeyRequestV3);
+        // await this.#rateLimiter.addJob();
+        const res = await bottleneck.schedule(()=> this.#accountAssetClientV3.createSubAPIKey(createSubAPIKeyRequestV3));
         return res;
     }
 
@@ -102,8 +103,8 @@ module.exports.Bybit_AccountAssetClientV3 = class Bybit_AccountAssetClientV3 {
      *@description returns api info of the logged in account
      */
     async getAPIKeyInformation(){
-        await this.#rateLimiter.addJob();
-        const res = await this.#accountAssetClientV3.getAPIKeyInformation();
+        // await this.#rateLimiter.addJob();
+        const res = await bottleneck.schedule(()=> this.#accountAssetClientV3.getAPIKeyInformation());
         return res;
     }
 
@@ -111,8 +112,8 @@ module.exports.Bybit_AccountAssetClientV3 = class Bybit_AccountAssetClientV3 {
      *@description Deletes the api key of the logged in sub account:instant
      */
     async deleteSubAccountAPIKey(){
-        await this.#rateLimiter.addJob();
-        const res = await this.#accountAssetClientV3.deleteSubAPIKey();
+        // await this.#rateLimiter.addJob();
+        const res = await bottleneck.schedule(()=> this.#accountAssetClientV3.deleteSubAPIKey());
         return res;
     }
 
@@ -121,8 +122,8 @@ module.exports.Bybit_AccountAssetClientV3 = class Bybit_AccountAssetClientV3 {
      * @param {import("bybit-api").ModifyAPIKeyRequestV3} modifyAPIKeyRequestV3
      */
     async modifySubAccountAPIKey(modifyAPIKeyRequestV3){
-        await this.#rateLimiter.addJob();
-        const res = await this.#accountAssetClientV3.modifySubAPIKey(modifyAPIKeyRequestV3);
+        // await this.#rateLimiter.addJob();
+        const res = await bottleneck.schedule(()=> this.#accountAssetClientV3.modifySubAPIKey(modifyAPIKeyRequestV3));
         return res;
     }
 
@@ -138,8 +139,8 @@ module.exports.Bybit_AccountAssetClientV3 = class Bybit_AccountAssetClientV3 {
      */
     async createSubAccountTransfer(createSubAccountTransferRequestV3){
         console.log("(method:createSubAccountTransfer): ",{createSubAccountTransferRequestV3});
-        await this.#rateLimiter.addJob();
-        const res = await this.#accountAssetClientV3.createSubAccountTransfer(createSubAccountTransferRequestV3);
+        // await this.#rateLimiter.addJob();
+        const res = await bottleneck.schedule(()=> this.#accountAssetClientV3.createSubAccountTransfer(createSubAccountTransferRequestV3));
         return res;
     }
 

@@ -457,7 +457,7 @@ async function handler({
                 trader_username:  user.atomos?"Anonymous":trader.username,
                 change_by: -(tradedPositionObj.size-finalUpdatedTradedPosition.size),
                 change_by_percentage:calculatePercentageChange(finalUpdatedTradedPosition.size,tradedPositionObj.size),
-                position_roi:bybit.calculateClosedPositionROI({
+                position_roi:bybit.calculateClosedPositionROI({ 
                     averageEntryPrice: closedPositionAccumulatedDetails.averageEntryPrice,
                     positionCurrentValue:  closedPositionAccumulatedDetails.positionCurrentValue,
                     positionSize: closedPositionAccumulatedDetails.qty

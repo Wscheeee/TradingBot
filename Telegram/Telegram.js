@@ -6,10 +6,12 @@
 // const {readDotEnvFile} = require("./readDotEnvFile");
 const TelegramBot = require("./node_modules/node-telegram-bot-api/src/telegram");
 
+const {bottleneck} = require("./bottleneck");
 
-
+// ,requestDelay:number
 /**
- * @typedef {{telegram_bot_token:string,requestDelay:number,polling?:boolean}} Settings_Interface
+ * @typedef {{
+ * telegram_bot_token:string,polling?:boolean}} Settings_Interface
  */
 module.exports.Telegram = class Telegram {
     /**
@@ -20,7 +22,7 @@ module.exports.Telegram = class Telegram {
      * @type {Settings_Interface}
      */
     #settings = {
-        requestDelay: 5000,
+        // requestDelay: 5000,
         telegram_bot_token: 0
     };
 
@@ -69,8 +71,8 @@ module.exports.Telegram = class Telegram {
      * @param {{}} [form] 
      */
     async sendMessage(chatId,message,form){ 
-        await this.utils.sleepAsync();
-        const resp = await this.telegramBot.sendMessage(chatId,message,form);
+        // await this.utils.sleepAsync();
+        const resp = bottleneck.schedule(()=> this.telegramBot.sendMessage(chatId,message,form));
         console.log("[telegram=>sendMessage] resp:",resp);
         return resp;
     }

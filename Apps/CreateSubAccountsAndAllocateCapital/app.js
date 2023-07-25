@@ -68,7 +68,7 @@ process.env.TZ = dotEnvObj.TZ;
         /***
 		 * Error Telegram bot for sendding error messages to Telegram error channel.
 		 */
-        const errorbot = new Telegram({telegram_bot_token:dotEnvObj.TELEGRAM_BOT_TOKEN,requestDelay:2000});
+        const errorbot = new Telegram({telegram_bot_token:dotEnvObj.TELEGRAM_BOT_TOKEN});
         logger.info("Create Telegrambot");
         logger.addLogCallback("error",async (cbIndex,message)=>{
             const blackListMessages = [];
@@ -202,7 +202,9 @@ process.env.TZ = dotEnvObj.TZ;
                 if(userDocumentBeforeUpdate){
                     if(
                         userDocumentBeforeUpdate.atomos!==userDocumentAfterUpdate.atomos ||
-                        userDocumentBeforeUpdate.status!==userDocumentAfterUpdate.status
+                        userDocumentBeforeUpdate.status!==userDocumentAfterUpdate.status ||
+                        userDocumentBeforeUpdate.privateKey!==userDocumentAfterUpdate.privateKey ||
+                        userDocumentBeforeUpdate.publicKey!==userDocumentAfterUpdate.publicKey
                     ){
                         // Run allocations in TaskRunner
                         intervalLastInStackTaskRunner.addMustRunJob(

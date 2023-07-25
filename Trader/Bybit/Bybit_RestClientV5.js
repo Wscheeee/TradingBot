@@ -4,6 +4,8 @@ const { RestClientV5} = require("bybit-api");
 
 const {RateLimiter} = require("../utils/RateLimiter");
 const {DecimalMath} = require("../../Math");
+const {bottleneck} = require("./bottleneck");
+
 
 module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
 
@@ -61,9 +63,14 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
      * Query the margin mode and the upgraded status of account
      */
     async getAccountInfo(){
-        await this.#rateLimiter.addJob();
-        console.log("[method: getAccountInfo]");
-        const res = await this.#restClientV5.getAccountInfo();
+        // await this.#rateLimiter.addJob();
+        const res = await bottleneck.schedule(()=> {
+            console.log("[method: getAccountInfo]");
+            return this.#restClientV5.getAccountInfo();
+            // return res;
+            // const res = await this.#restClientV5.getAccountInfo();
+            // return res;
+        });
         return res;
     }
 
@@ -93,15 +100,18 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
     * }} orderParamsV5 
     */
     async openANewPosition({ orderParams, symbolLotStepSize, symbolMaxLotSize }) {
+        // const res = await bottleneck.schedule(()=> {
+
+        // });
         const FUNCTION_NAME = "[method: openANewPosition]";
-        await this.#rateLimiter.addJob();
+        // await this.#rateLimiter.addJob();
         console.log(FUNCTION_NAME);
         console.log({ orderParams, symbolLotStepSize, symbolMaxLotSize });
         if(!symbolLotStepSize|!symbolMaxLotSize){
             const standardized_qty = await this.#bybit.standardizeQuantity({quantity:orderParams.qty,symbol:orderParams.symbol});
             const requestParams = { ...orderParams, qty: String(standardized_qty[0] ) };
             // exeutte the request as is
-            const openPositionRes = await this.#restClientV5.submitOrder(requestParams);
+            const openPositionRes = await  bottleneck.schedule(()=>this.#restClientV5.submitOrder(requestParams)); 
             return {openPositionsRes:[{
                 response: openPositionRes,
                 executed_quantity:  parseFloat(orderParams.qty)
@@ -116,7 +126,7 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
             const standardized_qty = await this.#bybit.standardizeQuantity({quantity:orderParams.qty,symbol:orderParams.symbol});
             const requestParams = { ...orderParams, qty: String(standardized_qty[0] ) };
             // exeutte the request as is
-            const openPositionRes = await this.#restClientV5.submitOrder(requestParams);
+            const openPositionRes = await bottleneck.schedule(()=> this.#restClientV5.submitOrder(requestParams));
             return {openPositionsRes:[{
                 response: openPositionRes,
                 executed_quantity:  parseFloat(orderParams.qty)
@@ -140,7 +150,7 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
             for(const qtyToExecute of arrayWithQuantitiesLeftToExecute){
                 const standardized_qty = await this.#bybit.standardizeQuantity({quantity:qtyToExecute,symbol:orderParams.symbol});
                 const requestParams = { ...orderParams, qty: String(standardized_qty[0] ) };
-                const openPositionRes = await this.#restClientV5.submitOrder(requestParams);
+                const openPositionRes = await bottleneck.schedule(()=>this.#restClientV5.submitOrder(requestParams));
                 openPositionsRes.push({
                     response: openPositionRes,
                     executed_quantity: qtyToExecute
@@ -157,7 +167,7 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
      * @param {import("bybit-api").CancelOrderParamsV5} cancelOrderParamsV5
      */
     async cancelAnOrder(cancelOrderParamsV5){
-        const cancelOrderRes = await this.#restClientV5.cancelOrder(cancelOrderParamsV5);
+        const cancelOrderRes = await bottleneck.schedule(()=> this.#restClientV5.cancelOrder(cancelOrderParamsV5));
         return cancelOrderRes;
     }
 
@@ -187,14 +197,14 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
     */
     async closeAPosition({orderParams, symbolLotStepSize, symbolMaxLotSize}) {
         const FUNCTION_NAME = "[method: closeAPosition]";
-        await this.#rateLimiter.addJob();
+        // await this.#rateLimiter.addJob();
         console.log(FUNCTION_NAME);
    
         console.log({ orderParams, symbolLotStepSize, symbolMaxLotSize });
         if(!symbolLotStepSize||!symbolMaxLotSize){
             const standardized_qty = await this.#bybit.standardizeQuantity({quantity:orderParams.qty,symbol:orderParams.symbol});
             const requestParams = { ...orderParams, qty: String(standardized_qty[0] ) };
-            const closePositionRes = await this.#restClientV5.submitOrder(requestParams);
+            const closePositionRes = await bottleneck.schedule(()=> this.#restClientV5.submitOrder(requestParams));
             return {closePositionsRes:[{
                 response: closePositionRes,
                 executed_quantity: parseFloat(orderParams.qty)
@@ -206,7 +216,7 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
         if (parseFloat(orderParams.qty) <= symbolMaxLotSize) {
             const standardized_qty = await this.#bybit.standardizeQuantity({quantity:orderParams.qty,symbol:orderParams.symbol});
             const requestParams = { ...orderParams, qty: String(standardized_qty[0] ) };
-            const closePositionRes = await this.#restClientV5.submitOrder(requestParams);
+            const closePositionRes = await bottleneck.schedule(()=> this.#restClientV5.submitOrder(requestParams));
             return {closePositionsRes:[{
                 response: closePositionRes,
                 executed_quantity: parseFloat(orderParams.qty)
@@ -229,7 +239,7 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
                 // const requestParams = { ...orderParams, qty: String(qtyToExecute) };
                 const standardized_qty = await this.#bybit.standardizeQuantity({quantity:qtyToExecute,symbol:orderParams.symbol});
                 const requestParams = { ...orderParams, qty: String(standardized_qty[0] ) };
-                const closePositionRes = await this.#restClientV5.submitOrder(requestParams);
+                const closePositionRes = await bottleneck.schedule(()=> this.#restClientV5.submitOrder(requestParams));
                 closePositionsRes.push({
                     response: closePositionRes,
                     executed_quantity: qtyToExecute
@@ -248,10 +258,10 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
      * @param {import("bybit-api").AmendOrderParamsV5} amendOrderParamsV5 
      */
     async updateAPosition(amendOrderParamsV5){
-        await this.#rateLimiter.addJob();
+        // await this.#rateLimiter.addJob();
         console.log("[method: updateAPosition]");        
         console.log(amendOrderParamsV5);
-        const res = await this.#restClientV5.amendOrder(amendOrderParamsV5);        
+        const res = await bottleneck.schedule(()=> this.#restClientV5.amendOrder(amendOrderParamsV5));        
         return res;
     }
 
@@ -262,10 +272,10 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
     */
     // * @returns {Promise<import("bybit-api").APIResponseV3WithTime<import("bybit-api").CategoryCursorListV5<import("bybit-api").PositionV5[], import("bybit-api").CategoryV5>>>}
     async getPositionInfo_Realtime(positionInfoParamsV5){
-        await this.#rateLimiter.addJob();
+        // await this.#rateLimiter.addJob();
         console.log("[method: getPositionInfo_Realtime]");        
         console.log(positionInfoParamsV5);
-        const res = await this.#restClientV5.getPositionInfo(positionInfoParamsV5);
+        const res = await bottleneck.schedule(()=> this.#restClientV5.getPositionInfo(positionInfoParamsV5));
         return res;
     }
 
@@ -273,10 +283,10 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
      * @param {import("bybit-api").GetAccountOrdersParams} getAccountOrdersParams
      */
     async getActiveOrders(getAccountOrdersParams){
-        await this.#rateLimiter.addJob();
+        // await this.#rateLimiter.addJob();
         console.log("[method: getActiveOrders]");
         console.log(getAccountOrdersParams);
-        return await this.#restClientV5.getActiveOrders(getAccountOrdersParams);
+        return await bottleneck.schedule(()=> this.#restClientV5.getActiveOrders(getAccountOrdersParams));
     }
 
  
@@ -285,9 +295,9 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
      * @param {import("bybit-api").GetAccountOrdersParams} getAccountOrdersParams 
      */
     async getOrderHistory(getAccountOrdersParams){
-        await this.#rateLimiter.addJob();
+        // await this.#rateLimiter.addJob();
         console.log("[method: getOrderHistory]");
-        return await this.#restClientV5.getHistoricOrders(getAccountOrdersParams);
+        return await bottleneck.schedule(()=> this.#restClientV5.getHistoricOrders(getAccountOrdersParams));
     }
 
 
@@ -315,7 +325,7 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
      * @param {import("bybit-api").PositionInfoParamsV5} positionsInfoParamsV5 
     */
     async getTotalOpenPositionsUSDTValue(positionsInfoParamsV5){
-        await this.#rateLimiter.addJob();
+        // await this.#rateLimiter.addJob();
         console.log("[method: getTotalOpenPositionsUSDTValue]");
         const openPositions_Res = await this.getPositionInfo_Realtime(positionsInfoParamsV5);
         if(openPositions_Res.retCode!==0){
@@ -340,9 +350,9 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
      * @param {import('bybit-api').GetWalletBalanceParamsV5} params 
      */
     async getWalletBalance(params){
-        await this.#rateLimiter.addJob();
+        // await this.#rateLimiter.addJob();
         console.log("[method: getWalletBalance]");
-        const res =  await this.#restClientV5.getWalletBalance(params);
+        const res =  await bottleneck.schedule(()=> this.#restClientV5.getWalletBalance(params));
         return res;
     }
     /**
@@ -350,9 +360,9 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
      * @param {import('bybit-api').GetAllCoinsBalanceParamsV5} params 
      */
     async getAllCoinsBalance(params){
-        await this.#rateLimiter.addJob();
+        // await this.#rateLimiter.addJob();
         console.log("[method: getAllCoinsBalance]");
-        const res =  await this.#restClientV5.getAllCoinsBalance(params);
+        const res =  await bottleneck.schedule(()=> this.#restClientV5.getAllCoinsBalance(params));
         return res;
     }
 
@@ -362,10 +372,10 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
      * @param {import("bybit-api").GetAccountOrdersParams} getAccountOrdersParams 
      */
     async getClosedPositionInfo(getAccountOrdersParams){
-        await this.#rateLimiter.addJob();
+        // await this.#rateLimiter.addJob();
         // await this.#rateLimiter.addJob();
         console.log("[method: getClosedPositionInfo]");
-        const res = await this.#restClientV5.getHistoricOrders(getAccountOrdersParams);
+        const res = await bottleneck.schedule(()=> this.#restClientV5.getHistoricOrders(getAccountOrdersParams));
         return res;
     }
 
@@ -375,10 +385,10 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
      * @param {import("bybit-api").GetClosedPnLParamsV5} getClosedPnLParamsV5 
      */
     async getClosedPositionPNL(getClosedPnLParamsV5){
-        await this.#rateLimiter.addJob();
+        // await this.#rateLimiter.addJob();
         // await this.#rateLimiter.addJob();
         console.log("[method: getClosedPositionInfo]");
-        const res = await this.#restClientV5.getClosedPnL(getClosedPnLParamsV5);
+        const res = await bottleneck.schedule(()=> this.#restClientV5.getClosedPnL(getClosedPnLParamsV5));
         return res;
     }
 
@@ -387,10 +397,10 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
      * @param {import("bybit-api").CreateSubMemberParamsV5} createSubMemberParamsV5
      */
     async createSubAccount(createSubMemberParamsV5){
-        await this.#rateLimiter.addJob();
+        // await this.#rateLimiter.addJob();
         console.log("[method: createSubAccount]");
         console.log(createSubMemberParamsV5);
-        const res = await this.#restClientV5.createSubMember(createSubMemberParamsV5);
+        const res = await bottleneck.schedule(()=> this.#restClientV5.createSubMember(createSubMemberParamsV5));
         return res;
     }
     
@@ -399,9 +409,9 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
      * This endpoint allows you to get a list of all sub UID of master account
      */
     async getSubUIDList(){
-        await this.#rateLimiter.addJob();
+        // await this.#rateLimiter.addJob();
         console.log("[method: getSubUIDList]");
-        const res = await this.#restClientV5.getSubUIDList(); 
+        const res = await bottleneck.schedule(()=> this.#restClientV5.getSubUIDList()); 
         return res;
     }
 
@@ -410,10 +420,10 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
      * @param {import("bybit-api").CreateSubApiKeyParamsV5} createSubApiKeyParamsV5
      */
     async createSubAccountUIDAPIKey(createSubApiKeyParamsV5){
-        await this.#rateLimiter.addJob();
+        // await this.#rateLimiter.addJob();
         console.log("[method: createSubAccountAPIKKey]");
         console.log(createSubApiKeyParamsV5);
-        const res = await this.#restClientV5.createSubUIDAPIKey(createSubApiKeyParamsV5);
+        const res = await bottleneck.schedule(()=> this.#restClientV5.createSubUIDAPIKey(createSubApiKeyParamsV5));
         return res;
     }
 
@@ -422,16 +432,16 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
      * @param {string[]} subMemberIds
      */
     async enableUniversalTransferForSubAccountsWithUIDs(subMemberIds){
-        await this.#rateLimiter.addJob();
+        // await this.#rateLimiter.addJob();
         console.log("[method: enableUniversalTransferForUID]");
-        const res = await this.#restClientV5.enableUniversalTransferForSubUIDs(subMemberIds);
+        const res = await bottleneck.schedule(()=> this.#restClientV5.enableUniversalTransferForSubUIDs(subMemberIds));
         return res;
     }
 
     async deleteSubApiKey(){
-        await this.#rateLimiter.addJob();
+        // await this.#rateLimiter.addJob();
         console.log("[method: deleteSubApiKey]");
-        const res = await this.#restClientV5.deleteSubApiKey();
+        const res = await bottleneck.schedule(()=> this.#restClientV5.deleteSubApiKey());
         return res;
     }
 
@@ -446,10 +456,10 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
      * @param {import("bybit-api").UniversalTransferParamsV5} universalTransferParamsV5
      */
     async createUniversalTransfer(universalTransferParamsV5){
-        await this.#rateLimiter.addJob();
+        // await this.#rateLimiter.addJob();
         console.log("[method: createUniversalTransfer]");
         console.log(universalTransferParamsV5);
-        const res = await this.#restClientV5.createUniversalTransfer(universalTransferParamsV5);
+        const res = await bottleneck.schedule(()=> this.#restClientV5.createUniversalTransfer(universalTransferParamsV5));
         return res;
     }
 

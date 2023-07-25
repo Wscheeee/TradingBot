@@ -3,8 +3,10 @@
 
 
 const {IntervalLastInStackTaskRunner}  = require("./IntervalLastInStackTaskRunner");
+const {Bottleneck} = require("./BottleNeck");
 
 
 module.exports = {
-    IntervalLastInStackTaskRunner
+    IntervalLastInStackTaskRunner,
+    Bottleneck
 };

@@ -3,6 +3,8 @@
 const { LinearClient } = require("bybit-api");
 const {RateLimiter} = require("../utils/RateLimiter");
 
+const {bottleneck} = require("./bottleneck");
+
 module.exports.Bybit_LinearClient = class Bybit_LinearClient {
     /**
      * @type {import("bybit-api").SymbolInfo[]}
@@ -54,8 +56,8 @@ module.exports.Bybit_LinearClient = class Bybit_LinearClient {
     async getAllSymbols(){
         console.log("[method: getAllSymbols]");
         // await this.#rateLimiter.delayAsync(this.#millisecondsToDelayBetweenRequests);
-        await this.#rateLimiter.addJob();
-        const res = await this.#linearClient.getSymbols();
+        // await this.#rateLimiter.addJob();
+        const res = await bottleneck.schedule(()=> this.#linearClient.getSymbols());
         if(res.result){
             this.#symbols = res.result.map(s => s);
         }
@@ -66,7 +68,7 @@ module.exports.Bybit_LinearClient = class Bybit_LinearClient {
      * @param {string} symbolName 
      */
     async getSymbolInfo(symbolName){
-        await this.#rateLimiter.addJob();
+        // await this.#rateLimiter.addJob();
         console.log("[method: getSymbolInfo]");
         if(this.#symbols.length<1){
             await this.getAllSymbols();
@@ -84,28 +86,28 @@ module.exports.Bybit_LinearClient = class Bybit_LinearClient {
      * @param {import("bybit-api").LinearSetMarginSwitchRequest} linearSetMarginSwitchRequest
      */
     async switchMargin(linearSetMarginSwitchRequest){
-        await this.#rateLimiter.addJob();
+        // await this.#rateLimiter.addJob();
         console.log("[method: switchMargin]");
-        return await this.#linearClient.setMarginSwitch(linearSetMarginSwitchRequest);
+        return await bottleneck.schedule(()=> this.#linearClient.setMarginSwitch(linearSetMarginSwitchRequest));
     }
 
     /**
      * @param {import("bybit-api").LinearSetPositionModeRequest} linearSetPositionModeRequest
      */
     async switchPositionMode(linearSetPositionModeRequest){
-        await this.#rateLimiter.addJob();
+        // await this.#rateLimiter.addJob();
         console.log("[method: switchPositionMode]");
-        return await this.#linearClient.setPositionMode(linearSetPositionModeRequest);
+        return await bottleneck.schedule(()=> this.#linearClient.setPositionMode(linearSetPositionModeRequest));
     }
 
     /** 
      * @param {import("bybit-api").LinearSetUserLeverageRequest} linearSetUserLeverageRequest
      */
     async setUserLeverage(linearSetUserLeverageRequest){
-        await this.#rateLimiter.addJob();
+        // await this.#rateLimiter.addJob();
         console.log("[method: setUserLeverage]");
         console.log({linearSetUserLeverageRequest});
-        return await this.#linearClient.setUserLeverage(linearSetUserLeverageRequest);
+        return await bottleneck.schedule(()=> this.#linearClient.setUserLeverage(linearSetUserLeverageRequest));
     }
 
 
@@ -117,7 +119,7 @@ module.exports.Bybit_LinearClient = class Bybit_LinearClient {
      */
     async standardizeQuantity({quantity,symbol}){
         console.log("[method: standardizeQuantity]");
-        await this.#rateLimiter.addJob();
+        // await this.#rateLimiter.addJob();
         const symbolInfo = await this.getSymbolInfo(symbol);
         console.log({symbolInfo});
         if(!symbolInfo || !symbolInfo.name){

@@ -10,6 +10,7 @@ const {
 const { newPositionSizingAlgorithm } = require("./algos/qty");
 const { calculatePercentageChange } = require("../../Math/calculatePercentageChange");
 const { sleepAsync } = require("../../Utils/sleepAsync");
+const { calculateStopLossPrice } = require("./algos/stoploss/calculateStopLossPrice");
 
  
 /**
@@ -96,16 +97,6 @@ async function handler({
 }){
     try {
         if(!user.privateKey.trim() ||!user.publicKey.trim()){
-            // sendTradeExecutionFailedMessage_toUser({
-            //     bot,
-            //     chatId: user.chatId,
-            //     position_direction: position.direction,
-            //     position_entry_price: position.entry_price,
-            //     position_leverage: position.leverage,
-            //     position_pair: position.pair,
-            //     trader_username: user.atomos?"Anonymous":trader.username,
-            //     reason: "Trade Execution Error: NO API KEYS PRESENT IN USER DOCUMENT"
-            // });
             throw new Error("NO API KEYS PRESENT IN USER DOCUMENT");
         }
         /////////////////////////////////////////////
@@ -120,29 +111,9 @@ async function handler({
         console.log({trader});
         console.log({subAccountDocument});
         if(!subAccountDocument) {
-            // await sendTradeExecutionFailedMessage_toUser({
-            //     bot,
-            //     chatId: user.chatId,
-            //     position_direction: position.direction,
-            //     position_entry_price: position.entry_price,
-            //     position_leverage: position.leverage,
-            //     position_pair: position.pair,
-            //     trader_username:  user.atomos?"Anonymous":trader.username,
-            //     reason: "Position Update Execution Error: No SubAccount found for trader"
-            // });
             throw new Error("No SubAccount found in subAccountDocument for trader");
         }
         if(!subAccountDocument.private_api.trim() ||!subAccountDocument.public_api.trim()){
-            // await sendTradeExecutionFailedMessage_toUser({
-            //     bot,
-            //     chatId: user.chatId,
-            //     position_direction: position.direction,
-            //     position_entry_price: position.entry_price,
-            //     position_leverage: position.leverage,
-            //     position_pair: position.pair,
-            //     trader_username:  user.atomos?"Anonymous":trader.username,
-            //     reason: "Position Update Execution Error: NO API KEYS PRESENT IN SUBACCOUNT"
-            // });
             throw new Error("NO API KEYS PRESENT IN SUBACCOUNT");
         }
         console.log({subAccountDocument});
@@ -306,16 +277,6 @@ async function handler({
         // if value > 35
         const openValuePercentageOfCapital = new DecimalMath(totalPositionsValue+tradeValue).divide(totalUSDT_balance).multiply(100).getResult();
         if(openValuePercentageOfCapital>35){
-            // await sendTradeExecutionFailedMessage_toUser({
-            //     bot,
-            //     chatId: user.chatId,
-            //     position_direction: position.direction,
-            //     position_entry_price: position.entry_price,
-            //     position_leverage: position.leverage,
-            //     position_pair: position.pair,
-            //     trader_username: user.atomos?"Anonymous":trader.username,
-            //     reason: "Trade Execution Error: more than 35% of capital used for trader"
-            // });
             throw new Error("more than 35% of capital used for trader");
         }
 
@@ -332,6 +293,11 @@ async function handler({
                     side: position.direction==="LONG"?"Buy":"Sell",
                     symbol: position.pair,
                     positionIdx:position.direction==="LONG"?1:2, //Used to identify positions in different position modes. Under hedge-mode, this param is required 0: one-way mode  1: hedge-mode Buy side 2: hedge-mode Sell side
+                    stopLoss: String(calculateStopLossPrice({
+                        directon: position.direction,
+                        entry_price: position.entry_price,
+                        leverage: position.leverage
+                    }))
                 },
                 symbolLotStepSize,
                 symbolMaxLotSize
@@ -383,19 +349,6 @@ async function handler({
         }
 
 
-    
-        // logger.info("Sending an order to update the position at bybit_RestClientV5");
-        // const updatePositionRes = await bybit.clients.bybit_RestClientV5.updateAPosition({ 
-        //     category: "linear",
-        //     orderId: tradedPositionObj.order_id,
-        //     symbol: position.pair,
-        //     qty: String(standardized_qty),
-        // });
-        // console.log({ updatePositionRes:updatePositionRes.result });
-        // if (!updatePositionRes || !updatePositionRes.result || !updatePositionRes.result.orderId) {
-        //     throw new Error(updatePositionRes.retMsg);
-        // }
-        // logger.info("Updated the position at bybit_RestClientV5");
     
         /**
          * Get the position again

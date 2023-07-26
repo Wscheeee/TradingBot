@@ -9,6 +9,7 @@ const {
 const {newPositionSizingAlgorithm} = require("./algos/qty");
 const { setUpSubAccountsForUser } = require("./setUpSubAccountsForUser");
 
+const {calculateStopLossPrice} = require("./algos/stoploss/calculateStopLossPrice");
 
 /**
  * 
@@ -167,62 +168,18 @@ async function handler({
             testnet: user.testnet 
         });
         if(!subAccountDocument) {
-            // await sendTradeExecutionFailedMessage_toUser({
-            //     bot,
-            //     chatId: user.chatId,
-            //     position_direction: position.direction,
-            //     position_entry_price: position.entry_price,
-            //     position_leverage: position.leverage,
-            //     position_pair: position.pair,
-            //     trader_username:  user.atomos?"Anonymous":trader.username,
-            //     reason: "Trade Execution Error: No SubAccount found for trader"
-            // });
             throw new Error("No SubAccount found for trader in SubAccountDocument");
         }
 
         if(!user.privateKey.trim() ||!user.publicKey.trim()){
-            // sendTradeExecutionFailedMessage_toUser({
-            //     bot,
-            //     chatId: user.chatId,
-            //     position_direction: position.direction,
-            //     position_entry_price: position.entry_price,
-            //     position_leverage: position.leverage,
-            //     position_pair: position.pair,
-            //     trader_username: user.atomos?"Anonymous":trader.username,
-            //     reason: "Trade Execution Error: NO API KEYS PRESENT IN USER DOCUMENT"
-            // });
             throw new Error("NO API KEYS PRESENT IN USER DOCUMENT");
         }
 
         if(!subAccountDocument.weight ||Number(subAccountDocument.weight)===0){
-            // if(user.atomos===false){
-            //     await sendTradeExecutionFailedMessage_toUser({
-            //         bot,
-            //         chatId: user.chatId,
-            //         position_direction: position.direction,
-            //         position_entry_price: position.entry_price,
-            //         position_leverage: position.leverage,
-            //         position_pair: position.pair,
-            //         trader_username:  user.atomos?"Anonymous":trader.username,
-            //         reason: "Trade Execution Error: Sub Acccount weight === 0"
-            //     });
-
-            // }
-            // throw new Error(`subAccountDocument.weight===${subAccountDocument.weight}`);
             throw new Error(`Sub Acccount weight ===${subAccountDocument.weight}`);
         }
 
         if(!subAccountDocument.private_api.trim() ||!subAccountDocument.public_api.trim()){
-            // await sendTradeExecutionFailedMessage_toUser({
-            //     bot,
-            //     chatId: user.chatId,
-            //     position_direction: position.direction,
-            //     position_entry_price: position.entry_price,
-            //     position_leverage: position.leverage,
-            //     position_pair: position.pair,
-            //     trader_username: user.atomos?"Anonymous":trader.username,
-            //     reason: "Trade Execution Error: NO API KEYS PRESENT IN SUBACCOUNT"
-            // });
             throw new Error("NO API KEYS PRESENT IN SUBACCOUNT");
         }
         const bybitSubAccount = new Bybit({
@@ -284,16 +241,6 @@ async function handler({
         // if value > 35
         const openValuePercentageOfCapital = new DecimalMath(totalPositionsValue+tradeValue).divide(totalUSDT_balance).multiply(100).getResult();
         if(openValuePercentageOfCapital>35){
-            // await sendTradeExecutionFailedMessage_toUser({
-            //     bot,
-            //     chatId: user.chatId,
-            //     position_direction: position.direction,
-            //     position_entry_price: position.entry_price,
-            //     position_leverage: position.leverage,
-            //     position_pair: position.pair,
-            //     trader_username: user.atomos?"Anonymous":trader.username,
-            //     reason: "Trade Execution Error: more than 35% of capital used for trader"
-            // });
             throw new Error("more than 35% of capital used for trader");
         }
 
@@ -345,6 +292,11 @@ async function handler({
                 side: position.direction==="LONG"?"Buy":"Sell",
                 symbol: position.pair,
                 positionIdx:position.direction==="LONG"?1:2, //Used to identify positions in different position modes. Under hedge-mode, this param is required 0: one-way mode  1: hedge-mode Buy side 2: hedge-mode Sell side
+                stopLoss: String(calculateStopLossPrice({
+                    directon: position.direction,
+                    entry_price: position.entry_price,
+                    leverage: position.leverage
+                }))
             },
             symbolLotStepSize,
             symbolMaxLotSize

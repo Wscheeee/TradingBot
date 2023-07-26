@@ -44,7 +44,7 @@ console.log(IS_LIVE);
         const CURRENT_HOUR = dateTimeNow.hours;
         const TODAY_DAY_NUMBER = dateTimeNow.day_index;
         const CURRENT_MINUTE = dateTimeNow.minutes;
-        while(lastScrapedDayNumber!==TODAY_DAY_NUMBER && CURRENT_HOUR===2 && CURRENT_MINUTE>5){// Scrape when day changes
+        while(lastScrapedDayNumber!==TODAY_DAY_NUMBER && CURRENT_HOUR===2 && CURRENT_MINUTE>30){// Scrape when day changes
             logger.error("RUNNING "+APP_NAME);
             let mongoDatabase = null;
             let browser = null; 

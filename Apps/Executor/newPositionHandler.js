@@ -349,30 +349,7 @@ async function handler({
             symbolLotStepSize,
             symbolMaxLotSize
         });
-         
-        // const arrayWithQuantitiesLeftToExecute = sizesToExecute;
-        // console.log({openPositionRes,arrayWithQuantitiesLeftToExecute});
-        // if(!openPositionRes || !openPositionRes.result || Object.keys(openPositionRes.result).length==0){
-        //     throw new Error(`${openPositionRes.retMsg} standardized_qty:${standardized_qty}`);
-        // }
-        // logger.info("Got response from openANewPosition Order from bybit_RestClientV5");
-        // console.log({openPositionRes});
-        // logger.info("The openANewPosition response has a orderId Meaning order was successfull");
-        // logger.info("Getting a list of open active orders from bybit_RestClientV5");
-        // const getActiveOrders_Res = await bybit.clients.bybit_RestClientV5.getActiveOrders({
-        //     category:"linear",
-        //     symbol: position.pair, 
-        //     orderId: openPositionRes.result.orderId,
-        // });
-        // if(!getActiveOrders_Res ||!getActiveOrders_Res.result ||Object.keys(getActiveOrders_Res.result).length==0){
-        //     throw new Error(getActiveOrders_Res.retMsg);
-        // }
-        // logger.info("Got a list of active orders from bybit_RestClientV5");
-        // const orderInExchange = getActiveOrders_Res.result.list.find((accountOrderV5)=>accountOrderV5.orderId===openPositionRes.result.orderId);
-        // console.log({orderInExchange});
-        // if(!orderInExchange)throw new Error("Active order for opened order orderId: "+openPositionRes.result.orderId+" not found in active orders");
-        // logger.info("Saving the position to DB");
-        // // successfully placed a position
+      
 
 
         let someOpenIsSucccessful = false;
@@ -486,7 +463,7 @@ async function handler({
         
 
 
-        
+         
 
     }catch(error){
         error.message = "Trade Execution Error: "+error.message;

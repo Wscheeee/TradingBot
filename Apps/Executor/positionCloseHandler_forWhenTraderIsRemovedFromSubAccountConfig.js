@@ -6,6 +6,8 @@ const {sendTradeFullCloseEecutedMessage_toUser, sendTradeExecutionFailedMessage_
 
 const {newPositionSizingAlgorithm} = require("./algos/qty");
 
+const {sleepAsync} = require("../../Utils/sleepAsync");
+
 /**
  * 
  * @param {{
@@ -217,7 +219,7 @@ async function handler({
         /**
                  * Get the open tradersPositions in DB
                  */
-        const tradedPositionObj = await mongoDatabase.collection.tradedPositionsCollection.findOne({
+        let tradedPositionObj = await mongoDatabase.collection.tradedPositionsCollection.findOne({
             status:"OPEN",
             pair: position.pair,
             direction: position.direction,
@@ -227,7 +229,20 @@ async function handler({
             testnet: user.testnet
         });
         if(!tradedPositionObj){
-            throw new Error("Position setting out to close was never traded/open");
+            // Retry after some duration in case a position was opened and closed quickly before the open transaction was completed: 1min
+            await sleepAsync((1000*60));
+            tradedPositionObj = await mongoDatabase.collection.tradedPositionsCollection.findOne({
+                status:"OPEN",
+                pair: position.pair,
+                direction: position.direction,
+                leverage: position.leverage,
+                trader_uid: trader.uid,
+                tg_user_id: user.tg_user_id,
+                testnet: user.testnet
+            });
+            if(!tradedPositionObj){
+                throw new Error("Position setting out to close was never traded/open");
+            }
         }
 
     

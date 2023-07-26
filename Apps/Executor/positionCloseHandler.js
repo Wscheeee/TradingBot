@@ -2,6 +2,7 @@
 
 const { sendTradeFullCloseEecutedMessage_toUser, sendTradeExecutionFailedMessage_toUser } = require("../../Telegram/message_templates/trade_execution");
 const {Bybit} = require("../../Trader");
+const { sleepAsync } = require("../../Utils/sleepAsync");
 
 const {newPositionSizingAlgorithm} = require("./algos/qty");
 
@@ -103,7 +104,7 @@ async function handler({
             //     trader_username: user.atomos?"Anonymous":trader.username,
             //     reason: "Trade Execution Error: NO API KEYS PRESENT IN USER DOCUMENT"
             // });
-            throw new Error("Position Full Close Error: NO API KEYS PRESENT IN USER DOCUMENT");
+            throw new Error("NO API KEYS PRESENT IN USER DOCUMENT");
         }
         /////////////////////////////////////////////
 
@@ -128,7 +129,7 @@ async function handler({
             //     reason: "Position Full Close Execution Error: No SubAccount found for trader"
             // });
             // onErrorCb(new Error(`Position Full Close Error: No SubAccount found in subAccountDocument for trader :${trader.username}) and user :(${user.tg_user_id})`));
-            throw new Error("Position Full Close Error: No SubAccount found in subAccountDocument for trader");
+            throw new Error("No SubAccount found in subAccountDocument for trader");
         }
         if(!subAccountDocument.private_api.trim() ||!subAccountDocument.public_api.trim()){
             // await sendTradeExecutionFailedMessage_toUser({
@@ -141,7 +142,7 @@ async function handler({
             //     trader_username:  user.atomos?"Anonymous":trader.username,
             //     reason: "Position Full Close Execution Error: NO API KEYS PRESENT IN SUBACCOUNT"
             // });
-            throw new Error("Position Full Close Error: NO API KEYS PRESENT IN SUBACCOUNT");
+            throw new Error("NO API KEYS PRESENT IN SUBACCOUNT");
         }
         const bybitSubAccount = new Bybit({
             millisecondsToDelayBetweenRequests: 7000,
@@ -158,7 +159,7 @@ async function handler({
         /**
                  * Get the open tradersPositions in DB
                  */
-        const tradedPositionObj = await mongoDatabase.collection.tradedPositionsCollection.findOne({
+        let tradedPositionObj = await mongoDatabase.collection.tradedPositionsCollection.findOne({
             status:"OPEN",
             pair: position.pair,
             direction: position.direction,
@@ -168,17 +169,20 @@ async function handler({
             testnet: user.testnet
         });
         if(!tradedPositionObj){
-            // await sendTradeExecutionFailedMessage_toUser({
-            //     bot,
-            //     chatId: user.chatId,
-            //     position_direction: position.direction,
-            //     position_entry_price: position.entry_price,
-            //     position_leverage: position.leverage,
-            //     position_pair: position.pair,
-            //     trader_username: user.atomos?"Anonymous":trader.username,
-            //     reason: "Position Full Close Execution Error: Position setting out to close was never traded/open"
-            // });
-            throw new Error("Position Full Close Error: Position setting out to close was never traded/open");
+            // Retry after some duration in case a position was opened and closed quickly before the open transaction was completed: 1min
+            await sleepAsync((1000*60));
+            tradedPositionObj = await mongoDatabase.collection.tradedPositionsCollection.findOne({
+                status:"OPEN",
+                pair: position.pair,
+                direction: position.direction,
+                leverage: position.leverage,
+                trader_uid: trader.uid,
+                tg_user_id: user.tg_user_id,
+                testnet: user.testnet
+            });
+            if(!tradedPositionObj){
+                throw new Error("Position setting out to close was never traded/open");
+            }
         }
     
         /**
@@ -196,7 +200,7 @@ async function handler({
         const sizeToExecute = sizesToExecute[0];
         console.log({sizesToExecute,sizeToExecute});
         
-        if(sizeToExecute===0||!sizeToExecute)throw new Error("Position Full Close Error: sizeToExecute==="+sizeToExecute);
+        if(sizeToExecute===0||!sizeToExecute)throw new Error("sizeToExecute==="+sizeToExecute);
         const total_standardized_qty = sizesToExecute.reduce((a,b)=>a+b,0);
         console.log({total_standardized_qty});
     
@@ -221,7 +225,7 @@ async function handler({
         });
         if(setPositionLeverage_Resp.ret_code!==0){
         // an error
-            logger.error("setPositionLeverage_Resp: "+setPositionLeverage_Resp.ret_msg);
+            logger.error("Position Full Close Error: setPositionLeverage_Resp: "+setPositionLeverage_Resp.ret_msg);
         }
         // Set user leverage
         const setUserLeverage_Res = await bybit.clients.bybit_LinearClient.setUserLeverage({
@@ -231,7 +235,7 @@ async function handler({
         });
         if(setUserLeverage_Res.ret_code!==0){
         // an error
-            logger.error("setUserLeverage_Res: "+""+setUserLeverage_Res.ret_msg+"("+position.pair+")");
+            logger.error("Position Full Close Error: setUserLeverage_Res: "+""+setUserLeverage_Res.ret_msg+"("+position.pair+")");
         }
     
         /**
@@ -244,7 +248,7 @@ async function handler({
             
         });
 
-        if(getOpenPosition_Result.retCode!==0)throw new Error(`Position Full Close Error: getOpenPosition_Result: ${getOpenPosition_Result.retMsg}`);
+        if(getOpenPosition_Result.retCode!==0)throw new Error(`getOpenPosition_Result: ${getOpenPosition_Result.retMsg}`);
         // console.log({getOpenPosiion_Result});
         const theTradeInBybit = getOpenPosition_Result.result.list.find((p)=>{
             console.log({
@@ -259,7 +263,7 @@ async function handler({
             }
         });
 
-        if(!theTradeInBybit)throw new Error(`Position Full Close Error: (getOpenPosition_Result) theTradeInBybit is ${theTradeInBybit}`);
+        if(!theTradeInBybit)throw new Error(`(getOpenPosition_Result) theTradeInBybit is ${theTradeInBybit}`);
        
     
         /**
@@ -296,7 +300,7 @@ async function handler({
             if(closePositionRes.retCode!==0){
                 // throw new Error(closePositionRes.retMsg);
                 //instead send error message 
-                logger.error("closePositionRes:"+closePositionRes.retMsg);
+                logger.error("Position Full Close Error: closePositionRes:"+closePositionRes.retMsg);
 
                 await sendTradeExecutionFailedMessage_toUser({
                     bot,
@@ -306,7 +310,7 @@ async function handler({
                     position_leverage: position.leverage,
                     position_pair: position.pair,
                     trader_username:  user.atomos?"Anonymous":trader.username,
-                    reason: "Position Full Close Error: "+closePositionRes.retMsg
+                    reason: "closePositionRes: "+closePositionRes.retMsg
                 });
             }else {
                 someCloseIsSucccessful = true;
@@ -359,7 +363,7 @@ async function handler({
                     //     trader_username: user.atomos?"Anonymous":trader.username,
                     //     reason: "Trade Close Executed but PNL query  Error: closedPositionPNLObj not found for closed partial position"
                     // });
-                    throw new Error("Position Full Close Error: Trade Close Executed but PNL query  Error: closedPositionPNLObj not found for closed partial position");
+                    throw new Error("Trade Close Executed but PNL query  Error: closedPositionPNLObj not found for closed partial position");
                 }
             
                 let closedPartialPNL  = parseFloat(closedPositionPNLObj.closedPnl);
@@ -377,7 +381,7 @@ async function handler({
  
         console.log({someCloseIsSucccessful});
         if(!someCloseIsSucccessful){
-            throw new Error("Position Full Close Error: None of the close positions was successful");
+            throw new Error("None of the close positions was successful");
        
         }
 
@@ -436,6 +440,7 @@ async function handler({
         }
 
     }catch(error){
+        error.message = `Position Full Close Error: ${error.message}`;
         await sendTradeExecutionFailedMessage_toUser({
             bot,
             chatId: user.chatId,

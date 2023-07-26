@@ -4,6 +4,7 @@ const { DecimalMath } = require("../../Math");
 const { calculatePercentageChange } = require("../../Math/calculatePercentageChange");
 const { sendTradePartialCloseExecutedMessage_toUser, sendTradeExecutionFailedMessage_toUser } = require("../../Telegram/message_templates/trade_execution");
 const {Bybit} = require("../../Trader");
+const { sleepAsync } = require("../../Utils/sleepAsync");
 
 const {newPositionSizingAlgorithm} = require("./algos/qty");
 
@@ -157,7 +158,7 @@ async function handler({
                  * Create a new tradedPosition document for the part, with status set to close
                  */
         // Check that the position is in db
-        const tradedPositionObj = await mongoDatabase.
+        let tradedPositionObj = await mongoDatabase.
             collection.
             tradedPositionsCollection.
             findOne({
@@ -169,17 +170,21 @@ async function handler({
         logger.info("Return from mongoDatabase.collection.tradedPositionsCollection.getOneOpenPositionBy");
                         
         if(!tradedPositionObj){
-            // await sendTradeExecutionFailedMessage_toUser({
-            //     bot,
-            //     chatId: user.chatId,
-            //     position_direction: position.direction,
-            //     position_entry_price: position.entry_price,
-            //     position_leverage: position.leverage,
-            //     position_pair: position.pair,
-            //     trader_username: user.atomos?"Anonymous":trader.username,
-            //     reason: "Trade Execution Error: Position to resize is not in DB meaning it was not traded"
-            // });
-            throw new Error("Position to resize is not in DB meaning it was not traded");
+            // Retry after some duration in case a position was opened and closed quickly before the open transaction was completed: 1min
+            await sleepAsync((1000*60));
+            tradedPositionObj = await mongoDatabase.
+                collection.
+                tradedPositionsCollection.
+                findOne({
+                    direction:position.direction,
+                    pair: position.pair,
+                    trader_uid: trader.uid, 
+                    testnet: user.testnet
+                });
+            if(!tradedPositionObj){
+                throw new Error("Position to resize is not in DB meaning it was not traded");
+
+            }
         }
                     
         logger.info("Position found in db: Working on it");

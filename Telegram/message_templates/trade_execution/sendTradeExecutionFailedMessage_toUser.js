@@ -1,3 +1,4 @@
+
 //@ts-check
 "use-strict";
 
@@ -32,6 +33,10 @@ module.exports.sendTradeExecutionFailedMessage_toUser = async function ({
             reason_msg = "Trader Capital Used Limit of 35% Reached";
         } else if (reason.toLowerCase().includes("db")){
             reason_msg = "Original Position was not Opened";
+        } else if (reason.toLowerCase().includes("sizetoexecute===0")){
+            reason_msg = "Original Position was not Opened";
+        } else if (reason.toLowerCase().includes("symbol")){
+            reason_msg = "Symbol Doesn't Exist on Bybit";
         }
 
         await bot.sendMessage(chatId,

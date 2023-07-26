@@ -73,7 +73,7 @@ module.exports.Telegram = class Telegram {
     async sendMessage(chatId,message,form){ 
         // await this.utils.sleepAsync();
         const resp = await bottleneck.schedule(()=> this.telegramBot.sendMessage(chatId,message,form));
-        console.log("[telegram=>sendMessage] resp:",resp);
+        // console.log("[telegram=>sendMessage] resp:",resp);
         return resp;
     }
 

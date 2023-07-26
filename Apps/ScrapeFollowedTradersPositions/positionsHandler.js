@@ -6,7 +6,7 @@
  * : Leverage change
  * : Update other values e.g Markprice and roe
  */
-const {DecimalMath} = require("../../Math");
+const {DecimalMath} = require("../../Math/DecimalMath");
 
 const {calculateRoiFromPosition} = require("./calculateRoiFromPosition");
 const {calculatePnlFromPosition} = require("./calculatePnlFromPosition");
@@ -58,7 +58,9 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                                 const roi = calculateRoiFromPosition({
                                     close_price: savedPosition_.mark_price,
                                     entry_price: savedPosition_.entry_price,
-                                    leverage: savedPosition_.leverage
+                                    leverage: savedPosition_.leverage,
+                                    direction: savedPosition_.direction
+
                                 });
                                 await mongoDatabase.collection.oldTradesCollection.createNewDocument({
                                     original_position_id: savedPosition_._id,
@@ -191,7 +193,8 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                         trader_id: savedTraderDbDoc._id,
                         trader_uid: savedTraderDbDoc.uid, 
                         trader_username: savedTraderDbDoc.username,
-                        trader_today_estimated_balance: savedTraderDbDoc.today_estimated_balance?savedTraderDbDoc.today_estimated_balance:0,
+                        //@ts-ignore
+                        today_estimated_balance: savedTraderDbDoc.today_estimated_balance?savedTraderDbDoc.today_estimated_balance:0,
                         direction: position_.direction,
                         entry_price: position_.entryPrice,
                         followed: savedTraderDbDoc && savedTraderDbDoc.followed?true:false,
@@ -202,12 +205,6 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                         open_datetime: new Date(position_.updateTimeStamp),
                         original_size: position_.amount,
                         pair: position_.symbol,
-                        pnl:position_.pnl,
-                        roi:calculateRoiFromPosition({
-                            close_price: position_.markPrice,
-                            entry_price: position_.entryPrice,
-                            leverage: position_.leverage
-                        }),
                         part:0,
                         size: position_.amount,
                         previous_size_before_partial_close: position_.amount,
@@ -250,7 +247,8 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                     const roi = calculateRoiFromPosition({
                         close_price: positionToClose_.mark_price,
                         entry_price: positionToClose_.entry_price,
-                        leverage: positionToClose_.leverage
+                        leverage: positionToClose_.leverage,
+                        direction: positionToClose_.direction
                     });
                     await mongoDatabase.collection.oldTradesCollection.createNewDocument({
                         original_position_id: positionToClose_._id,

@@ -70,11 +70,13 @@ module.exports.Bybit_LinearClient = class Bybit_LinearClient {
     async getSymbolInfo(symbolName){
         // await this.#rateLimiter.addJob();
         console.log("[method: getSymbolInfo]");
-        if(this.#symbols.length<1){
-            await this.getAllSymbols();
-        }
         
-        const symbolInfo =  this.#symbols.find((s)=> s.name===symbolName);
+        let symbolInfo =  this.#symbols.find((s)=> s.name===symbolName);
+        if(!symbolInfo){
+            await this.getAllSymbols();
+            symbolInfo =  this.#symbols.find((s)=> s.name===symbolName);
+            if(!symbolInfo)throw new Error(`Symbol:${symbolName} info not found on bybit`);
+        }
         return symbolInfo;
     }
 
@@ -121,9 +123,9 @@ module.exports.Bybit_LinearClient = class Bybit_LinearClient {
         console.log("[method: standardizeQuantity]");
         // await this.#rateLimiter.addJob();
         const symbolInfo = await this.getSymbolInfo(symbol);
-        console.log({symbolInfo});
+        console.log({symbolInfo,symbol});
         if(!symbolInfo || !symbolInfo.name){
-            throw symbolInfo;
+            throw new Error("getSymbolInfo res: symbolInfo not found for symbol:"+symbol);
         }else {
             const minQty = symbolInfo.lot_size_filter.min_trading_qty;
             const qtyStep = symbolInfo.lot_size_filter.qty_step;

@@ -132,16 +132,6 @@ async function handler({
             throw new Error("No SubAccount found in subAccountDocument for trader");
         }
         if(!subAccountDocument.private_api.trim() ||!subAccountDocument.public_api.trim()){
-            // await sendTradeExecutionFailedMessage_toUser({
-            //     bot,
-            //     chatId: user.chatId,
-            //     position_direction: position.direction,
-            //     position_entry_price: position.entry_price,
-            //     position_leverage: position.leverage,
-            //     position_pair: position.pair,
-            //     trader_username:  user.atomos?"Anonymous":trader.username,
-            //     reason: "Position Full Close Execution Error: NO API KEYS PRESENT IN SUBACCOUNT"
-            // });
             throw new Error("NO API KEYS PRESENT IN SUBACCOUNT");
         }
         const bybitSubAccount = new Bybit({

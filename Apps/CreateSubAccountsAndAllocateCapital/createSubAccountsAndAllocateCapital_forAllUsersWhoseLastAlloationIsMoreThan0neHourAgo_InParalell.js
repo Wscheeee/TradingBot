@@ -146,7 +146,7 @@ module.exports.createSubAccountsAndAllocateCapital_forAllUsersWhoseLastAlloation
                             user
                         });
                         await allocateCapitalToSubAccounts({
-                            bybit,mongoDatabase,user
+                            bybit,mongoDatabase,user,onError
                         });
                         // set last_sub_allocation_check_datetime
                         await mongoDatabase.collection.usersCollection.updateDocument(user._id,{

@@ -186,7 +186,7 @@ module.exports.closeAllPositionsInASubAccount = async function closeAllPositions
                         symbol,
                         orderId: closePositionRes.result.orderId
                     });
-                    if(getClosedPostionOrderHistory_Res.retCode!==0)throw new Error(getClosedPostionOrderHistory_Res.retMsg);
+                    if(getClosedPostionOrderHistory_Res.retCode!==0)throw new Error("getClosedPostionOrderHistory_Res: "+getClosedPostionOrderHistory_Res.retMsg);
                     console.log("getClosedPostionOrderHistory_Res");
                     console.log(getClosedPostionOrderHistory_Res.result);
         
@@ -251,6 +251,7 @@ module.exports.closeAllPositionsInASubAccount = async function closeAllPositions
             console.log("Return from mongoDatabase.collection.tradedPositionsCollection.getOneOpenPositionBy");
             if(!tradedOpenPositionDocument){
                 console.log("Position open in Bybit is not found in DB");
+                onError(new Error("Position open in Bybit is not found in DB"));
             }else { 
                 console.log("Position in Bybit found in DB");
                 await mongoDatabase.collection.tradedPositionsCollection.

@@ -31,7 +31,7 @@ module.exports.createSubAccountsForUserIfNotCreated = async function createSubAc
 
             // Get Existing Sub Accounts on Bybit 
             const getSubUIDList_Res = await bybit.clients.bybit_RestClientV5.getSubUIDList();
-            if(getSubUIDList_Res.retCode!==0)throw new Error(getSubUIDList_Res.retMsg);
+            if(getSubUIDList_Res.retCode!==0)throw new Error("getSubUIDList_Res: "+getSubUIDList_Res.retMsg);
             const subAccountsPresentInUserBybitAccount_Array = getSubUIDList_Res.result.subMembers;
             console.log({subAccountsPresentInUserBybitAccount_Array});
             // Check that Sub Accounts have been created for sub_link_name listed in the SubAccountsConfig
@@ -107,7 +107,7 @@ module.exports.createSubAccountsForUserIfNotCreated = async function createSubAc
 
             // Get Existing Sub Accounts on Bybit 
             const getSubUIDList_Res = await bybit.clients.bybit_RestClientV5.getSubUIDList();
-            if(getSubUIDList_Res.retCode!==0)throw new Error(getSubUIDList_Res.retMsg);
+            if(getSubUIDList_Res.retCode!==0)throw new Error("getSubUIDList_Res: "+getSubUIDList_Res.retMsg);
             const subAccountsPresentInUserBybitAccount_Array = getSubUIDList_Res.result.subMembers;
             console.log({subAccountsPresentInUserBybitAccount_Array});
             // Check that Sub Accounts have been created for sub_link_name listed in the SubAccountsConfig
@@ -235,7 +235,7 @@ async function createSubAccount_itsApi_andSaveInDB({
             createdAccount = {
                 ...createSubAccount2_Res.result
             };
-        }else if(createSubAccount2_Res.retCode===31005 || createSubAccount2_Res.retMsg.includes("The user already exists")){
+        }else if(createSubAccount2_Res.retCode===31005 || createSubAccount2_Res.retMsg.includes("createSubAccount2_Res: The user already exists")){
             subAccountCreated = false;
         }else {
             if(createSubAccount2_Res.retCode!==0)throw new Error(createSubAccount2_Res.retMsg);
@@ -264,7 +264,7 @@ async function createSubAccount_itsApi_andSaveInDB({
 
     // Enale SubUID universal Transer After creating API keys
     const enableUniversalTransfer_Res = await bybit.clients.bybit_RestClientV5.enableUniversalTransferForSubAccountsWithUIDs([createdAccount.uid]);
-    if(enableUniversalTransfer_Res.retCode!==0)throw new Error(enableUniversalTransfer_Res.retMsg);
+    if(enableUniversalTransfer_Res.retCode!==0)throw new Error("enableUniversalTransfer_Res: "+enableUniversalTransfer_Res.retMsg);
        
     // create new sub_account_document
     // Save the Info About the created SUB ACCOUNT in SubAccountsCollection
@@ -337,10 +337,10 @@ async function createSubAccount_itsApi_andUpdateInDB({
             createdAccount = {
                 ...createSubAccount2_Res.result
             };
-        }else if(createSubAccount2_Res.retCode===31005 || createSubAccount2_Res.retMsg.includes("The user already exists")){
+        }else if(createSubAccount2_Res.retCode===31005 || createSubAccount2_Res.retMsg.includes("createSubAccount2_Res: The user already exists")){
             subAccountCreated = false;
         }else {
-            if(createSubAccount2_Res.retCode!==0)throw new Error(createSubAccount2_Res.retMsg);
+            if(createSubAccount2_Res.retCode!==0)throw new Error("createSubAccount2_Res: "+createSubAccount2_Res.retMsg);
         }
     }
 
@@ -367,7 +367,7 @@ async function createSubAccount_itsApi_andUpdateInDB({
 
     // Enale SubUID universal Transer
     const enableUniversalTransfer_Res = await bybit.clients.bybit_RestClientV5.enableUniversalTransferForSubAccountsWithUIDs([createdAccount.uid]);
-    if(enableUniversalTransfer_Res.retCode!==0)throw new Error(enableUniversalTransfer_Res.retMsg);
+    if(enableUniversalTransfer_Res.retCode!==0)throw new Error("enableUniversalTransfer_Res: "+enableUniversalTransfer_Res.retMsg);
     
      
     //update

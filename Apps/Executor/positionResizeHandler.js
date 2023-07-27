@@ -483,7 +483,7 @@ async function handler({
                 position_roi:calculateRoiFromPosition({
                     close_price: closedPositionAccumulatedDetails.avgExitPrice,
                     direction: position.direction,
-                    entry_price:finalUpdatedTradedPosition.entry_price,
+                    entry_price:closedPositionAccumulatedDetails.avgEntryPrice,
                     leverage: position.leverage
                 }),
                 // position_roi:bybit.calculateClosedPositionROI({ 

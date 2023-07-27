@@ -278,6 +278,7 @@ async function handler({
         const closedPositionAccumulatedDetails = {
             closedPNL:0,
             avgExitPrice: 0,
+            avgEntryPrice: 0,
             leverage: 0,
             qty: 0,
             close_datetime:new Date(),
@@ -379,6 +380,7 @@ async function handler({
                 let closedPartialPNL  = parseFloat(closedPositionPNLObj.closedPnl);
                 closedPositionAccumulatedDetails.closedPNL+=closedPartialPNL;
                 closedPositionAccumulatedDetails.avgExitPrice =  parseFloat(closedPositionPNLObj.avgExitPrice);
+                closedPositionAccumulatedDetails.avgEntryPrice =  parseFloat(closedPositionPNLObj.avgEntryPrice);
                 closedPositionAccumulatedDetails.leverage =  parseFloat(closedPositionPNLObj.leverage);
                 closedPositionAccumulatedDetails.qty +=  parseFloat(closedPositionPNLObj.qty);
                 closedPositionAccumulatedDetails.close_datetime =  new Date(parseFloat(closedPositionPNLObj.updatedTime));
@@ -421,7 +423,7 @@ async function handler({
                     closed_roi_percentage: calculateRoiFromPosition({
                         close_price: closedPositionAccumulatedDetails.avgExitPrice,
                         direction: position.direction,
-                        entry_price:tradedOpenPositionDocument.entry_price,
+                        entry_price:closedPositionAccumulatedDetails.avgEntryPrice,
                         leverage: position.leverage
                     }),
                     // closed_roi_percentage: bybit.calculateClosedPositionROI({
@@ -450,7 +452,7 @@ async function handler({
                 position_roi: calculateRoiFromPosition({
                     close_price: closedPositionAccumulatedDetails.avgExitPrice,
                     direction: position.direction,
-                    entry_price:tradedOpenPositionDocument.entry_price,
+                    entry_price:closedPositionAccumulatedDetails.avgEntryPrice,
                     leverage: position.leverage
                 }),
                 // position_roi: bybit.calculateClosedPositionROI({

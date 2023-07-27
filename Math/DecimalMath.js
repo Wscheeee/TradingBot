@@ -81,6 +81,31 @@ class DecimalMath {
     }
 
     
+    /**
+     * Count the number of decimal places in a given number.
+     */
+    countDecimalPlaces() {
+        const num = this.result;
+        if (typeof num !== "number") {
+            throw new Error("Input must be a number.");
+        }
+  
+        // Convert the number to a string to easily find the decimal point.
+        const numString = num.toString();
+  
+        // Check if the number contains a decimal point.
+        const decimalIndex = numString.indexOf(".");
+        if (decimalIndex === -1) {
+            this.result =  0; // No decimal places
+            return this;
+        }
+  
+        // Calculate the number of decimal places, accounting for trailing zeroes.
+        this.result =  numString.length - decimalIndex - 1;
+        return this;
+        
+    }
+  
   
     /**
      * Gets the current result of the arithmetic operations.

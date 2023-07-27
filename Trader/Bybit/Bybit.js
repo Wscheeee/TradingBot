@@ -233,6 +233,64 @@ module.exports.Bybit = class Bybit {
         }
     }
 
+    /**
+     * Convert a given price to its standardized form based on the price filter.
+     *
+     * @param {{
+     *      price: number,
+     *      symbol: string
+     * }} param0
+     */
+    async standardizedPrice({price, symbol}) {
+        console.log("[method: standardizedPrice]");
+        const symbolInfo = await this.#clients.bybit_LinearClient.getSymbolInfo(symbol);
+        console.log({symbolInfo});
+        if(!symbolInfo || !symbolInfo.name){
+            throw symbolInfo;
+        }
+        const priceFilter = symbolInfo.price_filter;
+        /**
+         * Helper function to get the number of decimal places in a number.
+         * @param {number} num - The input number.
+         * @returns {number} - The number of decimal places in the input number.
+         */
+        function getDecimalPlaces(num) {
+            if (!isFinite(num)) {
+                return 0;
+            }
+            let e = 1;
+            let p = 0;
+            while (Math.round(num * e) / e !== num) {
+                e *= 10;
+                p++;
+            }
+            return p;
+        }
+        const tickSize = parseFloat(priceFilter.tick_size);
+
+        // Convert the input price to a numeric value
+        const numericPrice = price;
+        if (isNaN(numericPrice)) {
+            throw new Error("Invalid price: not a number.");
+        }
+
+        // Calculate the standardized price
+        const standardizedPrice = (Math.round(numericPrice / tickSize) * tickSize).toFixed(getDecimalPlaces(tickSize));
+
+        return parseFloat(standardizedPrice);
+    }
+  
+  
+  
+    //   // Example usage:
+    //   const priceFilter = {
+    //     tick_size: '0.001',
+    //   };
+  
+    //   const inputPrice = '0.7253358975';
+    //   const standardizedPrice = getStandardizedPrice(inputPrice, priceFilter);
+    //   console.log(standardizedPrice); // Output: '0.725'
+  
 
 
     

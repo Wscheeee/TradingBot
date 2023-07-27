@@ -293,10 +293,13 @@ async function handler({
                     side: position.direction==="LONG"?"Buy":"Sell",
                     symbol: position.pair,
                     positionIdx:position.direction==="LONG"?1:2, //Used to identify positions in different position modes. Under hedge-mode, this param is required 0: one-way mode  1: hedge-mode Buy side 2: hedge-mode Sell side
-                    stopLoss: String(calculateStopLossPrice({
-                        direction: position.direction,
-                        entry_price: position.entry_price,
-                        leverage: position.leverage
+                    stopLoss: String(await bybit.standardizedPrice({
+                        price:calculateStopLossPrice({
+                            direction: position.direction,
+                            entry_price: position.entry_price,
+                            leverage: position.leverage
+                        }),
+                        symbol: position.pair
                     }))
                 },
                 symbolLotStepSize,

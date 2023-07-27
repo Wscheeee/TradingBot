@@ -100,9 +100,7 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
     * }} orderParamsV5 
     */
     async openANewPosition({ orderParams, symbolLotStepSize, symbolMaxLotSize }) {
-        // const res = await bottleneck.schedule(()=> {
 
-        // });
         const FUNCTION_NAME = "[method: openANewPosition]";
         // await this.#rateLimiter.addJob();
         console.log(FUNCTION_NAME);

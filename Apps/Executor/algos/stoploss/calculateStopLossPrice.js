@@ -1,7 +1,8 @@
+//@ts-check
 /**
  * @param {{
 *      entry_price: number,
-*      directon: "LONG"|"SHORT",
+*      direction: "LONG"|"SHORT",
 *      leverage: number,
 * }} param0
 */

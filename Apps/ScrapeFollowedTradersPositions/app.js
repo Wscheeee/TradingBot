@@ -61,7 +61,7 @@ console.log(process.env);
 
             await browser.close();
             await mongoDatabase.disconnect();
-            await sleepAsync((1000*60));
+            await sleepAsync((1000*10));
             if(if3HoursPassed.isTrue()){
                 process.exit();
             }

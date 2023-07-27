@@ -340,6 +340,9 @@ async function handler({
                 // const orderInfoObj = orderHistory_Res.result.list.find((order)=>order.orderId===closePositionRes.result.orderId);
                 // if(!orderInfoObj)throw new Error("orderInfoObj not found in history");
                 // console.log({orderInfoObj});
+
+
+                
                 const closedPartialPNL_res = await bybit.clients.bybit_RestClientV5.getClosedPositionPNL({
                     category:"linear",
                     symbol:position.pair,

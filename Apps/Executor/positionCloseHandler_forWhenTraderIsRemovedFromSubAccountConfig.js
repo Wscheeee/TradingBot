@@ -7,6 +7,7 @@ const {sendTradeFullCloseEecutedMessage_toUser, sendTradeExecutionFailedMessage_
 const {newPositionSizingAlgorithm} = require("./algos/qty");
 
 const {sleepAsync} = require("../../Utils/sleepAsync");
+const { calculateRoiFromPosition } = require("../ScrapeFollowedTradersPositions/calculateRoiFromPosition");
 
 /**
  * 
@@ -318,6 +319,8 @@ async function handler({
                 p.side===(position.direction==="LONG"?"Buy":"Sell")
                     &&
                     p.symbol===position.pair
+                    &&
+                    p.size!=="0"
             ){
                 return p;
             }
@@ -347,6 +350,7 @@ async function handler({
         const closedPositionAccumulatedDetails = {
             closedlPNL:0,
             avgExitPrice: 0,
+            avgEntryPrice: 0,
             leverage: 0,
             qty: 0,
             close_datetime:new Date(),
@@ -395,26 +399,60 @@ async function handler({
                     getClosedPositionInfo_res: getClosedPositionInfo_res.result.list
                 });
             
+                await sleepAsync(20000);
+        
                 ///////////////////////////////////////////////////
-            
-                    
+                // const orderHistory_Res = await bybit.clients.bybit_RestClientV5.getOrderHistory({
+                //     category:"linear",
+                //     symbol: position.pair,
+                //     // orderId: closePositionRes.result.orderId
+                // });
+                // if(orderHistory_Res.retCode!==0)throw new Error("orderHistory_Res: "+orderHistory_Res.retMsg);
+                // const orderInfoObj = orderHistory_Res.result.list.find((order)=>order.orderId===closePositionRes.result.orderId);
+                // if(!orderInfoObj)throw new Error("orderInfoObj not found in history");
+                // console.log({orderInfoObj});
+
+
+                
                 const closedPartialPNL_res = await bybit.clients.bybit_RestClientV5.getClosedPositionPNL({
                     category:"linear",
                     symbol:position.pair,
                 });
-                    // orderId: '07d2a19c-7148-453a-b4d9-fa0f17b5746c'
+                // orderId: '07d2a19c-7148-453a-b4d9-fa0f17b5746c'
                 console.log({closedPartialPNL_res});
                 if(!closedPartialPNL_res.result ||closedPartialPNL_res.result.list.length===0){
-                    logger.error("Position partial expected to be closed , it's close PNL not found.");
+                    logger.error("Position Resize Error: Position partial expected to be closed , it's close PNL not found.");
                 }
                 console.log({closedPartialPNL_res: closedPartialPNL_res.result});
-                const closedPositionPNLObj = closedPartialPNL_res.result.list.find((closedPnlV5) => closedPnlV5.orderId===closePositionRes.result.orderId );
-                
-                if(!closedPositionPNLObj)throw new Error("closedPositionPNLObj not found for closed partial position:");
+                let closedPositionPNLObj = closedPartialPNL_res.result.list.find((closedPnlV5) => closedPnlV5.orderId===closePositionRes.result.orderId );
+            
+            
+                if(!closedPositionPNLObj){
+                    //retry
+                    console.log("Retry getClosedPositionPNL");
+                    await sleepAsync(20000);
+                    const closedPartialPNL_res2 = await bybit.clients.bybit_RestClientV5.getClosedPositionPNL({
+                        category:"linear",
+                        symbol:position.pair,
+                    });
+                    // orderId: '07d2a19c-7148-453a-b4d9-fa0f17b5746c'
+                    console.log({closedPartialPNL_res2});
+                    if(!closedPartialPNL_res2.result ||closedPartialPNL_res2.result.list.length===0){
+                        logger.error("Position Resize Error: Position partial expected to be closed , it's close PNL not found.");
+                    }
+                    console.log({closedPartialPNL_res2: closedPartialPNL_res2.result});
+                    closedPositionPNLObj = closedPartialPNL_res2.result.list.find((closedPnlV5) => closedPnlV5.orderId===closePositionRes.result.orderId );
+
+                    if(!closedPositionPNLObj){
+                        throw new Error("Trade Close Executed but PNL query  Error: closedPositionPNLObj not found for closed partial position");
+
+                    }
+                }
                 
                 let closedPartialPNL  = parseFloat(closedPositionPNLObj.closedPnl);
                 closedPositionAccumulatedDetails.closedlPNL+=closedPartialPNL;
                 closedPositionAccumulatedDetails.avgExitPrice =  parseFloat(closedPositionPNLObj.avgExitPrice);
+                closedPositionAccumulatedDetails.avgEntryPrice =  parseFloat(closedPositionPNLObj.avgEntryPrice);
                 closedPositionAccumulatedDetails.leverage =  parseFloat(closedPositionPNLObj.leverage);
                 closedPositionAccumulatedDetails.qty +=  parseFloat(closedPositionPNLObj.qty);
                 closedPositionAccumulatedDetails.close_datetime =  new Date(parseFloat(closedPositionPNLObj.updatedTime));
@@ -463,11 +501,17 @@ async function handler({
                 updateDocument(tradedOpenPositionDocument._id,{
                     close_price: closedPositionAccumulatedDetails.avgExitPrice,
                     closed_pnl: closedPositionAccumulatedDetails.closedlPNL,
-                    closed_roi_percentage: bybit.calculateClosedPositionROI({
-                        averageEntryPrice: closedPositionAccumulatedDetails.averageEntryPrice,
-                        positionCurrentValue:  closedPositionAccumulatedDetails.positionCurrentValue,
-                        positionSize: closedPositionAccumulatedDetails.qty
+                    closed_roi_percentage: calculateRoiFromPosition({
+                        close_price: closedPositionAccumulatedDetails.avgExitPrice,
+                        direction: position.direction,
+                        entry_price:closedPositionAccumulatedDetails.avgEntryPrice,
+                        leverage: position.leverage
                     }),
+                    // closed_roi_percentage: bybit.calculateClosedPositionROI({
+                    //     averageEntryPrice: closedPositionAccumulatedDetails.averageEntryPrice,
+                    //     positionCurrentValue:  closedPositionAccumulatedDetails.positionCurrentValue,
+                    //     positionSize: closedPositionAccumulatedDetails.qty
+                    // }),
                     leverage: closedPositionAccumulatedDetails.leverage,
                     position_id_in_oldTradesCollection: position._id,
                     size: closedPositionAccumulatedDetails.qty,
@@ -485,11 +529,17 @@ async function handler({
                 position_pair: tradedOpenPositionDocument.pair,
                 chatId: user.tg_user_id,
                 trader_username:  user.atomos?"Anonymous":trader.username,
-                position_roi: bybit.calculateClosedPositionROI({
-                    averageEntryPrice: closedPositionAccumulatedDetails.averageEntryPrice,
-                    positionCurrentValue:  closedPositionAccumulatedDetails.positionCurrentValue,
-                    positionSize: closedPositionAccumulatedDetails.qty
+                position_roi: calculateRoiFromPosition({
+                    close_price: closedPositionAccumulatedDetails.avgExitPrice,
+                    direction: position.direction,
+                    entry_price:closedPositionAccumulatedDetails.avgEntryPrice,
+                    leverage: position.leverage
                 }),
+                // position_roi: bybit.calculateClosedPositionROI({
+                //     averageEntryPrice: closedPositionAccumulatedDetails.averageEntryPrice,
+                //     positionCurrentValue:  closedPositionAccumulatedDetails.positionCurrentValue,
+                //     positionSize: closedPositionAccumulatedDetails.qty
+                // }),
                 position_pnl: closedPositionAccumulatedDetails.closedlPNL
             });
         }

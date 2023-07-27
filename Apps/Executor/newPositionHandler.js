@@ -358,6 +358,8 @@ async function handler({
                     p.side===(position.direction==="LONG"?"Buy":"Sell")
                     &&
                     p.symbol===position.pair
+                    &&
+                    p.size!=="0"
                 ){
                     return p;
                 }

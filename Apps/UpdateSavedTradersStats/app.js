@@ -544,7 +544,7 @@ console.log(IS_LIVE);
                 await mongoDatabase.disconnect();
                 lastScrapedHourNumber = CURRENT_HOUR;
                 
-                await sleepAsync(5000);
+                await sleepAsync(1000);
             }catch(error){
                 if(browser){
                     await browser.close();

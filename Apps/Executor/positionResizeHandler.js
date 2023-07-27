@@ -367,16 +367,6 @@ async function handler({
                 const closedPositionPNLObj = closedPartialPNL_res.result.list.find((closedPnlV5) => closedPnlV5.orderId===closePositionRes.result.orderId );
             
                 if(!closedPositionPNLObj){
-                    // await sendTradeExecutionFailedMessage_toUser({
-                    //     bot,
-                    //     chatId: user.chatId,
-                    //     position_direction: position.direction,
-                    //     position_entry_price: position.entry_price,
-                    //     position_leverage: position.leverage,
-                    //     position_pair: position.pair,
-                    //     trader_username: user.atomos?"Anonymous":trader.username,
-                    //     reason: "Trade Close Execcuted but PNL query  Error: closedPositionPNLObj not found for closed partial position"
-                    // });
                     throw new Error("closedPositionPNLObj not found for closed partial position");
                 }
             

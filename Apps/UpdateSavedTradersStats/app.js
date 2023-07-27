@@ -31,6 +31,7 @@ console.log(IS_LIVE);
      * @type {number}
      */
     let lastScrapedDayNumber = -1;
+    let lastScrapedHourNumber = -1;
     const errorbot = new Telegram({telegram_bot_token:dotEnvObj.TELEGRAM_BOT_TOKEN,requestDelay:2000});
     logger.info("Create Telegram Error bot");
     logger.addLogCallback("error",async (cbIndex,message)=>{
@@ -44,7 +45,8 @@ console.log(IS_LIVE);
         const CURRENT_HOUR = dateTimeNow.hours;
         const TODAY_DAY_NUMBER = dateTimeNow.day_index;
         const CURRENT_MINUTE = dateTimeNow.minutes;
-        while(lastScrapedDayNumber!==TODAY_DAY_NUMBER && CURRENT_HOUR===2 && CURRENT_MINUTE>30){// Scrape when day changes
+        while(lastScrapedHourNumber != CURRENT_HOUR && ( CURRENT_MINUTE==0 || CURRENT_MINUTE==30) ){// Scrape when day changes
+        // while(lastScrapedDayNumber!==TODAY_DAY_NUMBER && CURRENT_HOUR===2 && CURRENT_MINUTE>30){// Scrape when day changes
             logger.error("RUNNING "+APP_NAME);
             let mongoDatabase = null;
             let browser = null; 
@@ -84,7 +86,9 @@ console.log(IS_LIVE);
                     followed:true
                 });
                 while(await folllowedSavedTraderCursor.hasNext()){
+                    await sleepAsync(5000);// Delay betwween each traderr
                     const savedTrader = await folllowedSavedTraderCursor.next();
+
 
                     // Get the trader's performance and update on DB
                     const traderPerformance = await binance.getOtherPerformance(page,{encryptedUid:savedTrader.uid,tradeType:"PERPETUAL"});
@@ -538,7 +542,8 @@ console.log(IS_LIVE);
 
                 await browser.close();
                 await mongoDatabase.disconnect();
-                lastScrapedDayNumber = TODAY_DAY_NUMBER;
+                lastScrapedHourNumber = CURRENT_HOUR;
+                
                 await sleepAsync(5000);
             }catch(error){
                 if(browser){

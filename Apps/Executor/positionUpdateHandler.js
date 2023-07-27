@@ -179,7 +179,9 @@ async function handler({
             if(
                 p.side===(position.direction==="LONG"?"Buy":"Sell")
                 &&
-                p.symbol===position.pair
+                p.symbol===position.pair 
+                &&
+                p.size!=="0"
             ){
                 return p;
             }
@@ -372,7 +374,9 @@ async function handler({
             if(
                 p.side===(position.direction==="LONG"?"Buy":"Sell")
             &&
-            p.symbol===position.pair
+            p.symbol===position.pair 
+            &&
+            p.size!=="0"
             ){
                 return p;
             }
@@ -410,7 +414,8 @@ async function handler({
             "theTradeInBybit.size":theTradeInBybit.size
         });
  
-        if(parseFloat(theTradeInBybit.size)<total_standardized_qty){
+        if(parseFloat(theTradeInBybit.size)<total_standardized_qty){ 
+        // if(position.size !=){ 
             // size changed
             await sendTradeUpdateSizeExecutedMessage_toUser({
                 bot,

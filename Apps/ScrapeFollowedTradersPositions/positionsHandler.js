@@ -7,6 +7,7 @@
  * : Update other values e.g Markprice and roe
  */
 const {DecimalMath} = require("../../Math/DecimalMath");
+const { sleepAsync} = require("../../Utils/sleepAsync");
 
 const {calculateRoiFromPosition} = require("./calculateRoiFromPosition");
 const {calculatePnlFromPosition} = require("./calculatePnlFromPosition");
@@ -31,6 +32,7 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
         while(await followedTradersCursor.hasNext()){
             const savedTraderDbDoc = await followedTradersCursor.next();
             if(!savedTraderDbDoc)return;
+            await sleepAsync(1000);
             const traderPositions = await binanceScraper.getOtherPosition(binanceScraper.globalPage,{encryptedUid:savedTraderDbDoc.uid,tradeType:"PERPETUAL"});
             //::## WORK ON POSITIONS
             const savedPositionsDbDocCursor = await mongoDatabase.collection.openTradesCollection.getDocumentsByTraderUid(savedTraderDbDoc.uid);

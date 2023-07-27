@@ -7,7 +7,7 @@ const { DecimalMath } = require("../../../Math");
 /**
  * @param {{
  *    bot: import("../..").Telegram,
- *    chatId: number,
+ *    chatId: number, 
  *    trader_username: string,
  *    position_pair: string,
  *    position_leverage: number,

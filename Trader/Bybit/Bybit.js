@@ -46,9 +46,13 @@ module.exports.Bybit = class Bybit {
 
     // UTILS
     utils = {
-        generateRandomUsernameForSubAccount: function generateUsername() {
+        /**
+         * @param {string} subAccountName
+         */
+        generateRandomUsernameForSubAccount: function generateUsername(subAccountName) {
             let randomDigits = Math.floor(Math.random() * 1000000).toString().padStart(6, "0");
-            let username = `atomos${randomDigits}`;
+            const subAccountNumber = subAccountName.split("_").splice(1,).join("");//Sub_1
+            let username = `atomos${randomDigits}a${subAccountNumber}`;
             return username;
         }
     };

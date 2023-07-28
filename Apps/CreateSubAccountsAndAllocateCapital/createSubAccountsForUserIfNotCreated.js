@@ -219,7 +219,8 @@ async function createSubAccount_itsApi_andSaveInDB({
     let createdAccount = {};
     let subAccountCreated = false;
     while(subAccountCreated===false){
-        const subAccountUsername = bybit.utils.generateRandomUsernameForSubAccount();// randomly generated
+        
+        const subAccountUsername = bybit.utils.generateRandomUsernameForSubAccount(sub_account_sub_link_name);// randomly generated
         // create the sub Account with the username
         const createSubAccount2_Res = await bybit.clients.bybit_RestClientV5.createSubAccount({
             //@ts-ignore
@@ -321,7 +322,7 @@ async function createSubAccount_itsApi_andUpdateInDB({
     let createdAccount = {};
     let subAccountCreated = false;
     while(subAccountCreated===false){
-        const subAccountUsername = bybit.utils.generateRandomUsernameForSubAccount();// randomly generated
+        const subAccountUsername = bybit.utils.generateRandomUsernameForSubAccount(sub_account_document?sub_account_document.sub_link_name:"");// randomly generated
         // create the sub Account with the username
         const createSubAccount2_Res = await bybit.clients.bybit_RestClientV5.createSubAccount({
             //@ts-ignore

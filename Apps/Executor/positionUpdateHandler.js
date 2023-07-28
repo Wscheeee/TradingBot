@@ -298,7 +298,7 @@ async function handler({
                     stopLoss: String(await bybit.standardizedPrice({
                         price:calculateStopLossPrice({
                             direction: position.direction,
-                            entry_price: position.entry_price,
+                            entry_price: parseFloat(theTradeInBybit.avgPrice),
                             leverage: position.leverage
                         }),
                         symbol: position.pair
@@ -388,22 +388,12 @@ async function handler({
         // update the TradedTrades db document
         await mongoDatabase.collection.tradedPositionsCollection.
             updateDocument(tradedPositionObj._id, {
-                // close_price: parseFloat(orderObject2.price),
-                // closed_pnl: bybit.calculateAccountActiveOrderPNL(orderObject2),
-                // closed_roi_percentage: bybit.calculateAccountActiveOrderROI(orderObject2),
-                // entry_price: tradedPositionObj.entry_price,
                 leverage: parseFloat(String(theTradeInBybit_again.leverage||tradedPositionObj.leverage)),
-                // pair: position.pair,
-                // position_id_in_oldTradesCollection: undefined,
-                // position_id_in_openTradesCollection: position._id,
                 server_timezone: process.env.TZ,
                 size: parseFloat(theTradeInBybit_again.size),
-                // status: "OPEN",
-                // trader_uid: trader.uid,
-                // trader_username: trader.username,
-                // traded_value: tradedPositionObj.traded_value + parseFloat(theTradeInBybit_again.positionValue),
                 traded_value: (new DecimalMath(parseFloat(theTradeInBybit_again.positionValue)).divide(parseFloat(theTradeInBybit_again.leverage||String(position.leverage)))).getResult(),
                 document_last_edited_at_datetime: new Date(),
+                entry_price: parseFloat(theTradeInBybit_again.avgPrice),
                 // order_id: updatePositionRes.result.orderId
             });
         logger.info("Updated position in tradedPositionCollection db");
@@ -420,7 +410,7 @@ async function handler({
             await sendTradeUpdateSizeExecutedMessage_toUser({
                 bot,
                 position_direction:tradedPositionObj.direction,
-                position_entry_price: tradedPositionObj.entry_price,
+                position_entry_price: parseFloat(theTradeInBybit_again.avgPrice),
                 position_leverage:tradedPositionObj.leverage,
                 position_pair: tradedPositionObj.pair,
                 chatId: user.tg_user_id,
@@ -435,7 +425,8 @@ async function handler({
             await sendTradeLeverageUpdateExecutedMessage_toUser({
                 bot,
                 position_direction:position.direction,
-                position_entry_price: position.entry_price,
+                position_entry_price: parseFloat(theTradeInBybit_again.avgPrice),
+                // position_entry_price: position.entry_price,
                 position_leverage:position.leverage,
                 position_pair: position.pair,
                 chatId: user.tg_user_id,

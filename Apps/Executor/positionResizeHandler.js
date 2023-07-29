@@ -493,11 +493,6 @@ async function handler({
                     entry_price:closedPositionAccumulatedDetails.avgEntryPrice,
                     leverage: position.leverage
                 }),
-                // position_roi:bybit.calculateClosedPositionROI({ 
-                //     averageEntryPrice: closedPositionAccumulatedDetails.averageEntryPrice,
-                //     positionCurrentValue:  closedPositionAccumulatedDetails.positionCurrentValue,
-                //     positionSize: closedPositionAccumulatedDetails.qty
-                // }),
                 position_pnl: closedPositionAccumulatedDetails.closedPNL
             });
 

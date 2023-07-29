@@ -10,6 +10,7 @@ const {newPositionSizingAlgorithm} = require("./algos/qty");
 const { setUpSubAccountsForUser } = require("./setUpSubAccountsForUser");
 
 const {calculateStopLossPrice} = require("./algos/stoploss/calculateStopLossPrice");
+const { checkIfUserIsFollowingTheTrader } = require("./shared/checkIfUserIsFollowingTheTrader");
 
 /**
  * 
@@ -41,6 +42,13 @@ module.exports.newPositionHandler = async function newPositionHandler({
             const promises = [];
             for(const user of users_array){ 
                 try {
+                    // Check that user is following the trader
+                   
+                    if(!await checkIfUserIsFollowingTheTrader({
+                        mongoDatabase, trader,user
+                    }))continue;
+
+
                     console.log("Pushing handler async functions");
                     promises.push(handler({
                         // bybit:bybitSubAccount,

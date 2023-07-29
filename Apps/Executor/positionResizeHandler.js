@@ -8,6 +8,7 @@ const { sleepAsync } = require("../../Utils/sleepAsync");
 const { calculateRoiFromPosition } = require("../ScrapeFollowedTradersPositions/calculateRoiFromPosition");
 
 const {newPositionSizingAlgorithm} = require("./algos/qty");
+const { checkIfUserIsFollowingTheTrader } = require("./shared/checkIfUserIsFollowingTheTrader");
 
 /**
  * 
@@ -37,7 +38,12 @@ module.exports.positionResizeHandler = async function positionResizeHandler({
             const promises = [];
             for(const user of users_array){
                 try{
-                    
+                    // Check that user is following the trader
+                   
+                    if(!await checkIfUserIsFollowingTheTrader({
+                        mongoDatabase, trader,user
+                    }))continue;
+
                     promises.push(handler({
                         // bybit:bybitSubAccount,
                         logger,

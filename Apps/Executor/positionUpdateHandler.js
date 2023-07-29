@@ -11,6 +11,7 @@ const { newPositionSizingAlgorithm } = require("./algos/qty");
 const { calculatePercentageChange } = require("../../Math/calculatePercentageChange");
 const { sleepAsync } = require("../../Utils/sleepAsync");
 const { calculateStopLossPrice } = require("./algos/stoploss/calculateStopLossPrice");
+const { checkIfUserIsFollowingTheTrader } = require("./shared/checkIfUserIsFollowingTheTrader");
 
  
 /**
@@ -41,7 +42,12 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
             const promises = [];
             for(const user of users_array){
                 try{
+                    // Check that user is following the trader
                    
+                    if(!await checkIfUserIsFollowingTheTrader({
+                        mongoDatabase, trader,user
+                    }))continue;
+                
                     promises.push(handler({
                         logger,
                         mongoDatabase,

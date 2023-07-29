@@ -93,7 +93,7 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
                 // await this.#mongoDatabase.collection.openTradesCollection.saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(documentId);
                
             } else if (change.operationType === "update") {
-                console.log("(openTradesCollection):UPDATE event");
+                // console.log("(openTradesCollection):UPDATE event");
                 const documentId = change.documentKey._id;
                 const updatedFields = change.updateDescription.updatedFields; 
                 const fullDocumentAfterUpdate =  await this.#mongoDatabase.collection.openTradesCollection.findOne({_id:documentId});
@@ -104,14 +104,14 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
                 let hasRealChange = false;
                 for (const key in updatedFields) {
                     const keysToDetectAsUpdates = ["size","leverage"];
-                    console.log({keysToDetectAsUpdates,key:key.toLocaleLowerCase()});
+                    // console.log({keysToDetectAsUpdates,key:key.toLocaleLowerCase()});
                     // if(key.toLocaleLowerCase().includes("datetime")===false){
                     if(keysToDetectAsUpdates.includes(key.toLocaleLowerCase())){
                         hasRealChange = true;
                         break;
                     }
                 } 
-                console.log({hasRealChange});
+                // console.log({hasRealChange});
 
                 if (hasRealChange && fullDocumentAfterUpdate.copied) {
                     // const previousDoc = this.#mongoDatabase.collection.openTradesCollection.previousDocumentsForUpdates_Object[fullDocumentAfterUpdate._id.toString()];
@@ -119,7 +119,8 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
                     const previousDocBeforeUpdate = change.fullDocumentBeforeChange;
                     if(previousDocBeforeUpdate && ( (previousDocBeforeUpdate.leverage!==fullDocumentAfterUpdate.leverage) || (previousDocBeforeUpdate.size<fullDocumentAfterUpdate.size) )){
                         // Run only if leverage changed or size increased
-                        console.log("OpenTrades Document has real changes!");
+                        // console.log("OpenTrades Document has real changes!");
+                        console.log("(openTradesCollection):UPDATE event");
                         this.#onUpdatePositionCallbacks.forEach((cb) => {
                             cb(previousDocBeforeUpdate,fullDocumentAfterUpdate, trader);
                         });

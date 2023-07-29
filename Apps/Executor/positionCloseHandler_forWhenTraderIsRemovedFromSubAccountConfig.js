@@ -163,7 +163,7 @@ async function handler({
             //     position_entry_price: position.entry_price,
             //     position_leverage: position.leverage,
             //     position_pair: position.pair,
-            //     trader_username: user.atomos?"Anonymous":trader.username,
+            //     trader_username: trader.username,
             //     reason: "Position Close Error: NO API KEYS PRESENT IN USER DOCUMENT"
             // });
             throw new Error("NO API KEYS PRESENT IN USER DOCUMENT");
@@ -187,7 +187,7 @@ async function handler({
             //     position_entry_price: position.entry_price,
             //     position_leverage: position.leverage,
             //     position_pair: position.pair,
-            //     trader_username:  user.atomos?"Anonymous":trader.username,
+            //     trader_username:  trader.username,
             //     reason: "Position Close Error: No SubAccount found for trader"
             // });
             throw new Error(`No SubAccount found for trader :${user.atomos===false?trader.username:"Anonymous"}) and user :(${user.tg_user_id}) `);
@@ -200,7 +200,7 @@ async function handler({
             //     position_entry_price: position.entry_price,
             //     position_leverage: position.leverage,
             //     position_pair: position.pair,
-            //     trader_username:  user.atomos?"Anonymous":trader.username,
+            //     trader_username:  trader.username,
             //     reason: "Position Close Error: NO API KEYS PRESENT IN SUBACCOUNT"
             // });
             throw new Error("NO API KEYS PRESENT IN SUBACCOUNT");
@@ -371,7 +371,7 @@ async function handler({
                     position_entry_price: position.entry_price,
                     position_leverage: position.leverage,
                     position_pair: position.pair,
-                    trader_username:  user.atomos?"Anonymous":trader.username,
+                    trader_username:  trader.username,
                     reason: "Position Close Error: closePositionRes: "+closePositionRes.retMsg
                 });
             }else {
@@ -491,7 +491,7 @@ async function handler({
                 position_entry_price: position.entry_price,
                 position_leverage: position.leverage,
                 position_pair: position.pair,
-                trader_username:  user.atomos?"Anonymous":trader.username,
+                trader_username:  trader.username,
                 reason: "Position Close Error: Position open in Bybit is not found in DB"
             });
             logger.warn("Position Close Error: Position open in Bybit is not found in DB");
@@ -528,7 +528,7 @@ async function handler({
                 position_leverage:tradedOpenPositionDocument.leverage,
                 position_pair: tradedOpenPositionDocument.pair,
                 chatId: user.tg_user_id,
-                trader_username:  user.atomos?"Anonymous":trader.username,
+                trader_username:  trader.username,
                 position_roi: calculateRoiFromPosition({
                     close_price: closedPositionAccumulatedDetails.avgExitPrice,
                     direction: position.direction,
@@ -556,7 +556,7 @@ async function handler({
             position_entry_price: position.entry_price,
             position_leverage: position.leverage,
             position_pair: position.pair,
-            trader_username: user.atomos?"Anonymous":trader.username,
+            trader_username: trader.username,
             reason: error.message
             // reason: "Position Close Error: NO API KEYS PRESENT IN USER DOCUMENT"
         });

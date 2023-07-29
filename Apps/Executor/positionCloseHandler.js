@@ -108,7 +108,7 @@ async function handler({
             //     position_entry_price: position.entry_price,
             //     position_leverage: position.leverage,
             //     position_pair: position.pair,
-            //     trader_username: user.atomos?"Anonymous":trader.username,
+            //     trader_username: trader.username,
             //     reason: "Trade Execution Error: NO API KEYS PRESENT IN USER DOCUMENT"
             // });
             throw new Error("NO API KEYS PRESENT IN USER DOCUMENT");
@@ -132,7 +132,7 @@ async function handler({
             //     position_entry_price: position.entry_price,
             //     position_leverage: position.leverage,
             //     position_pair: position.pair,
-            //     trader_username:  user.atomos?"Anonymous":trader.username,
+            //     trader_username:  trader.username,
             //     reason: "Position Full Close Execution Error: No SubAccount found for trader"
             // });
             // onErrorCb(new Error(`Position Full Close Error: No SubAccount found in subAccountDocument for trader :${trader.username}) and user :(${user.tg_user_id})`));
@@ -307,7 +307,7 @@ async function handler({
                     position_entry_price: position.entry_price,
                     position_leverage: position.leverage,
                     position_pair: position.pair,
-                    trader_username:  user.atomos?"Anonymous":trader.username,
+                    trader_username:  trader.username,
                     reason: "closePositionRes: "+closePositionRes.retMsg
                 });
             }else {
@@ -457,7 +457,7 @@ async function handler({
                 position_leverage:tradedOpenPositionDocument.leverage,
                 position_pair: tradedOpenPositionDocument.pair,
                 chatId: user.tg_user_id,
-                trader_username:  user.atomos?"Anonymous":trader.username,
+                trader_username:  trader.username,
                 position_roi: calculateRoiFromPosition({
                     close_price: closedPositionAccumulatedDetails.avgExitPrice,
                     direction: position.direction,
@@ -482,7 +482,7 @@ async function handler({
             position_entry_price: position.entry_price,
             position_leverage: position.leverage,
             position_pair: position.pair,
-            trader_username: user.atomos?"Anonymous":trader.username,
+            trader_username: trader.username,
             reason: error.message
         });
         const newErrorMessage = `user:${user.tg_user_id} (fn:handler) ${error.message}`;

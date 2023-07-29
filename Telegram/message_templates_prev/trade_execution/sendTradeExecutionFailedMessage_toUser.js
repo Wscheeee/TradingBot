@@ -23,7 +23,7 @@ module.exports.sendTradeExecutionFailedMessage_toUser = async function ({
     const FUNCTION_NAME = "(fn:sendTradeExecutionFailedMessage_toUser)";
     console.log(FUNCTION_NAME);
     try{
-        let reason_msg = reason + " Contact @AzmaFr";
+        let reason_msg = reason;
         // if(reason.toLowerCase().includes("key")===false)return; // filter out some messages
         if (reason.toLowerCase().includes("key")){
             reason_msg = "API Key is invalid or missing";
@@ -41,8 +41,8 @@ module.exports.sendTradeExecutionFailedMessage_toUser = async function ({
 
         await bot.sendMessage(chatId,
             `⚠️ Trade Execution Failed ‼️
-${trader_username} ⏐ ${position_pair}
-${position_direction} ⏐ x${position_leverage} ⏐ ${new DecimalMath(position_entry_price).truncateToDecimalPlaces(5).getResult()}
+${trader_username} ⏐ ${position_pair} ⏐ ${position_direction} ⏐ x${position_leverage}
+${new DecimalMath(position_entry_price).truncateToDecimalPlaces(5).getResult()}
 Reason: ${reason_msg}`
         );
     }catch(error){

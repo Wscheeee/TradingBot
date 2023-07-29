@@ -25,8 +25,7 @@ module.exports.sendTradeSizeUpdateDetectedMessage_toUser = async function ({
     try{
         bot.sendMessage(chatId,
             `🚨 Trade Update Detected : Size 🟧
-${trader_username} ⏐ ${position_pair} 
-${position_direction} ⏐ x${position_leverage}
+${trader_username} ⏐ ${position_pair} ⏐ ${position_direction} ⏐ x${position_leverage}
 ${new DecimalMath(position_entry_price).truncateToDecimalPlaces(5).getResult()} ⏐ +${new DecimalMath(change_by).truncateToDecimalPlaces(5).getResult()} ⏐ +${new DecimalMath(change_percentage).truncateToDecimalPlaces(2).getResult()}%`
         );
     }catch(error){
@@ -56,8 +55,7 @@ module.exports.sendTradeLeverageUpdateDetectedMessage_toUser = async function ({
     try{
         await bot.sendMessage(chatId,
             `🚨 Trade Update Detected : Leverage 🟧
-${trader_username} ⏐ ${position_pair}
-${position_direction} ⏐ x${position_leverage}
+${trader_username} ⏐ ${position_pair} ⏐ ${position_direction} ⏐ x${position_leverage}
 ${new DecimalMath(position_entry_price).truncateToDecimalPlaces(5).getResult()} ⏐ ++${new DecimalMath(change_by).truncateToDecimalPlaces(5).getResult()} ⏐ +${new DecimalMath(change_percentage).truncateToDecimalPlaces(2).getResult()}%`
         );
     }catch(error){

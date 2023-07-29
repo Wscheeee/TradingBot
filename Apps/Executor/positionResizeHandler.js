@@ -106,7 +106,7 @@ async function handler({
             //     position_entry_price: position.entry_price,
             //     position_leverage: position.leverage,
             //     position_pair: position.pair,
-            //     trader_username: user.atomos?"Anonymous":trader.username,
+            //     trader_username: trader.username,
             //     reason: "Trade Execution Error: NO API KEYS PRESENT IN USER DOCUMENT"
             // });
             throw new Error("NO API KEYS PRESENT IN USER DOCUMENT");
@@ -129,7 +129,7 @@ async function handler({
             //     position_entry_price: position.entry_price,
             //     position_leverage: position.leverage,
             //     position_pair: position.pair,
-            //     trader_username:  user.atomos?"Anonymous":trader.username,
+            //     trader_username:  trader.username,
             //     reason: "Position Resize Execution Error: No SubAccount found for trader"
             // });
             throw new Error("No SubAccount found in subAccountDocument for trader");
@@ -142,7 +142,7 @@ async function handler({
             //     position_entry_price: position.entry_price,
             //     position_leverage: position.leverage,
             //     position_pair: position.pair,
-            //     trader_username:  user.atomos?"Anonymous":trader.username,
+            //     trader_username:  trader.username,
             //     reason: "Posiition RResize Error: NO API KEYS PRESENT IN SUBACCOUNT"
             // });
             throw new Error("NO API KEYS PRESENT IN SUBACCOUNT");
@@ -331,7 +331,7 @@ async function handler({
                     position_entry_price: position.entry_price,
                     position_leverage: position.leverage,
                     position_pair: position.pair,
-                    trader_username:  user.atomos?"Anonymous":trader.username,
+                    trader_username:  trader.username,
                     reason: "Position Resize Error: Close Position Error: "+closePositionRes.retMsg
                 });
             }else {
@@ -483,7 +483,7 @@ async function handler({
                 position_leverage:finalUpdatedTradedPosition.leverage,
                 position_pair: tradedPositionObj.pair,
                 chatId: user.tg_user_id,
-                trader_username:  user.atomos?"Anonymous":trader.username,
+                trader_username:  trader.username,
                 // change_by: -(tradedPositionObj.size-finalUpdatedTradedPosition.size),
                 change_by: -(closedPositionAccumulatedDetails.qty),
                 change_by_percentage:calculatePercentageChange(finalUpdatedTradedPosition.size,tradedPositionObj.size),
@@ -511,7 +511,7 @@ async function handler({
             position_entry_price: position.entry_price,
             position_leverage: position.leverage,
             position_pair: position.pair,
-            trader_username: user.atomos?"Anonymous":trader.username,
+            trader_username: trader.username,
             reason: error.message
         });
         const newErrorMessage = `user:${user.username} trader:${trader.username} (tgId:${user.tg_user_id}) (fn:handler) ${error.message}`;

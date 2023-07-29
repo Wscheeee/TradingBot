@@ -25,9 +25,8 @@ module.exports.sendNewTradeExecutedMessage_toUser = async function ({
     try{
         await bot.sendMessage(chatId,
             `🟢 New Trade Executed
-${trader_username} ⏐ ${position_pair}
-${position_direction} ⏐ x${position_leverage}
-${new DecimalMath(position_entry_price).truncateToDecimalPlaces(5).getResult()} ⏐ ${new DecimalMath(position_value).truncateToDecimalPlaces(2).getResult()}$ ⏐ ${new DecimalMath(position_value_percentage_of_sub_capital).truncateToDecimalPlaces(2).getResult()}% of Cap`
+${trader_username} ⏐ ${position_pair} ⏐ ${position_direction} ⏐ x${position_leverage}
+${new DecimalMath(position_entry_price).truncateToDecimalPlaces(5).getResult()} ⏐ ${new DecimalMath(position_value).truncateToDecimalPlaces(2).getResult()}$ ⏐ ${new DecimalMath(position_value_percentage_of_sub_capital).truncateToDecimalPlaces(2).getResult()}% of Sub Capital`
         );
     }catch(error){
         error.message = `${FUNCTION_NAME} ${error.message}`;

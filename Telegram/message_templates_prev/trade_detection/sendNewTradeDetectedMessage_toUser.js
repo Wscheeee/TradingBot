@@ -5,7 +5,7 @@ const { DecimalMath } = require("../../../Math");
 
 /**
  * @param {{
- *    bot: import("../../Telegram").Telegram,
+ *    bot: import("../..").Telegram,
  *    chatId: number,
  *    trader_username: string,
  *    position_pair: string,
@@ -22,8 +22,8 @@ module.exports.sendNewTradeDetectedMessage_toUser = async function ({
     try{
         await bot.sendMessage(chatId,
             `🚨 New Trade Detected 🟩
-${trader_username} ⏐ ${position_pair}
-${position_direction} ⏐ x${position_leverage} ⏐ ${new DecimalMath(position_entry_price).truncateToDecimalPlaces(5).getResult()}`
+${trader_username} ⏐ ${position_pair} ⏐ ${position_direction} ⏐ x${position_leverage}
+${new DecimalMath(position_entry_price).truncateToDecimalPlaces(5).getResult()}`
         );
     }catch(error){
         error.message = `${FUNCTION_NAME} ${error.message}`;

@@ -339,7 +339,7 @@ async function handler({
                     position_entry_price: position.entry_price,
                     position_leverage: position.leverage,
                     position_pair: position.pair,
-                    trader_username:  user.atomos?"Anonymous":trader.username,
+                    trader_username:  trader.username,
                     reason: "Trade Execution Error: "+openPositionRes.retMsg
                 });
             }else {
@@ -418,7 +418,7 @@ async function handler({
                 position_leverage:position.leverage,
                 position_pair: position.pair,
                 chatId: user.tg_user_id,
-                trader_username:  user.atomos?"Anonymous":trader.username,
+                trader_username:  trader.username,
                 position_value: new DecimalMath(tradedValue).truncateToDecimalPlaces(2).getResult(),
                 position_value_percentage_of_sub_capital: (tradedValue/subCapital)*100
             });
@@ -439,7 +439,7 @@ async function handler({
             position_entry_price: position.entry_price,
             position_leverage: position.leverage,
             position_pair: position.pair,
-            trader_username: user.atomos?"Anonymous":trader.username,
+            trader_username: trader.username,
             reason: error.message
             // reason: "Trade Execution Error: NO API KEYS PRESENT IN SUBACCOUNT"
         });

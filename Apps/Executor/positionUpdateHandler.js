@@ -282,6 +282,24 @@ async function handler({
             throw new Error("more than 35% of capital used for trader");
         }
 
+        /***
+         * Calculate new avg entry price
+         */
+        const initial_entry_price = new DecimalMath(theTradeInBybit.avgPrice);
+        const initial_size = new DecimalMath(theTradeInBybit.size);
+        const added_entry_price = new DecimalMath(position.mark_price);
+        const added_size = new DecimalMath(total_standardized_qty);
+        
+        const initial_total = initial_entry_price.multiply(initial_size.getResult());
+        const added_total = added_entry_price.multiply(added_size.getResult());
+        
+        const combined_total = initial_total.add(added_total.getResult());
+        const combined_size = initial_size.add(added_size.getResult());
+
+        let avgEntryPrice = combined_total.divide(combined_size.getResult()).getResult();
+
+
+
         if(parseFloat(theTradeInBybit.size)<total_standardized_qty){
             console.log("Position Size increased");
             const qty_to_execute = total_standardized_qty - parseFloat(theTradeInBybit.size);
@@ -298,7 +316,8 @@ async function handler({
                     stopLoss: String(await bybit.standardizedPrice({
                         price:calculateStopLossPrice({
                             direction: position.direction,
-                            entry_price: parseFloat(theTradeInBybit.avgPrice),
+                            // entry_price: parseFloat(theTradeInBybit.avgPrice),
+                            entry_price: avgEntryPrice,
                             leverage: position.leverage
                         }),
                         symbol: position.pair

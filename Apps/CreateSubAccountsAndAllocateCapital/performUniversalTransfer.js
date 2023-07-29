@@ -1,5 +1,6 @@
 
 //@ts-check
+const {sleepAsync} = require("../../Utils/sleepAsync");
 
 const { enableUniversalTransferForSubAccounts } = require("./enableUniversalTransferForSubAccounts");
 
@@ -13,10 +14,11 @@ const { enableUniversalTransferForSubAccounts } = require("./enableUniversalTran
 *      toMemberId: number,
 *      fromMemberId: number,
 *      subAccountsUids:string[],
+*      isRetry?:boolean
 * }} param0
 */
 module.exports.performUniversalTransfer =  async function performUniversalTransfer({
-    masterBybit,bybit,amount,fromMemberId,subAccountsUids,toMemberId,
+    masterBybit,bybit,amount,fromMemberId,subAccountsUids,toMemberId,isRetry
     // onError
 }){
     console.log("(fn:performUniversalTransfer)");
@@ -43,6 +45,12 @@ module.exports.performUniversalTransfer =  async function performUniversalTransf
                 });
                 return await performUniversalTransfer({
                     masterBybit,bybit,amount,fromMemberId,subAccountsUids,toMemberId
+                });
+            }else if(createUniversalTransfer_Res.retMsg.includes("biz err exist transferring contract out record") && !isRetry){//TODO: Know how many times to retry
+                console.log("Retrying...");
+                await sleepAsync(2000);
+                return await performUniversalTransfer({
+                    masterBybit,bybit,amount,fromMemberId,subAccountsUids,toMemberId,isRetry:true
                 });
             }else {
 

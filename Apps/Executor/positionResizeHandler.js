@@ -464,7 +464,7 @@ async function handler({
             updateDocument(tradedPositionObj._id,{
                 position_id_in_openTradesCollection: position._id,
                 size: new DecimalMath(tradedPositionObj.size).subtract(closedPositionAccumulatedDetails.qty).getResult(),
-                traded_value: new DecimalMath(tradedPositionObj.traded_value) .subtract(closedPositionAccumulatedDetails.tradedValue).getResult(),
+                traded_value: new DecimalMath(tradedPositionObj.traded_value).subtract(closedPositionAccumulatedDetails.tradedValue).getResult(),
             });
         logger.info("Updated position in tradedPositionCollection db");
 
@@ -478,7 +478,8 @@ async function handler({
                 position_pair: tradedPositionObj.pair,
                 chatId: user.tg_user_id,
                 trader_username:  user.atomos?"Anonymous":trader.username,
-                change_by: -(tradedPositionObj.size-finalUpdatedTradedPosition.size),
+                // change_by: -(tradedPositionObj.size-finalUpdatedTradedPosition.size),
+                change_by: -(closedPositionAccumulatedDetails.qty),
                 change_by_percentage:calculatePercentageChange(finalUpdatedTradedPosition.size,tradedPositionObj.size),
                 position_roi:calculateRoiFromPosition({
                     close_price: closedPositionAccumulatedDetails.avgExitPrice,

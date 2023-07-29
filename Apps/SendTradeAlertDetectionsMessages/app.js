@@ -150,11 +150,11 @@ process.env.TZ = dotEnvObj.TZ;
                             trader_uid: trader.uid,
                             testnet: user.testnet,
                             tg_user_id: user.tg_user_id
-                        });
+                        }); 
                         if(traderSubAccount){
                             await sendTradePartialClosedDetectedMessage_toUser({
                                 bot,
-                                position_direction:originalPosition.direction,
+                                position_direction:originalPosition.direction, 
                                 position_entry_price: originalPosition.entry_price,
                                 position_leverage:originalPosition.leverage,
                                 position_pair: originalPosition.pair,

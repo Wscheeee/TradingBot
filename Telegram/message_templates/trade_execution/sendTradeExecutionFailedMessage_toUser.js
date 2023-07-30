@@ -23,7 +23,8 @@ module.exports.sendTradeExecutionFailedMessage_toUser = async function ({
     const FUNCTION_NAME = "(fn:sendTradeExecutionFailedMessage_toUser)";
     console.log(FUNCTION_NAME);
     try{
-        let reason_msg = reason + " Contact @AzmaFr";
+        let reason_msg = reason + ` 
+Contact @AzmaFr`;
         // if(reason.toLowerCase().includes("key")===false)return; // filter out some messages
         if (reason.toLowerCase().includes("key")){
             reason_msg = "API Key is invalid or missing";
@@ -34,13 +35,14 @@ module.exports.sendTradeExecutionFailedMessage_toUser = async function ({
         } else if (reason.toLowerCase().includes("db")){
             reason_msg = "Original Position was not Opened";
         } else if (reason.toLowerCase().includes("sizetoexecute===0")){
-            reason_msg = "Original Position was not Opened";
+            reason_msg = "Size to Execute/Balance = 0 / Contact @AzmaFr";
         } else if (reason.toLowerCase().includes("symbol")){
             reason_msg = "Symbol Doesn't Exist on Bybit";
         } else if (reason.toLowerCase().includes("usertrade_doc")){
             reason_msg = "Original Position was not Opened";
+        } else if (reason.toLowerCase().includes("traded/open")){
+            reason_msg = "Original Position was not Opened";
         }
-
 
         await bot.sendMessage(chatId,
             `⚠️ Trade Execution Failed ‼️

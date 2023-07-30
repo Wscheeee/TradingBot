@@ -169,31 +169,12 @@ async function handler({
         /**
          * Get the position
          */
-        const getOpenPosition_Result =  await bybit.clients.bybit_RestClientV5.getPositionInfo_Realtime({
+        const theTradeInBybit = await bybit.helpers.getActualOpenPositionInBybit({
+            bybit,
             category:"linear",
-            // settleCoin:"USDT"
-            symbol: position.pair,
-            
+            side:position.direction==="LONG"?"Buy":"Sell",
+            symbol: position.pair
         });
-
-        if(getOpenPosition_Result.retCode!==0)throw new Error(`getOpenPosition_Result: ${getOpenPosition_Result.retMsg}`);
-        // console.log({getOpenPosiion_Result});
-        const theTradeInBybit = getOpenPosition_Result.result.list.find((p)=>{
-            console.log({
-                p
-            });
-            if(
-                p.side===(position.direction==="LONG"?"Buy":"Sell")
-                &&
-                p.symbol===position.pair 
-                &&
-                p.size!=="0"
-            ){
-                return p;
-            }
-        });
-
-        if(!theTradeInBybit)throw new Error(`(getOpenPosition_Result) theTradeInBybit is ${theTradeInBybit}`);
        
  
     
@@ -383,31 +364,13 @@ async function handler({
         /**
          * Get the position again
          */
-        const getOpenPosition_Result_again =  await bybit.clients.bybit_RestClientV5.getPositionInfo_Realtime({
-            category:"linear",
-            // settleCoin:"USDT"
-            symbol: position.pair,
-        
-        });
-
-        if(getOpenPosition_Result_again.retCode!==0)throw new Error(`getOpenPosition_Result_again: ${getOpenPosition_Result_again.retMsg}`);
         // console.log({getOpenPosiion_Result});
-        const theTradeInBybit_again = getOpenPosition_Result_again.result.list.find((p)=>{
-            console.log({
-                p
-            });
-            if(
-                p.side===(position.direction==="LONG"?"Buy":"Sell")
-            &&
-            p.symbol===position.pair 
-            &&
-            p.size!=="0"
-            ){
-                return p;
-            }
+        const theTradeInBybit_again =  await bybit.helpers.getActualOpenPositionInBybit({
+            bybit,
+            category:"linear",
+            side:position.direction==="LONG"?"Buy":"Sell",
+            symbol: position.pair
         });
-
-        if(!theTradeInBybit_again)throw new Error(`(getOpenPosition_Result_again) theTradeInBybit_again is ${theTradeInBybit_again}`);
         console.log({theTradeInBybit_again});
     
         // update the TradedTrades db document

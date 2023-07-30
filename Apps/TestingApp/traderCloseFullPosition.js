@@ -1,0 +1,1 @@
+// traderCloseFullPosition.js

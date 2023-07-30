@@ -11,6 +11,10 @@ const {WebsocketClient} = require("bybit-api");
 const {Bybit_LinearClient} = require("./Bybit_LinearClient");
 const {Bybit_RestClientV5} = require("./Bybit_RestClientV5");
 const {Bybit_AccountAssetClientV3} = require("./Bybit_AccountAssetClientV3");
+const {
+    getClosedPositionPNLObject,
+    getActualOpenPositionInBybit
+} = require("./helpers");
 
 const {DecimalMath} = require("../../Math/DecimalMath");
 
@@ -55,6 +59,12 @@ module.exports.Bybit = class Bybit {
             let username = `atomos${randomDigits}a${subAccountNumber}`;
             return username;
         }
+    };
+
+    // HELPERS
+    helpers = {
+        getClosedPositionPNLObject,
+        getActualOpenPositionInBybit
     };
 
     // CONSTS/ENUMS

@@ -173,29 +173,12 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
             /**
              * Get the position
              */
-            const getOpenPosition_Result =  await bybit.clients.bybit_RestClientV5.getPositionInfo_Realtime({
+            const theTradeInBybit = await bybit.helpers.getActualOpenPositionInBybit({
+                bybit,
                 category:"linear",
-                // settleCoin:"USDT"
-                symbol: position.pair,
-                
+                side:position.direction==="LONG"?"Buy":"Sell",
+                symbol: position.pair
             });
-    
-            if(getOpenPosition_Result.retCode!==0)throw new Error(`getOpenPosition_Result: ${getOpenPosition_Result.retMsg}`);
-            // console.log({getOpenPosiion_Result});
-            const theTradeInBybit = getOpenPosition_Result.result.list.find((p)=>{
-                console.log({
-                    p
-                });
-                if(
-                    p.side===(position.direction==="LONG"?"Buy":"Sell")
-                    &&
-                    p.symbol===position.pair
-                ){
-                    return p;
-                }
-            });
-    
-            if(!theTradeInBybit)throw new Error(`(getOpenPosition_Result) theTradeInBybit is ${theTradeInBybit}`);
             console.log({
                 UserPositionQtyRetrievedUsingGetPositionMethod:theTradeInBybit.size
             });
@@ -275,29 +258,12 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
             /***
              * Get the correct qty of the position on bybit
              */
-            
-            const getOpenPosition_Result =  await bybit.clients.bybit_RestClientV5.getPositionInfo_Realtime({
+            const theTradeInBybit = await bybit.helpers.getActualOpenPositionInBybit({
+                bybit,
                 category:"linear",
-                // settleCoin:"USDT"
-                symbol: position.pair,
-                
+                side:position.direction==="LONG"?"Buy":"Sell",
+                symbol: position.pair
             });
-    
-            if(getOpenPosition_Result.retCode!==0)throw new Error(`getOpenPosition_Result: ${getOpenPosition_Result.retMsg}`);
-            // console.log({getOpenPosiion_Result});
-            const theTradeInBybit = getOpenPosition_Result.result.list.find((p)=>{
-                console.log({
-                    p
-                });
-                if(
-                    p.side===(position.direction==="LONG"?"Buy":"Sell")
-                    &&
-                    p.symbol===position.pair
-                ){
-                    return p;
-                }
-            });
-            if(!theTradeInBybit)throw new Error(`not found theTradeInBybit : ${theTradeInBybit}`);
             const qtyToByWith = Number(theTradeInBybit.size);
             const standardizedQTY = await bybit.standardizeQuantity({ quantity: qtyToByWith, symbol: position.pair });
             console.log({ standardizedQTY });

@@ -299,34 +299,15 @@ async function handler({
             logger.error("setUserLeverage_Res: "+""+setUserLeverage_Res.ret_msg+"("+position.pair+")");
         }
     
-        /**
-     * Get the position
-     */
-        const getOpenPosition_Result =  await bybit.clients.bybit_RestClientV5.getPositionInfo_Realtime({
-            category:"linear",
-            // settleCoin:"USDT"
-            symbol: position.pair,
-                
-        });
-    
-        if(getOpenPosition_Result.retCode!==0)throw new Error(`getOpenPosition_Result: ${getOpenPosition_Result.retMsg}`);
-        // console.log({getOpenPosiion_Result});
-        const theTradeInBybit = getOpenPosition_Result.result.list.find((p)=>{
-            console.log({
-                p
-            });
-            if(
-                p.side===(position.direction==="LONG"?"Buy":"Sell")
-                    &&
-                    p.symbol===position.pair
-                    &&
-                    p.size!=="0"
-            ){
-                return p;
-            }
-        });
-    
-        if(!theTradeInBybit)throw new Error(`(getOpenPosition_Result) theTradeInBybit is ${theTradeInBybit}`);
+        //     /**
+        //  * Get the position
+        //  */
+        //     const theTradeInBybit = await bybit.helpers.getActualOpenPositionInBybit({
+        //         bybit,
+        //         category:"linear",
+        //         side:position.direction==="LONG"?"Buy":"Sell",
+        //         symbol: position.pair
+        //     });
            
         
         /**
@@ -381,25 +362,25 @@ async function handler({
                 ////////////////////////////////////////////////
                 /// Added for a little delay
             
-                const getClosedPostionOrderHistory_Res = await bybit.clients.bybit_RestClientV5.getOrderHistory({
-                    category:"linear",
-                    symbol: position.pair,
-                    orderId: closePositionRes.result.orderId
-                });
-                if(getClosedPostionOrderHistory_Res.retCode!==0)throw new Error(getClosedPostionOrderHistory_Res.retMsg);
-                console.log("getClosedPostionOrderHistory_Res");
-                console.log(getClosedPostionOrderHistory_Res.result);
+                // const getClosedPostionOrderHistory_Res = await bybit.clients.bybit_RestClientV5.getOrderHistory({
+                //     category:"linear",
+                //     symbol: position.pair,
+                //     orderId: closePositionRes.result.orderId
+                // });
+                // if(getClosedPostionOrderHistory_Res.retCode!==0)throw new Error(getClosedPostionOrderHistory_Res.retMsg);
+                // console.log("getClosedPostionOrderHistory_Res");
+                // console.log(getClosedPostionOrderHistory_Res.result);
             
-                const getClosedPositionInfo_res = await bybit.clients.bybit_RestClientV5.getClosedPositionInfo({
-                    category:"linear",
-                    orderId:closePositionRes.result.orderId
+                // const getClosedPositionInfo_res = await bybit.clients.bybit_RestClientV5.getClosedPositionInfo({
+                //     category:"linear",
+                //     orderId:closePositionRes.result.orderId
                     
-                });
-                console.log({
-                    getClosedPositionInfo_res: getClosedPositionInfo_res.result.list
-                });
+                // });
+                // console.log({
+                //     getClosedPositionInfo_res: getClosedPositionInfo_res.result.list
+                // });
             
-                await sleepAsync(20000);
+                // await sleepAsync(20000);
         
                 ///////////////////////////////////////////////////
                 // const orderHistory_Res = await bybit.clients.bybit_RestClientV5.getOrderHistory({
@@ -414,40 +395,12 @@ async function handler({
 
 
                 
-                const closedPartialPNL_res = await bybit.clients.bybit_RestClientV5.getClosedPositionPNL({
+                const closedPositionPNLObj = await bybit.helpers.getClosedPositionPNLObject({
+                    bybit,
                     category:"linear",
-                    symbol:position.pair,
+                    symbol: position.pair,
+                    closedPositionOrderId: closePositionRes.result.orderId
                 });
-                // orderId: '07d2a19c-7148-453a-b4d9-fa0f17b5746c'
-                console.log({closedPartialPNL_res});
-                if(!closedPartialPNL_res.result ||closedPartialPNL_res.result.list.length===0){
-                    logger.error("Position Resize Error: Position partial expected to be closed , it's close PNL not found.");
-                }
-                console.log({closedPartialPNL_res: closedPartialPNL_res.result});
-                let closedPositionPNLObj = closedPartialPNL_res.result.list.find((closedPnlV5) => closedPnlV5.orderId===closePositionRes.result.orderId );
-            
-            
-                if(!closedPositionPNLObj){
-                    //retry
-                    console.log("Retry getClosedPositionPNL");
-                    await sleepAsync(20000);
-                    const closedPartialPNL_res2 = await bybit.clients.bybit_RestClientV5.getClosedPositionPNL({
-                        category:"linear",
-                        symbol:position.pair,
-                    });
-                    // orderId: '07d2a19c-7148-453a-b4d9-fa0f17b5746c'
-                    console.log({closedPartialPNL_res2});
-                    if(!closedPartialPNL_res2.result ||closedPartialPNL_res2.result.list.length===0){
-                        logger.error("Position Resize Error: Position partial expected to be closed , it's close PNL not found.");
-                    }
-                    console.log({closedPartialPNL_res2: closedPartialPNL_res2.result});
-                    closedPositionPNLObj = closedPartialPNL_res2.result.list.find((closedPnlV5) => closedPnlV5.orderId===closePositionRes.result.orderId );
-
-                    if(!closedPositionPNLObj){
-                        throw new Error("Trade Close Executed but PNL query  Error: closedPositionPNLObj not found for closed partial position");
-
-                    }
-                }
                 
                 let closedPartialPNL  = parseFloat(closedPositionPNLObj.closedPnl);
                 closedPositionAccumulatedDetails.closedlPNL+=closedPartialPNL;

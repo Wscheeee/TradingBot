@@ -86,6 +86,14 @@ module.exports.MongoDatabase =  class MongoDatabase{
  
     /**
      * 
+     * @param {string} str 
+     * @returns 
+     */
+    createObjectIdFromString(str){
+        return new ObjectId(str);
+    }
+    /**
+     * 
      * @param {string} databaseName 
      * @returns {boolean}
      */

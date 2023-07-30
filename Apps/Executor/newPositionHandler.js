@@ -349,31 +349,12 @@ async function handler({
         }
 
         if(someOpenIsSucccessful){
-            const getOpenPosition_Result =  await bybit.clients.bybit_RestClientV5.getPositionInfo_Realtime({
+            const theTradeInBybit = await bybit.helpers.getActualOpenPositionInBybit({
+                bybit,
                 category:"linear",
-                // settleCoin:"USDT"
-                symbol: position.pair,
-                
+                side:position.direction==="LONG"?"Buy":"Sell",
+                symbol: position.pair
             });
-    
-            console.log({getOpenPosition_Result});
-            if(getOpenPosition_Result.retCode!==0)throw new Error(`Trade Execution Error: getOpenPosition_Result: ${getOpenPosition_Result.retMsg}`);
-            const theTradeInBybit = getOpenPosition_Result.result.list.find((p)=>{
-                console.log({
-                    p
-                });
-                if(
-                    p.side===(position.direction==="LONG"?"Buy":"Sell")
-                    &&
-                    p.symbol===position.pair
-                    &&
-                    p.size!=="0"
-                ){
-                    return p;
-                }
-            });
-    
-            if(!theTradeInBybit)throw new Error(`(getOpenPosition_Result) theTradeInBybit is ${theTradeInBybit}`);
             console.log({theTradeInBybit});
      
             const nowDate = new Date();

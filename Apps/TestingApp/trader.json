@@ -1,0 +1,43 @@
+{
+    "_id":"6454f96b2d34385838f0406d",
+    "username": "Makarito",
+    "uid": "4325641055745EBAFED26DB3ACDC7AF1",
+    "followed": true,
+    "document_last_edited_at_datetime": {
+      "$date": {
+        "$numberLong": "1690687753167"
+      }
+    },
+    "performances_last_uptade_datetime": {
+      "$date": {
+        "$numberLong": "1690687753167"
+      }
+    },
+    "document_created_at_datetime": {
+      "$date": {
+        "$numberLong": "1683290475481"
+      }
+    },
+    "all_pnl": 25841.29580108,
+    "all_roi": 15.878115,
+    "daily_pnl": 40.634924,
+    "daily_roi": -0.0008584,
+    "weekly_pnl": 406.8758,
+    "weekly_roi": 0.1436,
+    "monthly_pnl": -27097.53570259,
+    "monthly_roi": -0.841091,
+    "yearly_pnl": 0,
+    "yearly_roi": 0,
+    "exact_weekly_pnl": 0,
+    "exact_weekly_roi": 0,
+    "exact_monthly_pnl": 0,
+    "exact_monthly_roi": 0,
+    "exact_yearly_pnl": 0,
+    "exact_yearly_roi": 0,
+    "past_day_pnl": 425.396866,
+    "past_day_roi": 0.15438692,
+    "estimated_total_balance": 49658.2483609974,
+    "estimated_total_day_balance": -249.132548,
+    "yesterday_estimated_balance": 2755.3944725556,
+    "today_estimated_balance": 2755.3944725556
+  }

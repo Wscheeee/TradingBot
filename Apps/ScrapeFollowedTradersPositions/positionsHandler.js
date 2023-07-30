@@ -13,7 +13,7 @@ const {calculateRoiFromPosition} = require("./calculateRoiFromPosition");
 const {calculatePnlFromPosition} = require("./calculatePnlFromPosition");
 
 /**
- * 
+ *  
  * @param {{
  *      mongoDatabase:import("../../MongoDatabase").MongoDatabase,
  *      binanceScraper:import("../../Binance_Scraper").BinanceScraper
@@ -111,29 +111,8 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                             }else if(savedPosition_.size < position_.amount){// The size was increased
                                 // so update the position 
                                 await mongoDatabase.collection.openTradesCollection.updateDocument(savedPosition_._id,{
-                                    // trader_id: savedPosition_.trader_id,
-                                    // trader_uid: savedPosition_.trader_uid,
-                                    // // close_datetime: null,
-                                    // direction: savedPosition_.direction,
-                                    // entry_price: position_.entryPrice,
-                                    // followed: savedPosition_.followed,
-                                    // copied: savedPosition_.copied,
-                                    // leverage: savedPosition_.leverage,
-                                    // mark_price: position_.markPrice,
-                                    // open_datetime: savedPosition_.open_datetime,
-                                    // original_size: position_.amount, // Adjust original size for size increase
-                                    // pair: savedPosition_.pair,
-                                    // part: savedPosition_.part,
-                                    // pnl:position_.pnl,
-                                    // roi: position_.roe,
-                                    // roi_percentage: position_.roe*100,
                                     size: position_.amount,
-                                    previous_size_before_partial_close: position_.amount,//(position_.amount!=savedPosition_.size?position_.amount:savedPosition_.previous_size_before_partial_close),
-                                    // status: savedPosition_.status,
-                                    // total_parts: currentPositionsTotalParts,
-                                    // document_created_at_datetime: savedPosition_.document_created_at_datetime,
-                                    // document_last_edited_at_datetime: new Date(),
-                                    // server_timezone: process.env.TZ
+                                    previous_size_before_partial_close: position_.amount,
                                 });
                                     
                             }else { // size did not change

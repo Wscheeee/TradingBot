@@ -227,12 +227,15 @@ async function handler({
                 p.side===(position.direction==="LONG"?"Buy":"Sell")
                 &&
                 p.symbol===position.pair
+                &&
+                p.size!=="0"
             ){
                 return p;
             }
         });
 
         if(!theTradeInBybit)throw new Error(`(getOpenPosition_Result) theTradeInBybit is ${theTradeInBybit}`);
+        const SIZE_FOR_TRADE_IN_BYBIT_BEFORE_UPDATE = parseFloat(theTradeInBybit.size);
         //    position.previous_size_before_partial_close
     
         /**
@@ -486,7 +489,8 @@ async function handler({
                 trader_username:  trader.username,
                 // change_by: -(tradedPositionObj.size-finalUpdatedTradedPosition.size),
                 change_by: -(closedPositionAccumulatedDetails.qty),
-                change_by_percentage:calculatePercentageChange(finalUpdatedTradedPosition.size,tradedPositionObj.size),
+                change_by_percentage:calculatePercentageChange(finalUpdatedTradedPosition.size,SIZE_FOR_TRADE_IN_BYBIT_BEFORE_UPDATE),
+                // change_by_percentage:calculatePercentageChange(finalUpdatedTradedPosition.size,tradedPositionObj.size),
                 position_roi:calculateRoiFromPosition({
                     close_price: closedPositionAccumulatedDetails.avgExitPrice,
                     direction: position.direction,

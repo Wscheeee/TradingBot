@@ -159,7 +159,7 @@ process.env.TZ = dotEnvObj.TZ;
                                 position_leverage:originalPosition.leverage,
                                 position_pair: originalPosition.pair,
                                 chatId: user.tg_user_id,
-                                trader_username: trader.username,
+                                trader_username: trader.username, 
                                 change_by: -(closedPartPosition.size),
                                 change_by_percentage: calculatePercentageChange(originalPosition.size,originalPosition.previous_size_before_partial_close),
                                 position_roi:closedPartPosition.roi,

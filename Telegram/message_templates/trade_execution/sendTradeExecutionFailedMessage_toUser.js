@@ -37,7 +37,10 @@ module.exports.sendTradeExecutionFailedMessage_toUser = async function ({
             reason_msg = "Original Position was not Opened";
         } else if (reason.toLowerCase().includes("symbol")){
             reason_msg = "Symbol Doesn't Exist on Bybit";
+        } else if (reason.toLowerCase().includes("usertrade_doc")){
+            reason_msg = "Original Position was not Opened";
         }
+
 
         await bot.sendMessage(chatId,
             `⚠️ Trade Execution Failed ‼️

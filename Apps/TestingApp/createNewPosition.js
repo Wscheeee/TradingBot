@@ -25,10 +25,7 @@ const {Logger} = require("../../Logger");
 const {Telegram} = require("../../Telegram");
 
 // local
-const {newPositionHandler} = require("./newPositionHandler"); 
-const {positionUpdateHandler} = require("./positionUpdateHandler"); 
-const {positionResizeHandler} = require("./positionResizeHandler"); 
-const {positionCloseHandler} = require("./positionCloseHandler"); 
+const fs = require("fs");
 
  
 const APP_NAME = "App:Executor"; 
@@ -89,12 +86,11 @@ process.env.TZ = dotEnvObj.TZ;
         const trader = require("./trader.json");
         // Creatte position in open_trades colelction
         const datetimeNow = new Date();
-        await mongoDatabase.collection.openTradesCollection.createNewDocument({
+        const res = await mongoDatabase.collection.openTradesCollection.createNewDocument({
             trader_id: mongoDatabase.createObjectIdFromString(trader._id),
             trader_uid: trader.uid, 
             trader_username: trader.username,
-            //@ts-ignore
-            today_estimated_balance: position_.today_estimated_balance,
+            trader_today_estimated_balance: position_.trader_today_estimated_balance,
             direction: position_.direction,
             entry_price: position_.entry_price,
             followed: position_.followed,
@@ -114,6 +110,16 @@ process.env.TZ = dotEnvObj.TZ;
             document_last_edited_at_datetime: datetimeNow,
             server_timezone: process.env.TZ||""
         });
+
+        fs.writeFileSync("./position_toDelete.json",JSON.stringify({
+            _id: res.insertedId.toString(),
+            ...position_
+        },null,2));
+        fs.writeFileSync("./traderUpdatedPosition.json",JSON.stringify({
+            _id: res.insertedId.toString(),
+            ...position_
+        },null,2));
+
         
       
     }catch(error){

@@ -1,6 +1,10 @@
 module.exports = {
     apps : [
         {
+            name: "APIKeysExpiryInformer",
+            script: "./APIKeysExpiryInformer/app.js"
+        },
+        {
             name: "CreateSubAccountsAndAllocateCapital",
             script: "./CreateSubAccountsAndAllocateCapital/app.js"
         },

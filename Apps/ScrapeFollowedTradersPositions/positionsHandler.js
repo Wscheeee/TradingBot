@@ -174,9 +174,10 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                         trader_id: savedTraderDbDoc._id,
                         trader_uid: savedTraderDbDoc.uid, 
                         trader_username: savedTraderDbDoc.username,
-                        //@ts-ignore
-                        today_estimated_balance: savedTraderDbDoc.today_estimated_balance?savedTraderDbDoc.today_estimated_balance:0,
+                        trader_today_estimated_balance: savedTraderDbDoc.today_estimated_balance?savedTraderDbDoc.today_estimated_balance:0,
                         direction: position_.direction,
+                        pnl:0,
+                        roi:0,
                         entry_price: position_.entryPrice,
                         followed: savedTraderDbDoc && savedTraderDbDoc.followed?true:false,
                         // copied: savedTraderDbDoc && savedTraderDbDoc.copied?true:false,

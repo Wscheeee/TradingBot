@@ -30,7 +30,7 @@ console.log(IS_LIVE);
     /** 
      * @type {number}
      */
-    let lastScrapedDayNumber = -1;
+    // let lastScrapedDayNumber = -1;
     let lastScrapedHourNumber = -1;
     const errorbot = new Telegram({telegram_bot_token:dotEnvObj.TELEGRAM_BOT_TOKEN,requestDelay:2000});
     logger.info("Create Telegram Error bot");
@@ -43,7 +43,7 @@ console.log(IS_LIVE);
         // Run once at 2:05:am
         const dateTimeNow = new DateTime().now();
         const CURRENT_HOUR = dateTimeNow.hours;
-        const TODAY_DAY_NUMBER = dateTimeNow.day_index;
+        // const TODAY_DAY_NUMBER = dateTimeNow.day_index;
         const CURRENT_MINUTE = dateTimeNow.minutes;
         while(lastScrapedHourNumber != CURRENT_HOUR && ( CURRENT_MINUTE==0 || CURRENT_MINUTE==30) ){// Scrape when day changes
         // while(lastScrapedDayNumber!==TODAY_DAY_NUMBER && CURRENT_HOUR===2 && CURRENT_MINUTE>30){// Scrape when day changes

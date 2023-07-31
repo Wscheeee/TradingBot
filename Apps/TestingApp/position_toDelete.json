@@ -1,0 +1,36 @@
+{
+  "_id": "64c62a51fde5e5170102cdce",
+  "trader_id": "6454f96b2d34385838f0406d",
+  "trader_uid": "4325641055745EBAFED26DB3ACDC7AF1",
+  "trader_username": "Makarito",
+  "trader_today_estimated_balance": 2755.3944725556,
+  "direction": "SHORT",
+  "entry_price": 0.0794637454641,
+  "followed": true,
+  "copied": true,
+  "leverage": 25,
+  "mark_price": 0.0803,
+  "open_datetime": {
+    "$date": {
+      "$numberLong": "1690657153028"
+    }
+  },
+  "original_size": 79918,
+  "pair": "DOGEUSDT",
+  "part": 0,
+  "size": 79918,
+  "previous_size_before_partial_close": 79918,
+  "status": "OPEN",
+  "total_parts": 1,
+  "document_created_at_datetime": {
+    "$date": {
+      "$numberLong": "1690666537703"
+    }
+  },
+  "document_last_edited_at_datetime": {
+    "$date": {
+      "$numberLong": "1690697713187"
+    }
+  },
+  "server_timezone": "Europe/Paris"
+}

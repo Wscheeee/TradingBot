@@ -1,4 +1,5 @@
 {
+    "_id": "64c62a51fde5e5170102cdce",
     "trader_id": "6454f96b2d34385838f0406d",
     "trader_uid": "4325641055745EBAFED26DB3ACDC7AF1",
     "trader_username": "Makarito",
@@ -17,7 +18,7 @@
     "original_size": 79918,
     "pair": "DOGEUSDT",
     "part": 0,
-    "size": 79918,
+    "size": 57918,
     "previous_size_before_partial_close": 79918,
     "status": "OPEN",
     "total_parts": 1,

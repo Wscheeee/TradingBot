@@ -35,7 +35,7 @@ class DateTime {
         const now = new Date();
         const now_localTimeString = now.toLocaleTimeString("en-US", { hour12: false });
         const [now_hours, now_minutes, now_seconds] = now_localTimeString.split(":").map(s=>Number(s));
-        console.log({now_hours, now_minutes, now_seconds});
+        // console.log({now_hours, now_minutes, now_seconds});
         return {
             hour12: false,
             hours:  now_hours,

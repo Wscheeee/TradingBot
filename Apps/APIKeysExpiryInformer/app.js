@@ -47,9 +47,7 @@ process.env.TZ = dotEnvObj.TZ;
         logger.addLogCallback("error",async (cbIndex,message)=>{
             // FILTER OUT SOME MESSAGES
             const messagesToFilterOut= [
-                "leverage not modified",
-                "Isolated not modified",
-                "position mode not modified"
+               
             ];
             const messageIsUnwanted = messagesToFilterOut.filter((filterText)=>{
                 if(message.includes(filterText)){

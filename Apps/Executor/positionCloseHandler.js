@@ -391,9 +391,9 @@ async function handler({
 
             // Send message to user
             await sendTradeFullCloseEecutedMessage_toUser({
-                bot,
+                bot, 
                 position_direction:tradedOpenPositionDocument.direction,
-                position_entry_price: tradedOpenPositionDocument.entry_price,
+                position_exit_price: closedPositionAccumulatedDetails.avgExitPrice,
                 position_leverage:tradedOpenPositionDocument.leverage,
                 position_pair: tradedOpenPositionDocument.pair,
                 chatId: user.tg_user_id,

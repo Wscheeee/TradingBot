@@ -433,7 +433,7 @@ async function handler({
             await sendTradePartialCloseExecutedMessage_toUser({
                 bot,
                 position_direction:tradedPositionObj.direction,
-                position_entry_price: tradedPositionObj.entry_price,
+                position_exit_price: closedPositionAccumulatedDetails.avgExitPrice,
                 position_leverage:finalUpdatedTradedPosition.leverage,
                 position_pair: tradedPositionObj.pair,
                 chatId: user.tg_user_id,

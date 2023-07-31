@@ -305,12 +305,22 @@ console.log(IS_LIVE);
                         mongoDatabase,
                         traderDocument: savedTrader
                     });
-                    await saveTraderEstimatedTotalTodayBalance({
-                        mongoDatabase,
-                        traderDocument: savedTrader,
-                        estimated_total_balance: estimateBalance
-                    });
+                    if (estimateBalance===0){
 
+                        await saveTraderEstimatedTotalTodayBalance({
+                            mongoDatabase,
+                            traderDocument: savedTrader,
+                            estimated_total_balance: savedTrader.today_estimated_balance
+                        });
+
+                    } else {
+
+                        await saveTraderEstimatedTotalTodayBalance({
+                            mongoDatabase,
+                            traderDocument: savedTrader,
+                            estimated_total_balance: estimateBalance
+                        });
+                    }
                 }
 
 

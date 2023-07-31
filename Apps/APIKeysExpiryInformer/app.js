@@ -102,7 +102,7 @@ process.env.TZ = dotEnvObj.TZ;
                             testnet: user.testnet===false?false:true
                         });
                         const apiKeyInfo_Res = await bybit.clients.bybit_AccountAssetClientV3.getAPIKeyInformation();
-                        console.log({apiKeyInfo_Res});
+                        // console.log({apiKeyInfo_Res});
                         //@ts-ignore
                         if(apiKeyInfo_Res.retCode!==0)throw new Error("apiKeyInfo_Res:"+apiKeyInfo_Res.retMsg);
 

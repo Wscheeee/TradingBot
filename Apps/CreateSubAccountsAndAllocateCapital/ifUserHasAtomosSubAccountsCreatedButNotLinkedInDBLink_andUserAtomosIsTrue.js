@@ -85,20 +85,43 @@ module.exports.ifUserHasAtomosSubAccountsCreatedButNotLinkedInDBLink_andUserAtom
                 sub_account_api_note:"Atomos Default Config",
                 sub_account_uid:atomosSubAccountInBybit.uid
             });
-            await mongoDatabase.collection.subAccountsCollection.createNewDocument({
-                document_created_at_datetime: new Date(),
-                private_api: createSubAccountAPIKeys_Response.result.secret,
-                public_api: createSubAccountAPIKeys_Response.result.apiKey,
-                server_timezone: process.env.TZ||"",
-                sub_account_uid: String(atomosSubAccountInBybit.uid),
-                sub_account_username: atomosSubAccountInBybit.username,
-                sub_link_name: unlikedSubAccountConfigDocument.sub_link_name,
+            const doc = await mongoDatabase.collection.subAccountsCollection.findOne({
                 testnet: user.testnet,
                 tg_user_id: user.tg_user_id,
-                trader_uid: unlikedSubAccountConfigDocument.trader_uid,
-                trader_username: unlikedSubAccountConfigDocument.trader_username,
-                weight: unlikedSubAccountConfigDocument.weight?Number(unlikedSubAccountConfigDocument.weight):0
-            });
+                sub_link_name: unlikedSubAccountConfigDocument.sub_link_name,
+            }); 
+            if(doc){
+                await mongoDatabase.collection.subAccountsCollection.updateDocument(doc._id,{
+                    document_created_at_datetime: new Date(),
+                    private_api: createSubAccountAPIKeys_Response.result.secret,
+                    public_api: createSubAccountAPIKeys_Response.result.apiKey,
+                    server_timezone: process.env.TZ||"",
+                    sub_account_uid: String(atomosSubAccountInBybit.uid),
+                    sub_account_username: atomosSubAccountInBybit.username,
+                    sub_link_name: unlikedSubAccountConfigDocument.sub_link_name,
+                    testnet: user.testnet,
+                    tg_user_id: user.tg_user_id,
+                    trader_uid: unlikedSubAccountConfigDocument.trader_uid,
+                    trader_username: unlikedSubAccountConfigDocument.trader_username,
+                    weight: unlikedSubAccountConfigDocument.weight?Number(unlikedSubAccountConfigDocument.weight):0
+                });
+            }else {
+                await mongoDatabase.collection.subAccountsCollection.createNewDocument({
+                    document_created_at_datetime: new Date(),
+                    private_api: createSubAccountAPIKeys_Response.result.secret,
+                    public_api: createSubAccountAPIKeys_Response.result.apiKey,
+                    server_timezone: process.env.TZ||"",
+                    sub_account_uid: String(atomosSubAccountInBybit.uid),
+                    sub_account_username: atomosSubAccountInBybit.username,
+                    sub_link_name: unlikedSubAccountConfigDocument.sub_link_name,
+                    testnet: user.testnet,
+                    tg_user_id: user.tg_user_id,
+                    trader_uid: unlikedSubAccountConfigDocument.trader_uid,
+                    trader_username: unlikedSubAccountConfigDocument.trader_username,
+                    weight: unlikedSubAccountConfigDocument.weight?Number(unlikedSubAccountConfigDocument.weight):0
+                });
+
+            }
         }
 
         return;

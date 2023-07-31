@@ -61,7 +61,7 @@ module.exports.markPositionsInDB_asClosedForATrader= async function markPosition
                 part: positionToClose_.part,
                 pnl: positionToClose_.pnl,
                 roi: positionToClose_.roi,
-                roi_percentage: positionToClose_.roi_percentage,
+                roi_percentage: positionToClose_.roi,
                 size: positionToClose_.size,
                 previous_size_before_partial_close: positionToClose_.previous_size_before_partial_close,
                 status: "CLOSED",

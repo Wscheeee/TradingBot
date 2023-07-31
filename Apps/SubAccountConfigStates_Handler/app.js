@@ -42,7 +42,7 @@ process.env.TZ = dotEnvObj.TZ;
         /***
 		 * Error Telegram bot for sendding error messages to Telegram error channel.
 		 */
-        const errorbot = new Telegram({telegram_bot_token:dotEnvObj.TELEGRAM_BOT_TOKEN,requestDelay:2000});
+        const errorbot = new Telegram({telegram_bot_token:dotEnvObj.TELEGRAM_BOT_TOKEN});
         logger.info("Create Telegrambot");
         logger.addLogCallback("error",async (cbIndex,message)=>{
             await errorbot.sendMessage(dotEnvObj.TELEGRAM_ERROR_CHHANNEL_ID,message);

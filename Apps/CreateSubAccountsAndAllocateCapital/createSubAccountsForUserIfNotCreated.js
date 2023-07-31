@@ -269,23 +269,47 @@ async function createSubAccount_itsApi_andSaveInDB({
        
     // create new sub_account_document
     // Save the Info About the created SUB ACCOUNT in SubAccountsCollection
-    const createNewDocument_Res = await mongoDatabase.collection.subAccountsCollection.createNewDocument({
-        sub_account_username: createdAccount.username, 
-        tg_user_id: user.tg_user_id,
-        trader_username: trader?trader.username:"",
-        weight: sub_account_trader_weight,
-        private_api: createSubAccountUIDAPIKey_Res.result.secret,
-        public_api: createSubAccountUIDAPIKey_Res.result.apiKey,
-        trader_uid: trader?trader.uid:"",
+    const doc = await mongoDatabase.collection.subAccountsCollection.findOne({
         testnet: sub_account_testnet,
-        sub_account_uid: String(createdAccount.uid),
+        tg_user_id: user.tg_user_id,
         sub_link_name: sub_account_sub_link_name,
-        document_created_at_datetime: new Date(),
-        //@ts-ignore
-        server_timezone: process.env.TZ
-    });
+    }); 
+    if(doc){
+        await mongoDatabase.collection.subAccountsCollection.updateDocument(doc._id,{
+            sub_account_username: createdAccount.username, 
+            tg_user_id: user.tg_user_id,
+            trader_username: trader?trader.username:"",
+            weight: sub_account_trader_weight,
+            private_api: createSubAccountUIDAPIKey_Res.result.secret,
+            public_api: createSubAccountUIDAPIKey_Res.result.apiKey,
+            trader_uid: trader?trader.uid:"",
+            testnet: sub_account_testnet,
+            sub_account_uid: String(createdAccount.uid),
+            sub_link_name: sub_account_sub_link_name,
+            document_created_at_datetime: new Date(),
+            //@ts-ignore
+            server_timezone: process.env.TZ
+        });
+    }else {
+        const createNewDocument_Res = await mongoDatabase.collection.subAccountsCollection.createNewDocument({
+            sub_account_username: createdAccount.username, 
+            tg_user_id: user.tg_user_id,
+            trader_username: trader?trader.username:"",
+            weight: sub_account_trader_weight,
+            private_api: createSubAccountUIDAPIKey_Res.result.secret,
+            public_api: createSubAccountUIDAPIKey_Res.result.apiKey,
+            trader_uid: trader?trader.uid:"",
+            testnet: sub_account_testnet,
+            sub_account_uid: String(createdAccount.uid),
+            sub_link_name: sub_account_sub_link_name,
+            document_created_at_datetime: new Date(),
+            //@ts-ignore
+            server_timezone: process.env.TZ
+        });
+    
+        if(createNewDocument_Res.acknowledged===false)throw new Error(`Error writing to subAccountsCollection: new Sub Account saving name:${createdAccount.username} user:(${user.username})`);
 
-    if(createNewDocument_Res.acknowledged===false)throw new Error(`Error writing to subAccountsCollection: new Sub Account saving name:${createdAccount.username} user:(${user.username})`);
+    }
 }
 
 /**

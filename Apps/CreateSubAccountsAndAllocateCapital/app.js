@@ -192,7 +192,7 @@ process.env.TZ = dotEnvObj.TZ;
                         });
 
                     }
-                );
+                ); 
 
             }catch(e){
                 logger.error(`user.onCreateDocument ${e.message}`);

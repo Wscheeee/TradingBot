@@ -10,7 +10,7 @@ const { calculateRoiFromPosition } = require("../ScrapeFollowedTradersPositions/
  *      onError: (error:Error)=>any,
  *      mongoDatabase: import("../../MongoDatabase").MongoDatabase,
  *      user: import("../../MongoDatabase/collections/users/types").Users_Collection_Document_Interface,
- *      trader: import("../../MongoDatabase/collections/top_traders/types").TopTraderCollection_Document_Interface,
+ *      trader?: null|import("../../MongoDatabase/collections/top_traders/types").TopTraderCollection_Document_Interface,
  *      tg_bot: import("../../Telegram").Telegram
 *}} param0 
 */
@@ -18,6 +18,8 @@ const { calculateRoiFromPosition } = require("../ScrapeFollowedTradersPositions/
 module.exports.closeAllPositionsInASubAccount = async function closeAllPositionsInASubAccount({
     bybit,onError, mongoDatabase,user,trader,tg_bot
 }){
+    const FUNCTION_NAME = "(fn:closeAllPositionsInASubAccount)";
+    console.log(FUNCTION_NAME);
     try{  
         // Get open orders
         const ordersResponse = await bybit.clients.bybit_RestClientV5.getPositionInfo_Realtime({category:"linear",settleCoin:"USDT"});
@@ -141,7 +143,7 @@ module.exports.closeAllPositionsInASubAccount = async function closeAllPositions
                         position_entry_price: entry_price,
                         position_leverage: leverage,
                         position_pair: symbol,
-                        trader_username:  trader.username,
+                        trader_username: trader? trader.username:"",
                         reason: "closePositionRes: "+closePositionRes.retMsg
                     });
                     onError(new Error("closePositionRes:"+closePositionRes.retMsg));
@@ -245,7 +247,7 @@ module.exports.closeAllPositionsInASubAccount = async function closeAllPositions
                 position_leverage: leverage,
                 position_pair: symbol,
                 chatId: user.tg_user_id,
-                trader_username:  trader.username,
+                trader_username:  trader?trader.username:"",
                 position_roi: calculateRoiFromPosition({
                     close_price: closedPositionAccumulatedDetails.avgExitPrice,
                     direction: position_direction,

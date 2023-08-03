@@ -350,6 +350,94 @@ process.env.TZ = dotEnvObj.TZ;
                 logger.error(`${FUNCTION_NAME} ${e.message}`);
             }
         });
+
+
+
+        usersCollectionStateDetector.onUpdateDocument(async (userDocumentBeforeUpdate, userDocumentAfterUpdate)=>{
+            try{
+                logger.info(`user.onUpdateDocument ${userDocumentAfterUpdate.tg_user_id}`);
+                if(!mongoDatabase)return;
+                if(userDocumentBeforeUpdate){
+                    console.log({userDocumentBeforeUpdate, userDocumentAfterUpdate});
+                    // if(
+                    //     userDocumentBeforeUpdate.atomos!==userDocumentAfterUpdate.atomos ||
+                    //     userDocumentBeforeUpdate.status!==userDocumentAfterUpdate.status ||
+                    //     userDocumentBeforeUpdate.privateKey!==userDocumentAfterUpdate.privateKey ||
+                    //     userDocumentBeforeUpdate.publicKey!==userDocumentAfterUpdate.publicKey
+                    // ){
+                    //     // Run allocations in TaskRunner
+                    //     intervalLastInStackTaskRunner.addJob(
+                    //         async function (){ 
+                    //             await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
+                    //                 mongoDatabase,
+                    //                 user:userDocumentAfterUpdate,
+                    //                 tg_user_bot,
+                    //                 onError: (error)=>{
+                    //                     logger.error(error.message);
+                    //                 }
+                    //             });
+            
+                    //         }
+                    //     );
+                            
+                    // }
+                    if( 
+                        (userDocumentBeforeUpdate.status===true && userDocumentAfterUpdate.status===false) ||
+                        (userDocumentBeforeUpdate.atomos!==userDocumentAfterUpdate.atomos)
+                    ){
+                        console.log("Passed change check");
+                        const user = {_id:userDocumentAfterUpdate._id,userDocumentBeforeUpdate};
+                        // close all opened positions in all user's sub accounts 
+                        const userSubAccount_Cursor = await mongoDatabase.collection.subAccountsCollection.getAllDocumentsBy({tg_user_id:userDocumentBeforeUpdate.tg_user_id,testnet:userDocumentBeforeUpdate.testnet});
+                        while(await userSubAccount_Cursor.hasNext()){
+                            try{
+                                const configDocumentBeforeUpdate = await userSubAccount_Cursor.next();
+                                console.log({configDocumentBeforeUpdate});
+                                if(configDocumentBeforeUpdate){
+                                    const trader = await mongoDatabase.collection.topTradersCollection.findOne({uid:configDocumentBeforeUpdate.trader_uid});
+                                    console.log({trader});
+                                    const subDocument = configDocumentBeforeUpdate;
+                                    console.log({subDocument});
+                                    if(subDocument){
+                                        const bybit = new Bybit({
+                                            millisecondsToDelayBetweenRequests: 7000,
+                                            privateKey: subDocument.private_api,
+                                            publicKey: subDocument.public_api,
+                                            testnet: subDocument.testnet===false?false:true
+                                        });
+                    
+                                        await closeAllPositionsInASubAccount({
+                                            bybit,
+                                            mongoDatabase,
+                                            onError:(error)=>{
+                                                logger.error(error.message);
+                                            },
+                                            tg_bot:tg_user_bot,
+                                            trader,
+                                            //@ts-ignore
+                                            user
+                                        });
+
+                                    }
+                                }
+
+                            }catch(error){
+                                console.log({error});
+                                logger.error(error.message);
+                            }
+                        }
+                        
+                    }
+
+
+
+                }
+
+            }catch(e){
+                logger.error(`user.onUpdateDocument ${e.message}`);
+            }
+        });
+
         usersCollectionStateDetector.listenToUsersCollection();
         logger.info("Set usersCollectionStateDetector.listenToUsersCollection");
         //////////////////////////////////

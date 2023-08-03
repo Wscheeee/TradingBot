@@ -80,12 +80,11 @@ process.env.TZ = dotEnvObj.TZ;
          * @type {number}
          */
         let lastScrapedDayNumber = -1;
-        let run = true;
-        while(run){
+        setTimeout(async ()=>{
             // Run once at 2:05:am
             const dateTimeNow = new DateTime().now();
             const TODAY_DAY_NUMBER = dateTimeNow.day_index;
-            while(lastScrapedDayNumber != TODAY_DAY_NUMBER ){// Scrape when day changes
+            if(lastScrapedDayNumber != TODAY_DAY_NUMBER ){// Scrape when day changes
             // while(lastScrapedDayNumber!==TODAY_DAY_NUMBER && CURRENT_HOUR===2 && CURRENT_MINUTE>30){// Scrape when day changes
                 logger.error("RUNNING "+APP_NAME);
                 try{
@@ -105,7 +104,7 @@ process.env.TZ = dotEnvObj.TZ;
                         // console.log({apiKeyInfo_Res});
                         //@ts-ignore
                         if(apiKeyInfo_Res.retCode!==0)throw new Error("apiKeyInfo_Res:"+apiKeyInfo_Res.retMsg);
-
+    
                         const createdAt = apiKeyInfo_Res.result.createdAt;
                         const expiringAt = apiKeyInfo_Res.result.expiredAt;
                         console.log({
@@ -119,7 +118,7 @@ process.env.TZ = dotEnvObj.TZ;
                             await userMessagingBot.sendMessage(user.chatId, "⚠️ Warning : Your API is almost expired please update it on Bybit or contact @AzmaFr");
                         }
                     }
-
+    
                     lastScrapedDayNumber = TODAY_DAY_NUMBER;
                     
                     // await sleepAsync(1000);
@@ -131,7 +130,8 @@ process.env.TZ = dotEnvObj.TZ;
     
     
             }      
-        }
+
+        },(1000*60)*60);
         
       
     }catch(error){

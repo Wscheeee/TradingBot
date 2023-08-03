@@ -29,6 +29,7 @@ const {newPositionHandler} = require("./newPositionHandler");
 const {positionUpdateHandler} = require("./positionUpdateHandler"); 
 const {positionResizeHandler} = require("./positionResizeHandler"); 
 const {positionCloseHandler} = require("./positionCloseHandler"); 
+const {positionCloseHandler_forWhenTraderIsRemovedFromSubAccountConfig} = require("./positionCloseHandler_forWhenTraderIsRemovedFromSubAccountConfig");
 
  
 const APP_NAME = "App:Executor"; 
@@ -124,6 +125,17 @@ process.env.TZ = dotEnvObj.TZ;
                 logger.error(error.message);
             } 
         });
+        await positionCloseHandler_forWhenTraderIsRemovedFromSubAccountConfig({
+            logger,
+            mongoDatabase,
+            positionsStateDetector,
+            bot: userMessagingBot,
+            onErrorCb:(error)=>{
+                logger.error(error.message);
+            } 
+        });
+
+
 
         
 

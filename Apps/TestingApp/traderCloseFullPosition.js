@@ -102,7 +102,7 @@ process.env.TZ = dotEnvObj.TZ;
             close_price: positionToClose_.mark_price, 
             followed: positionToClose_.followed,
             copied: positionToClose_.copied,
-            leverage: positionToClose_.leverage,
+            leverage: positionToClose_.leverage, 
             mark_price: positionToClose_.mark_price,
             open_datetime: datetimeNow,
             original_size: positionToClose_.original_size,

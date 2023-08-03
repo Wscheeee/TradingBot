@@ -298,26 +298,6 @@ async function handler({
                 someCloseIsSucccessful = true;
                 logger.info("Position closed on bybit_RestClientV5");
                 logger.info("Get closed position info");
-                ////////////////////////////////////////////////
-                /// Added for a little delay
-        
-                // const getClosedPostionOrderHistory_Res = await bybit.clients.bybit_RestClientV5.getOrderHistory({
-                //     category:"linear",
-                //     symbol: position.pair,
-                //     orderId: closePositionRes.result.orderId
-                // });
-                // if(getClosedPostionOrderHistory_Res.retCode!==0)throw new Error("getClosedPostionOrderHistory_Res: "+getClosedPostionOrderHistory_Res.retMsg);
-                // console.log("getClosedPostionOrderHistory_Res");
-                // console.log(getClosedPostionOrderHistory_Res.result);
-        
-                // const getClosedPositionInfo_res = await bybit.clients.bybit_RestClientV5.getClosedPositionInfo({
-                //     category:"linear",
-                //     orderId:closePositionRes.result.orderId
-                
-                // });
-                // console.log({
-                //     getClosedPositionInfo_res: getClosedPositionInfo_res.result.list
-                // });
                 
                 const closedPositionPNLObj = await bybit.helpers.getClosedPositionPNLObject({
                     bybit,

@@ -20,7 +20,7 @@ module.exports.closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig = 
         /**
          * Get the trader
          */
-        const trader = await mongoDatabase.collection.topTradersCollection.findOne({_id:trader_uid});
+        const trader = await mongoDatabase.collection.topTradersCollection.findOne({uid:trader_uid});
         if(!trader) throw new Error(`trader (trader_uid: ${trader_uid}) not found in DB`);
         /**
          * Get the traders open positions documents
@@ -38,6 +38,7 @@ module.exports.closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig = 
         while(await traderOpenPositionsDocument_Cursor.hasNext()){
             const traderOpenPositionsDocument = await traderOpenPositionsDocument_Cursor.next();
             if(!traderOpenPositionsDocument)return;
+            console.log("Tradeer open position found");
 
             // // Match the trader open position with Traded positions and mark the tradded positions as closed
             // const tradedPositionDocument = await mongoDatabase.collection.tradedPositionsCollection.findOne({
@@ -61,6 +62,7 @@ module.exports.closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig = 
              * from users sub account associated to the trader.
              */
             const positionToClose_ = traderOpenPositionsDocument;
+            console.log({positionToClose_});
             const datetimeNow = new Date();
             await mongoDatabase.collection.oldTradesCollection.createNewDocument({
                 original_position_id: positionToClose_._id,
@@ -76,7 +78,7 @@ module.exports.closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig = 
                 original_size: positionToClose_.original_size,
                 pair:positionToClose_.pair,
                 part: positionToClose_.part,
-                pnl: positionToClose_.pnl,
+                pnl: positionToClose_.pnl, 
                 roi: positionToClose_.roi,
                 roi_percentage: positionToClose_.roi,
                 size: positionToClose_.size,
@@ -93,6 +95,7 @@ module.exports.closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig = 
                 trader_today_estimated_balance: trader.today_estimated_balance||0,
                 trader_username: trader.username
             });
+            console.log("Sent event to close position for trader: "+trader.username + " symbol: "+positionToClose_.pair);
             // delete from openPositions collections
             // await mongoDatabase.collection.openTradesCollection.deleteManyDocumentsByIds([positionToClose_._id]);
         }

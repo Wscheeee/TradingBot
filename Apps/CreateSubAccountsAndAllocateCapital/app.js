@@ -85,6 +85,7 @@ process.env.TZ = dotEnvObj.TZ;
             }
         });
 
+        const tg_user_bot = errorbot;
 
 
         logger.info("Create Bybit Client");
@@ -109,6 +110,7 @@ process.env.TZ = dotEnvObj.TZ;
                     async function (){
                         await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
                             mongoDatabase,
+                            tg_user_bot,
                             onError: (error)=>{
                                 logger.error(error.message);
                             }
@@ -149,6 +151,7 @@ process.env.TZ = dotEnvObj.TZ;
                     async function (){
                         await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
                             mongoDatabase,
+                            tg_user_bot,
                             onError: (error)=>{
                                 logger.error(error.message);
                             }
@@ -177,11 +180,12 @@ process.env.TZ = dotEnvObj.TZ;
                 logger.info(`user.onCreateDocument ${user.tg_user_id}`);
                 if(!mongoDatabase)return;
                 // Run allocations in TaskRunner
-                intervalLastInStackTaskRunner.addMustRunJob(
+                intervalLastInStackTaskRunner.addJob(
                     async function (){
                         await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
                             mongoDatabase, 
                             user,
+                            tg_user_bot,
                             onError: (error)=>{
                                 logger.error(error.message);
                             }
@@ -207,11 +211,12 @@ process.env.TZ = dotEnvObj.TZ;
                         userDocumentBeforeUpdate.publicKey!==userDocumentAfterUpdate.publicKey
                     ){
                         // Run allocations in TaskRunner
-                        intervalLastInStackTaskRunner.addMustRunJob(
-                            async function (){
+                        intervalLastInStackTaskRunner.addJob(
+                            async function (){ 
                                 await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
                                     mongoDatabase,
                                     user:userDocumentAfterUpdate,
+                                    tg_user_bot,
                                     onError: (error)=>{
                                         logger.error(error.message);
                                     }
@@ -235,11 +240,12 @@ process.env.TZ = dotEnvObj.TZ;
                 if(!mongoDatabase)return;
                 // Loop throught the user's custom configs 
                 // Run allocations in TaskRunner
-                intervalLastInStackTaskRunner.addMustRunJob(
+                intervalLastInStackTaskRunner.addJob(
                     async function (){
                         await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
                             mongoDatabase,
                             user:userDocumentAfterUpdate,
+                            tg_user_bot,
                             onError: (error)=>{
                                 logger.error(error.message);
                             }
@@ -269,6 +275,7 @@ process.env.TZ = dotEnvObj.TZ;
                 async function (){
                     await createSubAccountsAndAllocateCapital_forAllUsersWhoseLastAlloationIsMoreThan0neHourAgo_InParalell({
                         mongoDatabase,
+                        tg_user_bot,
                         onError: (error)=>{
                             logger.error(error.message);
                         }

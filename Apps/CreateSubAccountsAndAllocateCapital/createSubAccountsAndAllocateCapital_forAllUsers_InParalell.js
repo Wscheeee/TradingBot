@@ -14,11 +14,12 @@ const { ifUserHasAtomosSubAccountsCreatedButNotLinkedInDBLink_andUserAtomosIsFal
  * @param {{
 *      mongoDatabase: import("../../MongoDatabase").MongoDatabase,
 *      user?: import("../../MongoDatabase/collections/users/types").Users_Collection_Document_Interface,
+*      tg_user_bot: import("../../Telegram").Telegram,
 *      onError:(error:Error)=>any
 * }} param0
 */
 module.exports.createSubAccountsAndAllocateCapital_forAllUsers_InParalell =  async function createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
-    mongoDatabase,onError,user
+    mongoDatabase,onError,user,tg_user_bot
 }){
     console.log("(fn:createSubAccountsAndAllocateCapital_forAllUsers_InParalell)");
     try{
@@ -134,8 +135,9 @@ module.exports.createSubAccountsAndAllocateCapital_forAllUsers_InParalell =  asy
                             mongoDatabase,
                             user
                         });
+                 
                         await allocateCapitalToSubAccounts({
-                            bybit,mongoDatabase,user,onError
+                            bybit,mongoDatabase,user,onError,tg_user_bot
                         });
                         // set last_sub_allocation_check_datetime
                         await mongoDatabase.collection.usersCollection.updateDocument(user._id,{

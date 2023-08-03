@@ -1,32 +1,8 @@
 "use-strict";
 //@ts-check
-// closeAnAccountAllOpenPositions.js.js
+const { sendTradeFullCloseEecutedMessage_toUser, sendTradeExecutionFailedMessage_toUser } = require("../../Telegram/message_templates/trade_execution");
 
-// const {positionCloseHandler_HANDLER} = require("../Executor/positionCloseHandler");
-// /**
-//  * 
-//  * @param {{
-// *    private_api: string,
-// *    public_api: string,
-// *    testnet: boolean
-// * }} param0     
-// * @returns 
-// */
-// async function getOpenOrders({
-//     private_api,public_api,testnet
-// }){
-//     console.log("Getting: getOpenOrders");
-//     const bybitSubAccount = new Bybit({
-//         millisecondsToDelayBetweenRequests: 1000,//5000,
-//         privateKey: private_api,
-//         publicKey: public_api,
-//         testnet: testnet===false?false:true
-//     });
-
-    
-//     console.log("Got: getOpenOrders");
-//     return orders.result.list;
-// }
+const { calculateRoiFromPosition } = require("../ScrapeFollowedTradersPositions/calculateRoiFromPosition");
 /**
  *  
  * @param {{
@@ -34,22 +10,24 @@
  *      onError: (error:Error)=>any,
  *      mongoDatabase: import("../../MongoDatabase").MongoDatabase,
  *      user: import("../../MongoDatabase/collections/users/types").Users_Collection_Document_Interface,
- * 
+ *      trader: import("../../MongoDatabase/collections/top_traders/types").TopTraderCollection_Document_Interface,
+ *      tg_bot: import("../../Telegram").Telegram
 *}} param0 
 */
 // *      trader: import("../../MongoDatabase/collections/top_traders/types").TopTraderCollection_Document_Interface,
 module.exports.closeAllPositionsInASubAccount = async function closeAllPositionsInASubAccount({
-    bybit,onError, mongoDatabase,user
+    bybit,onError, mongoDatabase,user,trader,tg_bot
 }){
-    try{ 
+    try{  
         // Get open orders
         const ordersResponse = await bybit.clients.bybit_RestClientV5.getPositionInfo_Realtime({category:"linear",settleCoin:"USDT"});
         const orders = ordersResponse.result.list;
         for(const order of orders){
-            const {side,size:size_string,symbol, leverage:leverage_string} = order;
+            const {side,size:size_string,symbol, leverage:leverage_string, avgPrice:avgPrice_string} = order;
             const size = parseFloat(size_string);
             const leverage = parseFloat(leverage_string);
             const position_direction = side==="Buy"?"LONG":"SHORT";
+            const entry_price = parseFloat(avgPrice_string);
             // await positionCloseHandler_HANDLER({
             //     logger,mongoDatabase, 
             //     trader,
@@ -156,6 +134,16 @@ module.exports.closeAllPositionsInASubAccount = async function closeAllPositions
                 if(closePositionRes.retCode!==0){
                 // throw new Error(closePositionRes.retMsg);
                 //instead send error message 
+                    await sendTradeExecutionFailedMessage_toUser({
+                        bot:tg_bot,
+                        chatId: user.chatId,
+                        position_direction: position_direction,
+                        position_entry_price: entry_price,
+                        position_leverage: leverage,
+                        position_pair: symbol,
+                        trader_username:  trader.username,
+                        reason: "closePositionRes: "+closePositionRes.retMsg
+                    });
                     onError(new Error("closePositionRes:"+closePositionRes.retMsg));
                 }else {
                     someCloseIsSucccessful = true;
@@ -216,7 +204,7 @@ module.exports.closeAllPositionsInASubAccount = async function closeAllPositions
             const tradedOpenPositionDocument = await mongoDatabase.
                 collection.
                 tradedPositionsCollection.
-                findOne({
+                findOne({ 
                     direction:position_direction,
                     pair: symbol,
                     size: size,
@@ -249,23 +237,24 @@ module.exports.closeAllPositionsInASubAccount = async function closeAllPositions
                 console.log("Closed position in tradedPositionCollection db");
             }
 
+            // Send message to user
+            await sendTradeFullCloseEecutedMessage_toUser({
+                bot:tg_bot, 
+                position_direction:tradedOpenPositionDocument.direction,
+                position_exit_price: closedPositionAccumulatedDetails.avgExitPrice,
+                position_leverage:tradedOpenPositionDocument.leverage,
+                position_pair: tradedOpenPositionDocument.pair,
+                chatId: user.tg_user_id,
+                trader_username:  trader.username,
+                position_roi: calculateRoiFromPosition({
+                    close_price: closedPositionAccumulatedDetails.avgExitPrice,
+                    direction: position_direction,
+                    entry_price:closedPositionAccumulatedDetails.avgEntryPrice,
+                    leverage: leverage
+                }),
+                position_pnl: closedPositionAccumulatedDetails.closedPNL
+            });
 
-
-
-            // const closeAPositionRes = await bybit.clients.bybit_RestClientV5.closeAPosition({
-            //     category:"linear",
-            //     orderType:"Market",
-            //     qty:String(size),//String(position.size),// close whole position
-            //     side: side=="Buy"?"Sell":"Buy",//LONG"?"Sell":"Buy",
-            //     symbol,
-            //     positionIdx: side==="Buy"?1:2,
-            // });
-            // console.log({closeAPositionRes});
-            // if(closeAPositionRes.retCode===0){
-            //     // successfull
-            //     // Close position in db
-                
-            // }
         }
         
     }catch(error){

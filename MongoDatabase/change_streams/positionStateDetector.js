@@ -88,6 +88,10 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
                     this.#onNewPositionCallbacks.forEach((cb) => {
                         cb(fullDocument, trader);
                     });
+                }else {
+                    ///
+                    console.log("Document failed to be counted as new position");
+                    console.log({fullDocument});
                 }
                 // Save in previous open trades before update
                 // await this.#mongoDatabase.collection.openTradesCollection.saveDocumentInDB_In_previousDocumentBeforeUpdateCollection(documentId);
@@ -150,24 +154,33 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
             if(change.operationType==="drop")process.exit();//restart the app when the collection is dropped
             if (change.operationType === "insert") {
                 console.log("(oldTradesCollection):INSERT event");
+                console.log({fullDocument: change.fullDocument});
                 const documentId = change.documentKey._id;
                 const fullDocument = await this.#mongoDatabase.collection.oldTradesCollection.getDocumentById(documentId);
                 if(!fullDocument) throw new Error(`((oldTradesCollection):INSERT event change.fullDocument is empty for documentId:${change.documentKey._id}`);
+                console.log({fullDocument2: fullDocument});
                 if (fullDocument.copied) {
                     const trader = await this.#mongoDatabase.collection.topTradersCollection.getDocumentByTraderUid(fullDocument.trader_uid);
+                    console.log({trader});
                     if(!trader) throw new Error(`(openTradesCollection):UPDATE event trader not found for documentId:${change.documentKey._id} and trader_uid:${fullDocument.trader_uid}`);
                     if (fullDocument.part === 0) {
                         if(fullDocument.reason==="TRADER_CLOSED_THIS_POSITION"||!fullDocument.reason){
+                            console.log("Reason: TRADER_CLOSED_THIS_POSITION");
                             this.#onCloseFullPositionCallbacks.forEach((cb) => {
+                                console.log("Called: cb: onCloseFullPositionCallbacks");
                                 cb(fullDocument, trader);
                             });
 
                         }else if(fullDocument.reason==="TRADER_REMOVED_FROM_ATOMOS_SUB_ACCOUNT_CONFIG"){
+                            console.log("Reason: TRADER_REMOVED_FROM_ATOMOS_SUB_ACCOUNT_CONFIG");
                             this.#onPositionCloseFor_TraderRemovedFromAtomosSubAccountConfig_Callbacks.forEach((cb)=>{
+                                console.log("Called: cb: onPositionCloseFor_TraderRemovedFromAtomosSubAccountConfig_Callbacks");
                                 cb(fullDocument, trader);
                             });
                         }else if(fullDocument.reason==="TRADER_REMOVED_FROM_USER_CUSTOM_SUB_ACCOUNT_CONFIG"){
+                            console.log("Reason: TRADER_REMOVED_FROM_USER_CUSTOM_SUB_ACCOUNT_CONFIG");
                             this.#onPositionCloseFor_TraderRemovedFromUserCustomSubAccountConfig_Callbacks.forEach((cb)=>{
+                                console.log("Called: cb: onPositionCloseFor_TraderRemovedFromUserCustomSubAccountConfig_Callbacks");
                                 cb(fullDocument, trader);
                             });
                         }else {

@@ -11,11 +11,12 @@ const { performUniversalTransfer } = require("./performUniversalTransfer");
 *      user: import("../../MongoDatabase/collections/users/types").Users_Collection_Document_Interface,
 *      mongoDatabase: import("../../MongoDatabase").MongoDatabase,
 *      bybit: import("../../Trader").Bybit ,
-*      onError: (error:Error)=>any
+*      tg_user_bot: import("../../Telegram").Telegram
+*      onError: (error:Error)=>any,
 * }} param0
 */
 module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSubAccounts({
-    mongoDatabase,user,bybit,onError
+    mongoDatabase,user,bybit,tg_user_bot,onError
 }){ 
     try {
         console.log("(fn:allocateCapitalToSubAccounts)");
@@ -41,7 +42,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
         //     subAccountsUids: []
         // });
         //The account balancee of the master
-        const masterAccountWalletBalance = await bybit.clients.bybit_AccountAssetClientV3.getUSDTDerivativesAccountWalletBalance();
+        let masterAccountWalletBalance = await bybit.clients.bybit_AccountAssetClientV3.getUSDTDerivativesAccountWalletBalance();
         console.log({masterAccountWalletBalance});
 
         let totalAccountsBalance = masterAccountWalletBalance;
@@ -56,7 +57,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
          * }}
          */
         // Get the account balances of the sub accounts
-        const accountUsernameToTheirDetailsObj = {};
+        let accountUsernameToTheirDetailsObj = {};
         for(const subAccountDocument of userSubAccounts_Array){
             // login to subaccount and request balance
             const BybitSubClass = bybit.createNewBybitSubClass();
@@ -109,7 +110,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                 adjustmentNeeded = true;
                 break;
             }
-        }
+        } 
         console.log({adjustmentNeeded});
         if(adjustmentNeeded){
             // Steep One: For all sub accounts with desired balance of 0: Close all their open orders/positions
@@ -127,13 +128,18 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                     });
                     // const trader = await mongoDatabase.collection.topTradersCollection.findOne({_id:trader_uid});
                     // if(!trader) throw new Error(`trader (trader_uid: ${trader_uid}) not found in DB`);
-                    await closeAllPositionsInASubAccount({
-                        bybit:subAccountBybit,
-                        onError,
-                        mongoDatabase,
-                        // trader,
-                        user
-                    });
+                    const trader = await mongoDatabase.collection.topTradersCollection.findOne({uid:subAccountDoc.trader_uid});
+                    if(trader){
+                        await closeAllPositionsInASubAccount({
+                            bybit:subAccountBybit,
+                            onError,
+                            mongoDatabase,
+                            trader,
+                            user,
+                            tg_bot: tg_user_bot
+                        });
+
+                    }
                     // if(subAccountDoc.trader_uid){
                     //     await markPositionsInDB_asClosedForATrader({
                     //         mongoDatabase,
@@ -146,6 +152,83 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                 }
             }
             // End of close open positions for subaccount with desired balance ===0
+
+            // TAKE 2
+            //The account balancee of the master
+            masterAccountWalletBalance = await bybit.clients.bybit_AccountAssetClientV3.getUSDTDerivativesAccountWalletBalance();
+            console.log({masterAccountWalletBalance});
+
+            totalAccountsBalance = masterAccountWalletBalance;
+            /**
+             * If difference is negative means that the account needs some money : If positive means the account can give some money
+             * @type {{
+             *      [accountName:string]:{
+             *          balance: number
+             *          difference:number,
+             *          desiredBalance: number 
+             *      }
+             * }}
+             */
+            // Get the account balances of the sub accounts
+            accountUsernameToTheirDetailsObj = {};
+            for(const subAccountDocument of userSubAccounts_Array){
+                // login to subaccount and request balance
+                const BybitSubClass = bybit.createNewBybitSubClass();
+                const subAccount_bybit = new BybitSubClass({
+                    millisecondsToDelayBetweenRequests: 5000,
+                    privateKey: subAccountDocument.private_api,
+                    publicKey: subAccountDocument.public_api,
+                    testnet: subAccountDocument.testnet?true:false
+                });
+                const subAccountWalletBalance = await subAccount_bybit.clients.bybit_AccountAssetClientV3.getUSDTDerivativesAccountWalletBalance();
+                totalAccountsBalance+=subAccountWalletBalance;
+                accountUsernameToTheirDetailsObj[subAccountDocument.sub_account_username] = {
+                    balance: subAccountWalletBalance,
+                    desiredBalance:0,
+                    difference: 0
+                };
+            }
+
+            console.log({accountUsernameToTheirDetailsObj});
+
+
+            // Set disiredBalancce and difference
+            // Retrieve the weight of each trader and calculate the correct capital for each account
+            for (const subAccount of userSubAccounts_Array) {
+                const weight = Number(subAccount.weight);
+                const desiredBalance = totalAccountsBalance * weight;
+                const accountBalance = accountUsernameToTheirDetailsObj[subAccount.sub_account_username].balance;
+                // Calculate the difference between current and desired balances
+                const accountDifference = accountBalance - desiredBalance;
+
+                // set
+                accountUsernameToTheirDetailsObj[subAccount.sub_account_username].difference = accountDifference;
+                accountUsernameToTheirDetailsObj[subAccount.sub_account_username].desiredBalance = desiredBalance;
+                // ut
+                // accountUsernameToTheirDetailsObj[subAccount.sub_account_username].uid = Number(subAccount.sub_account_uid);
+     
+            }
+
+            console.log({accountUsernameToTheirDetailsObj});
+ 
+
+            // Make the adjustments :
+            // Check if any account has a difference greater than 5%
+            adjustmentNeeded = false;
+            for (const account of userSubAccounts_Array) {
+                const {balance,difference} = accountUsernameToTheirDetailsObj[account.sub_account_username];
+                const percentageDifference = Math.abs(difference / balance) * 100;
+
+                if (percentageDifference > 5) {
+                    adjustmentNeeded = true;
+                    break;
+                }
+            }
+            console.log({adjustmentNeeded});
+
+
+            // END OF TAKE 2
+
 
 
 
@@ -350,7 +433,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
         }
 
         return await allocateCapitalToSubAccounts({
-            bybit, mongoDatabase,user,onError
+            bybit, mongoDatabase,user,onError,tg_user_bot
         });
        
     }catch(error){

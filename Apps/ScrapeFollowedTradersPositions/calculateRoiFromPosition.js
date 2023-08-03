@@ -4,7 +4,7 @@
 *      close_price: number,
 *      entry_price: number,
 *      leverage: number,
-*      direction: string,
+*      direction: "LONG"|"SHORT",
 * }} param0
 */
 module.exports.calculateRoiFromPosition = function calculateRoiFromPosition({

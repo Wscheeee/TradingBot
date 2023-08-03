@@ -120,7 +120,7 @@ module.exports.closeAllPositionsInASubAccount = async function closeAllPositions
             console.log({closePositionsRes});
             let someCloseIsSucccessful = false;
             const closedPositionAccumulatedDetails = {
-                closedlPNL:0,
+                closedPNL:0,
                 avgExitPrice: 0,
                 leverage: 0,
                 qty: 0,
@@ -179,9 +179,9 @@ module.exports.closeAllPositionsInASubAccount = async function closeAllPositions
                         symbol,
                         closedPositionOrderId: closePositionRes.result.orderId
                     });
-            
+                    console.log({closedPositionPNLObj});
                     let closedPartialPNL  = parseFloat(closedPositionPNLObj.closedPnl);
-                    closedPositionAccumulatedDetails.closedlPNL+=closedPartialPNL;
+                    closedPositionAccumulatedDetails.closedPNL+=closedPartialPNL;
                     closedPositionAccumulatedDetails.avgExitPrice =  parseFloat(closedPositionPNLObj.avgExitPrice);
                     closedPositionAccumulatedDetails.leverage =  parseFloat(closedPositionPNLObj.leverage);
                     closedPositionAccumulatedDetails.qty +=  parseFloat(closedPositionPNLObj.qty);
@@ -221,7 +221,7 @@ module.exports.closeAllPositionsInASubAccount = async function closeAllPositions
                 await mongoDatabase.collection.tradedPositionsCollection.
                     updateDocument(tradedOpenPositionDocument._id,{
                         close_price: closedPositionAccumulatedDetails.avgExitPrice,
-                        closed_pnl: closedPositionAccumulatedDetails.closedlPNL,
+                        closed_pnl: closedPositionAccumulatedDetails.closedPNL,
                         closed_roi_percentage: bybit.calculateClosedPositionROI({
                             averageEntryPrice: closedPositionAccumulatedDetails.averageEntryPrice,
                             positionCurrentValue:  closedPositionAccumulatedDetails.positionCurrentValue,

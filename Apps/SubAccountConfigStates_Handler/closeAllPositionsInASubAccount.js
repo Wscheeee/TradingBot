@@ -103,7 +103,7 @@ module.exports.closeAllPositionsInASubAccount = async function closeAllPositions
 
             /**
              * Close the order
-             */
+             */ 
     
             const {closePositionsRes} = await bybit.clients.bybit_RestClientV5.closeAPosition({
                 orderParams:{
@@ -111,7 +111,7 @@ module.exports.closeAllPositionsInASubAccount = async function closeAllPositions
                     orderType:"Market",
                     qty:String(total_standardized_qty),//String(position.size),// close whole position
                     side: side==="Buy"?"Sell":"Buy",
-                    symbol,
+                    symbol, 
                     positionIdx: side==="Buy"?1:2,
                 },
                 symbolLotStepSize, 
@@ -120,7 +120,7 @@ module.exports.closeAllPositionsInASubAccount = async function closeAllPositions
             console.log({closePositionsRes});
             let someCloseIsSucccessful = false;
             const closedPositionAccumulatedDetails = {
-                closedlPNL:0,
+                closedPNL:0,
                 avgExitPrice: 0,
                 leverage: 0,
                 qty: 0,
@@ -181,7 +181,7 @@ module.exports.closeAllPositionsInASubAccount = async function closeAllPositions
                     });
             
                     let closedPartialPNL  = parseFloat(closedPositionPNLObj.closedPnl);
-                    closedPositionAccumulatedDetails.closedlPNL+=closedPartialPNL;
+                    closedPositionAccumulatedDetails.closedPNL+=closedPartialPNL;
                     closedPositionAccumulatedDetails.avgExitPrice =  parseFloat(closedPositionPNLObj.avgExitPrice);
                     closedPositionAccumulatedDetails.leverage =  parseFloat(closedPositionPNLObj.leverage);
                     closedPositionAccumulatedDetails.qty +=  parseFloat(closedPositionPNLObj.qty);
@@ -221,7 +221,7 @@ module.exports.closeAllPositionsInASubAccount = async function closeAllPositions
                 await mongoDatabase.collection.tradedPositionsCollection.
                     updateDocument(tradedOpenPositionDocument._id,{
                         close_price: closedPositionAccumulatedDetails.avgExitPrice,
-                        closed_pnl: closedPositionAccumulatedDetails.closedlPNL,
+                        closed_pnl: closedPositionAccumulatedDetails.closedPNL,
                         closed_roi_percentage: bybit.calculateClosedPositionROI({
                             averageEntryPrice: closedPositionAccumulatedDetails.averageEntryPrice,
                             positionCurrentValue:  closedPositionAccumulatedDetails.positionCurrentValue,
@@ -252,7 +252,8 @@ module.exports.closeAllPositionsInASubAccount = async function closeAllPositions
                     entry_price:closedPositionAccumulatedDetails.avgEntryPrice,
                     leverage: leverage
                 }),
-                position_pnl: closedPositionAccumulatedDetails.closedPNL
+                position_pnl: closedPositionAccumulatedDetails.closedPNL,
+                // reason:"Trader Updated in Sub Config"
             });
 
         }

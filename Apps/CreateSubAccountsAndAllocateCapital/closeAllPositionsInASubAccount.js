@@ -238,7 +238,7 @@ module.exports.closeAllPositionsInASubAccount = async function closeAllPositions
             }
 
             // Send message to user
-            await sendTradeFullCloseEecutedMessage_toUser({
+            await sendTradeFullCloseEecutedMessage_toUser({ 
                 bot:tg_bot, 
                 position_direction: position_direction,
                 position_exit_price: closedPositionAccumulatedDetails.avgExitPrice,
@@ -249,7 +249,7 @@ module.exports.closeAllPositionsInASubAccount = async function closeAllPositions
                 position_roi: calculateRoiFromPosition({
                     close_price: closedPositionAccumulatedDetails.avgExitPrice,
                     direction: position_direction,
-                    entry_price:closedPositionAccumulatedDetails.avgEntryPrice,
+                    entry_price:closedPositionAccumulatedDetails.averageEntryPrice,
                     leverage: leverage
                 }),
                 position_pnl: closedPositionAccumulatedDetails.closedPNL

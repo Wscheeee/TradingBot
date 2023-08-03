@@ -249,7 +249,7 @@ module.exports.closeAllPositionsInASubAccount = async function closeAllPositions
                 position_roi: calculateRoiFromPosition({
                     close_price: closedPositionAccumulatedDetails.avgExitPrice,
                     direction: position_direction,
-                    entry_price:closedPositionAccumulatedDetails.avgEntryPrice,
+                    entry_price:closedPositionAccumulatedDetails.averageEntryPrice,
                     leverage: leverage
                 }),
                 position_pnl: closedPositionAccumulatedDetails.closedPNL,

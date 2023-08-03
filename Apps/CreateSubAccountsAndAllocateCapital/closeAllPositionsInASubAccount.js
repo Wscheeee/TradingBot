@@ -1,5 +1,5 @@
-"use-strict";
 //@ts-check
+"use-strict";
 const { sendTradeFullCloseEecutedMessage_toUser, sendTradeExecutionFailedMessage_toUser } = require("../../Telegram/message_templates/trade_execution");
 
 const { calculateRoiFromPosition } = require("../ScrapeFollowedTradersPositions/calculateRoiFromPosition");
@@ -41,7 +41,7 @@ module.exports.closeAllPositionsInASubAccount = async function closeAllPositions
              */
             const sizesToExecute = await bybit.standardizeQuantity({
                 quantity:size,
-                symbol,
+                symbol, 
             });
             const sizeToExecute = sizesToExecute[0];
             console.log({sizesToExecute,sizeToExecute});
@@ -240,10 +240,10 @@ module.exports.closeAllPositionsInASubAccount = async function closeAllPositions
             // Send message to user
             await sendTradeFullCloseEecutedMessage_toUser({
                 bot:tg_bot, 
-                position_direction:tradedOpenPositionDocument.direction,
+                position_direction: position_direction,
                 position_exit_price: closedPositionAccumulatedDetails.avgExitPrice,
-                position_leverage:tradedOpenPositionDocument.leverage,
-                position_pair: tradedOpenPositionDocument.pair,
+                position_leverage: leverage,
+                position_pair: symbol,
                 chatId: user.tg_user_id,
                 trader_username:  trader.username,
                 position_roi: calculateRoiFromPosition({

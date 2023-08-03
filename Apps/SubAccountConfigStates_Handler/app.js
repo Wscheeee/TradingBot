@@ -21,8 +21,10 @@ const {Telegram} = require("../../Telegram");
 const APP_NAME = "App:SubAccountConfigStates_Handler";
 const logger = new Logger({app_name:APP_NAME});
 const {IS_LIVE} = require("../../appConfig");
-const { closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig } = require("./closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig");
+// const { closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig } = require("./closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig");
 const { updateSubAccountDocumentsToUpdatedSubAccountConfigData } = require("./updateSubAccountDocumentsToUpdatedSubAccountConfigData");
+const { closeAllPositionsInASubAccount } = require("./closeAllPositionsInASubAccount");
+const { Bybit } = require("../../Trader");
 const dotEnvObj = readAndConfigureDotEnv(IS_LIVE);
 process.env.TZ = dotEnvObj.TZ;
 
@@ -52,6 +54,7 @@ process.env.TZ = dotEnvObj.TZ;
 
 
         logger.info("Create Bybit Client");
+        const tg_user_bot = errorbot;
       
         console.log(dotEnvObj);
         mongoDatabase = new MongoDatabase(dotEnvObj.DATABASE_URI);
@@ -59,6 +62,9 @@ process.env.TZ = dotEnvObj.TZ;
         logger.info("Create DB");
         await mongoDatabase.connect(dotEnvObj.DATABASE_NAME);
         logger.info("Connect DB");
+
+
+
 
         //////////////////////////////////
         // SUB ACCOUNTS CONFIG COLLECTION
@@ -74,11 +80,56 @@ process.env.TZ = dotEnvObj.TZ;
                 if(configDocumentBeforeUpdate.trader_uid!==configDocumentAfterUpdate.trader_uid){
                     // NOTE: That the previousDocument b4 update might have empty trader details and weight.
                     if(configDocumentBeforeUpdate.trader_uid){
-                        await closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig({
-                            mongoDatabase,
-                            trader_uid:configDocumentBeforeUpdate.trader_uid,
-                            config_type:"atomos"
+                        // await closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig({
+                        //     mongoDatabase,
+                        //     trader_uid:configDocumentBeforeUpdate.trader_uid,
+                        //     config_type:"atomos"
+                        // });
+
+                        // Get all users
+                        const users_Cursor = await mongoDatabase.collection.usersCollection.getAllDocumentsBy({
+                            status: true
                         });
+                        while(await users_Cursor.hasNext()){
+                            try{
+                                const user = await users_Cursor.next();
+                                if(user){
+                                    const trader = await mongoDatabase.collection.topTradersCollection.findOne({uid:configDocumentBeforeUpdate.trader_uid});
+                                    if(trader){
+                                        const subDocument = await mongoDatabase.collection.subAccountsCollection.findOne({
+                                            // trader_uid: trader.uid,
+                                            sub_link_name: configDocumentBeforeUpdate.sub_link_name,
+                                            tg_user_id: user.tg_user_id,
+                                            testnet: user.testnet
+                                        });
+                                        if(subDocument){
+                                            const bybit = new Bybit({
+                                                millisecondsToDelayBetweenRequests: 7000,
+                                                privateKey: subDocument.private_api,
+                                                publicKey: subDocument.public_api,
+                                                testnet: subDocument.testnet===false?false:true
+                                            });
+                                    
+                                            await closeAllPositionsInASubAccount({
+                                                bybit,
+                                                mongoDatabase,
+                                                onError:(error)=>{
+                                                    logger.error(error.message);
+                                                },
+                                                tg_bot:tg_user_bot,
+                                                trader,
+                                                user
+                                            });
+    
+                                        }
+    
+                                    }
+                                }
+
+                            }catch(error){
+                                logger.error(error.message);
+                            }
+                        }
 
                     }
                     
@@ -103,11 +154,55 @@ process.env.TZ = dotEnvObj.TZ;
                 logger.info(`subAcccountConfig.onDeleteDocumentCallbacks deletedConfigDocument:${JSON.stringify(deletedConfigDocument)}`);
                 if(!mongoDatabase)return;
                 if(deletedConfigDocument.trader_uid){
-                    await closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig({
-                        mongoDatabase,
-                        trader_uid:deletedConfigDocument.trader_uid,
-                        config_type:"atomos"
+                    // await closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig({
+                    //     mongoDatabase,
+                    //     trader_uid:deletedConfigDocument.trader_uid,
+                    //     config_type:"atomos"
+                    // });
+                    // Get all users
+                    const users_Cursor = await mongoDatabase.collection.usersCollection.getAllDocumentsBy({
+                        status: true
                     });
+                    while(await users_Cursor.hasNext()){
+                        try{
+                            const user = await users_Cursor.next();
+                            if(user){
+                                const trader = await mongoDatabase.collection.topTradersCollection.findOne({uid:deletedConfigDocument.trader_uid});
+                                if(trader){
+                                    const subDocument = await mongoDatabase.collection.subAccountsCollection.findOne({
+                                        // trader_uid: trader.uid,
+                                        sub_link_name: deletedConfigDocument.sub_link_name,
+                                        tg_user_id: user.tg_user_id,
+                                        testnet: user.testnet
+                                    });
+                                    if(subDocument){
+                                        const bybit = new Bybit({
+                                            millisecondsToDelayBetweenRequests: 7000,
+                                            privateKey: subDocument.private_api,
+                                            publicKey: subDocument.public_api,
+                                            testnet: subDocument.testnet===false?false:true
+                                        });
+                                
+                                        await closeAllPositionsInASubAccount({
+                                            bybit,
+                                            mongoDatabase,
+                                            onError:(error)=>{
+                                                logger.error(error.message);
+                                            },
+                                            tg_bot:tg_user_bot,
+                                            trader,
+                                            user
+                                        });
+
+                                    }
+
+                                }
+                            }
+
+                        }catch(error){
+                            logger.error(error.message);
+                        }
+                    }
 
                 }
 
@@ -181,13 +276,57 @@ process.env.TZ = dotEnvObj.TZ;
                             if(configDocumentBeforeUpdate.trader_uid!==configDocumentAfterUpdate.trader_uid){
                                 // NOTE: That the previousDocument b4 update might have empty trader details and weight.
                                 if(configDocumentBeforeUpdate.trader_uid){
-                                    await closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig({
-                                        mongoDatabase,
-                                        trader_uid:configDocumentBeforeUpdate.trader_uid,
-                                        tg_user_id: userDocumentAfterUpdate.tg_user_id,
-                                        config_type:"user_custom"
-                                    });
+                                    // await closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig({
+                                    //     mongoDatabase,
+                                    //     trader_uid:configDocumentBeforeUpdate.trader_uid,
+                                    //     tg_user_id: userDocumentAfterUpdate.tg_user_id,
+                                    //     config_type:"user_custom"
+                                    // });
             
+                                    // Get all users
+                                    const users_Cursor = await mongoDatabase.collection.usersCollection.getAllDocumentsBy({
+                                        status: true
+                                    });
+                                    while(await users_Cursor.hasNext()){
+                                        try{
+                                            const user = await users_Cursor.next();
+                                            if(user){
+                                                const trader = await mongoDatabase.collection.topTradersCollection.findOne({uid:configDocumentBeforeUpdate.trader_uid});
+                                                if(trader){
+                                                    const subDocument = await mongoDatabase.collection.subAccountsCollection.findOne({
+                                                        // trader_uid: trader.uid,
+                                                        sub_link_name: configDocumentBeforeUpdate.sub_link_name,
+                                                        tg_user_id: user.tg_user_id,
+                                                        testnet: user.testnet
+                                                    });
+                                                    if(subDocument){
+                                                        const bybit = new Bybit({
+                                                            millisecondsToDelayBetweenRequests: 7000,
+                                                            privateKey: subDocument.private_api,
+                                                            publicKey: subDocument.public_api,
+                                                            testnet: subDocument.testnet===false?false:true
+                                                        });
+                                    
+                                                        await closeAllPositionsInASubAccount({
+                                                            bybit,
+                                                            mongoDatabase,
+                                                            onError:(error)=>{
+                                                                logger.error(error.message);
+                                                            },
+                                                            tg_bot:tg_user_bot,
+                                                            trader,
+                                                            user
+                                                        });
+    
+                                                    }
+    
+                                                }
+                                            }
+
+                                        }catch(error){
+                                            logger.error(error.message);
+                                        }
+                                    }
                                 }
                                  
                                 

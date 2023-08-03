@@ -3,14 +3,16 @@
  * Marks posittions as closed in the database
  */
 
+
 /**
  * @param {{
  *      trader_uid: string,
  *      mongoDatabase: import("../../MongoDatabase").MongoDatabase,
  *      tg_user_id?:number,
- *      config_type:"atomos"|"user_custom"
+ *      config_type:"atomos"|"user_custom",
  * }} param0
- */
+*/
+// *      onError: (error:Error)=>any,
 module.exports.closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig = async function closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig({
     mongoDatabase,trader_uid,tg_user_id,config_type
 }){
@@ -22,10 +24,20 @@ module.exports.closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig = 
          */
         const trader = await mongoDatabase.collection.topTradersCollection.findOne({uid:trader_uid});
         if(!trader) throw new Error(`trader (trader_uid: ${trader_uid}) not found in DB`);
+
+
+      
+        /**
+         * @type {{
+         *      pair: string,
+         *      direction: "LONG"|"SHORT",
+         *      leverage: number
+         * }[]} 
+         */
+        const closedPositionsByExecutor = [];
         /**
          * Get the traders open positions documents
          */
-        
         const traderOpenPositionsDocument_Cursor = await mongoDatabase.collection.openTradesCollection.getAllDocumentsBy({
             trader_uid,
             status:"OPEN"
@@ -95,10 +107,19 @@ module.exports.closePositionsForTraderWhenTraderIsRemovedFromSubAccountConfig = 
                 trader_today_estimated_balance: trader.today_estimated_balance||0,
                 trader_username: trader.username
             });
+
+            closedPositionsByExecutor.push({
+                direction: positionToClose_.direction,
+                leverage: positionToClose_.leverage,
+                pair: positionToClose_.pair
+            });
             console.log("Sent event to close position for trader: "+trader.username + " symbol: "+positionToClose_.pair);
             // delete from openPositions collections
             // await mongoDatabase.collection.openTradesCollection.deleteManyDocumentsByIds([positionToClose_._id]);
         }
+
+
+
 
       
 

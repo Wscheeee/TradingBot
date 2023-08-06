@@ -386,7 +386,7 @@ process.env.TZ = dotEnvObj.TZ;
                         (userDocumentBeforeUpdate.atomos!==userDocumentAfterUpdate.atomos)
                     ){
                         console.log("Passed change check");
-                        const user = {_id:userDocumentAfterUpdate._id,userDocumentBeforeUpdate};
+                        const user = {_id:userDocumentAfterUpdate._id,...userDocumentBeforeUpdate};
                         // close all opened positions in all user's sub accounts 
                         const userSubAccount_Cursor = await mongoDatabase.collection.subAccountsCollection.getAllDocumentsBy({tg_user_id:userDocumentBeforeUpdate.tg_user_id,testnet:userDocumentBeforeUpdate.testnet});
                         while(await userSubAccount_Cursor.hasNext()){
@@ -406,7 +406,7 @@ process.env.TZ = dotEnvObj.TZ;
                                             testnet: subDocument.testnet===false?false:true
                                         });
                     
-                                        await closeAllPositionsInASubAccount({
+                                        closeAllPositionsInASubAccount({
                                             bybit,
                                             mongoDatabase,
                                             onError:(error)=>{

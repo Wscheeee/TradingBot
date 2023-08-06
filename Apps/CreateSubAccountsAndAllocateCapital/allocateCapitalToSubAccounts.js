@@ -437,6 +437,12 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
         });
        
     }catch(error){
+        if(error.message.includes("user insufficient balance")){
+            console.log("Running again because of user insufficient balance");
+            await allocateCapitalToSubAccounts({
+                bybit, mongoDatabase,user,onError,tg_user_bot
+            });
+        }
         const newErrorMessage = `(user:${user.tg_user_id}) (fn:allocateCapitalToSubAccounts):${error.message}`;
         error.message = newErrorMessage;
         throw error;

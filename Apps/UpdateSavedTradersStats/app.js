@@ -1,5 +1,6 @@
-"use-strict";
 //@ts-check
+"use-strict";
+
 /**
  * Scrape traders once per day and save/update in db;
  * NOTE: Runs once at 4:am
@@ -30,9 +31,9 @@ console.log(IS_LIVE);
     /** 
      * @type {number}
      */
-    // let lastScrapedDayNumber = -1;
-    let lastScrapedHourNumber = -1;
-    const errorbot = new Telegram({telegram_bot_token:dotEnvObj.TELEGRAM_BOT_TOKEN,requestDelay:2000});
+    let lastScrapedDayNumber = -1;
+    // let lastScrapedHourNumber = -1;
+    const errorbot = new Telegram({telegram_bot_token:dotEnvObj.TELEGRAM_BOT_TOKEN });
     logger.info("Create Telegram Error bot");
     logger.addLogCallback("error",async (cbIndex,message)=>{
         await errorbot.sendMessage(dotEnvObj.TELEGRAM_ERROR_CHHANNEL_ID,message);
@@ -43,19 +44,20 @@ console.log(IS_LIVE);
         // Run once at 2:05:am
         const dateTimeNow = new DateTime().now();
         const CURRENT_HOUR = dateTimeNow.hours;
-        // const TODAY_DAY_NUMBER = dateTimeNow.day_index;
+        const TODAY_DAY_NUMBER = dateTimeNow.day_index;
         const CURRENT_MINUTE = dateTimeNow.minutes;
-        while(lastScrapedHourNumber != CURRENT_HOUR && ( CURRENT_MINUTE==0 || CURRENT_MINUTE==30) ){// Scrape when day changes
-        // while(lastScrapedDayNumber!==TODAY_DAY_NUMBER && CURRENT_HOUR===2 && CURRENT_MINUTE>30){// Scrape when day changes
+        // while(lastScrapedHourNumber != CURRENT_HOUR && ( CURRENT_MINUTE==0 || CURRENT_MINUTE==30) ){// Scrape when day changes
+        // while(true){// Scrape immediitately
+        while(lastScrapedDayNumber!==TODAY_DAY_NUMBER && CURRENT_HOUR===2 && CURRENT_MINUTE>30){// Scrape when day changes
             logger.error("RUNNING "+APP_NAME);
             let mongoDatabase = null;
             let browser = null; 
-            try{
+            try{ 
                 /**
                  * 0. Create db and Create a browser 
                  */
-                mongoDatabase = new MongoDatabase(process.env.DATABASE_URI);
-                await mongoDatabase.connect(process.env.DATABASE_NAME);
+                mongoDatabase = new MongoDatabase(dotEnvObj.DATABASE_URI);
+                await mongoDatabase.connect(dotEnvObj.DATABASE_NAME);
                 browser = await createPuppeteerBrowser({
                     IS_LIVE,
                     browserRevisionToDownload:"901912",
@@ -88,7 +90,7 @@ console.log(IS_LIVE);
                 while(await folllowedSavedTraderCursor.hasNext()){
                     await sleepAsync(5000);// Delay betwween each traderr
                     const savedTrader = await folllowedSavedTraderCursor.next();
-
+                    if(!savedTrader)continue;
 
                     // Get the trader's performance and update on DB
                     const traderPerformance = await binance.getOtherPerformance(page,{encryptedUid:savedTrader.uid,tradeType:"PERPETUAL"});
@@ -113,7 +115,7 @@ console.log(IS_LIVE);
                                         periodType:"ALL",
                                         statisticsType:"PNL"
                                     },
-                                    savedTrader.allPNL
+                                    savedTrader.all_pnl
                                 ),
                         all_roi: 
                             binance.
@@ -125,7 +127,7 @@ console.log(IS_LIVE);
                                         periodType:"ALL",
                                         statisticsType:"ROI"
                                     },
-                                    savedTrader.allROI
+                                    savedTrader.all_roi
                                 ),
                         daily_pnl: 
                             binance.
@@ -137,7 +139,7 @@ console.log(IS_LIVE);
                                         periodType:"DAILY",
                                         statisticsType:"PNL"
                                     },
-                                    savedTrader.dailyPNL
+                                    savedTrader.daily_pnl
                                 ),
                         daily_roi: 
                             binance.
@@ -149,7 +151,7 @@ console.log(IS_LIVE);
                                         periodType:"DAILY",
                                         statisticsType:"ROI"
                                     },
-                                    savedTrader.dailyROI
+                                    savedTrader.daily_roi
                                 ),
                         weekly_pnl:
                             binance.
@@ -161,7 +163,7 @@ console.log(IS_LIVE);
                                         periodType:"WEEKLY",
                                         statisticsType:"PNL"
                                     },
-                                    savedTrader.weeklyPNL
+                                    savedTrader.weekly_pnl
                                 ),
                         weekly_roi:
                             binance.
@@ -173,7 +175,7 @@ console.log(IS_LIVE);
                                         periodType:"WEEKLY",
                                         statisticsType:"ROI"
                                     },
-                                    savedTrader.weeklyROI
+                                    savedTrader.weekly_roi
                                 ),
                         monthly_pnl:
                             binance.
@@ -185,7 +187,7 @@ console.log(IS_LIVE);
                                         periodType:"MONTHLY",
                                         statisticsType:"PNL"
                                     },
-                                    savedTrader.monthlyPNL
+                                    savedTrader.monthly_pnl
                                 ),
                         monthly_roi:
                             binance.
@@ -197,7 +199,7 @@ console.log(IS_LIVE);
                                         periodType:"MONTHLY",
                                         statisticsType:"ROI"
                                     },
-                                    savedTrader.monthlyROI
+                                    savedTrader.monthly_roi
                                 ),
                         yearly_pnl:
                             binance.
@@ -209,7 +211,7 @@ console.log(IS_LIVE);
                                         periodType:"YEARLY",
                                         statisticsType:"PNL"
                                     },
-                                    savedTrader.yearlyPNL
+                                    savedTrader.yearly_pnl
                                 ),
                         yearly_roi:
                             binance.
@@ -221,7 +223,7 @@ console.log(IS_LIVE);
                                         periodType:"YEARLY",
                                         statisticsType:"ROI"
                                     },
-                                    savedTrader.yearlyROI
+                                    savedTrader.yearly_roi
                                 ),
                         // exacts
                         exact_weekly_pnl:
@@ -234,7 +236,7 @@ console.log(IS_LIVE);
                                         periodType:"EXACT_WEEKLY",
                                         statisticsType:"PNL"
                                     },
-                                    savedTrader.exactWeeklyPNL
+                                    savedTrader.exact_weekly_pnl
                                 ),
                         exact_weekly_roi:
                             binance.
@@ -246,7 +248,7 @@ console.log(IS_LIVE);
                                         periodType:"EXACT_WEEKLY",
                                         statisticsType:"ROI"
                                     },
-                                    savedTrader.exactWeeklyROI
+                                    savedTrader.exact_weekly_roi
                                 ),
                         exact_monthly_pnl:
                             binance.
@@ -258,7 +260,7 @@ console.log(IS_LIVE);
                                         periodType:"EXACT_MONTHLY",
                                         statisticsType:"PNL"
                                     },
-                                    savedTrader.exactMonthlyPNL
+                                    savedTrader.exact_monthly_pnl
                                 ),
                         exact_monthly_roi:
                             binance.
@@ -270,7 +272,7 @@ console.log(IS_LIVE);
                                         periodType:"EXACT_MONTHLY",
                                         statisticsType:"ROI"
                                     },
-                                    savedTrader.exactMonthlyROI
+                                    savedTrader.exact_monthly_roi
                                 ),
                         exact_yearly_pnl:
                             binance.
@@ -282,7 +284,7 @@ console.log(IS_LIVE);
                                         periodType:"EXACT_YEARLY",
                                         statisticsType:"PNL"
                                     },
-                                    savedTrader.exactYearlyPNL
+                                    savedTrader.exact_yearly_pnl
                                 ),
                         exact_yearly_roi:
                             binance.
@@ -294,7 +296,7 @@ console.log(IS_LIVE);
                                         periodType:"EXACT_YEARLY",
                                         statisticsType:"ROI"
                                     },
-                                    savedTrader.exactYearlyROI
+                                    savedTrader.exact_yearly_roi
                                 ),
                     });
 
@@ -310,7 +312,7 @@ console.log(IS_LIVE);
                         await saveTraderEstimatedTotalTodayBalance({
                             mongoDatabase,
                             traderDocument: savedTrader,
-                            estimated_total_balance: savedTrader.today_estimated_balance
+                            estimated_total_balance: savedTrader.today_estimated_balance||0
                         });
 
                     } else {
@@ -325,9 +327,12 @@ console.log(IS_LIVE);
 
 
                 // Update all other traders
-                const savedTraderCursor = await mongoDatabase.collection.topTradersCollection.getAllDocuments();
+                const savedTraderCursor = await mongoDatabase.collection.topTradersCollection.getAllDocumentsBy({
+                    followed:false
+                });
                 while(await savedTraderCursor.hasNext()){
                     const savedTrader = await savedTraderCursor.next();
+                    if(!savedTrader)continue;
 
                     // Get the trader's performance and update on DB
                     const traderPerformance = await binance.getOtherPerformance(page,{encryptedUid:savedTrader.uid,tradeType:"PERPETUAL"});
@@ -352,7 +357,7 @@ console.log(IS_LIVE);
                                         periodType:"ALL",
                                         statisticsType:"PNL"
                                     },
-                                    savedTrader.allPNL
+                                    savedTrader.all_pnl
                                 ),
                         all_roi: 
                             binance.
@@ -364,7 +369,7 @@ console.log(IS_LIVE);
                                         periodType:"ALL",
                                         statisticsType:"ROI"
                                     },
-                                    savedTrader.allROI
+                                    savedTrader.all_roi
                                 ),
                         daily_pnl: 
                             binance.
@@ -376,7 +381,7 @@ console.log(IS_LIVE);
                                         periodType:"DAILY",
                                         statisticsType:"PNL"
                                     },
-                                    savedTrader.dailyPNL
+                                    savedTrader.daily_pnl
                                 ),
                         daily_roi: 
                             binance.
@@ -388,7 +393,7 @@ console.log(IS_LIVE);
                                         periodType:"DAILY",
                                         statisticsType:"ROI"
                                     },
-                                    savedTrader.dailyROI
+                                    savedTrader.daily_roi
                                 ),
                         weekly_pnl:
                             binance.
@@ -400,7 +405,7 @@ console.log(IS_LIVE);
                                         periodType:"WEEKLY",
                                         statisticsType:"PNL"
                                     },
-                                    savedTrader.weeklyPNL
+                                    savedTrader.weekly_pnl
                                 ),
                         weekly_roi:
                             binance.
@@ -412,7 +417,7 @@ console.log(IS_LIVE);
                                         periodType:"WEEKLY",
                                         statisticsType:"ROI"
                                     },
-                                    savedTrader.weeklyROI
+                                    savedTrader.weekly_roi
                                 ),
                         monthly_pnl:
                             binance.
@@ -424,7 +429,7 @@ console.log(IS_LIVE);
                                         periodType:"MONTHLY",
                                         statisticsType:"PNL"
                                     },
-                                    savedTrader.monthlyPNL
+                                    savedTrader.monthly_pnl
                                 ),
                         monthly_roi:
                             binance.
@@ -436,7 +441,7 @@ console.log(IS_LIVE);
                                         periodType:"MONTHLY",
                                         statisticsType:"ROI"
                                     },
-                                    savedTrader.monthlyROI
+                                    savedTrader.monthly_roi
                                 ),
                         yearly_pnl:
                             binance.
@@ -448,7 +453,7 @@ console.log(IS_LIVE);
                                         periodType:"YEARLY",
                                         statisticsType:"PNL"
                                     },
-                                    savedTrader.yearlyPNL
+                                    savedTrader.yearly_pnl
                                 ),
                         yearly_roi:
                             binance.
@@ -460,7 +465,7 @@ console.log(IS_LIVE);
                                         periodType:"YEARLY",
                                         statisticsType:"ROI"
                                     },
-                                    savedTrader.yearlyROI
+                                    savedTrader.yearly_roi
                                 ),
                         // exacts
                         exact_weekly_pnl:
@@ -473,7 +478,7 @@ console.log(IS_LIVE);
                                         periodType:"EXACT_WEEKLY",
                                         statisticsType:"PNL"
                                     },
-                                    savedTrader.exactWeeklyPNL
+                                    savedTrader.exact_weekly_pnl
                                 ),
                         exact_weekly_roi:
                             binance.
@@ -485,7 +490,7 @@ console.log(IS_LIVE);
                                         periodType:"EXACT_WEEKLY",
                                         statisticsType:"ROI"
                                     },
-                                    savedTrader.exactWeeklyROI
+                                    savedTrader.exact_weekly_roi
                                 ),
                         exact_monthly_pnl:
                             binance.
@@ -497,7 +502,7 @@ console.log(IS_LIVE);
                                         periodType:"EXACT_MONTHLY",
                                         statisticsType:"PNL"
                                     },
-                                    savedTrader.exactMonthlyPNL
+                                    savedTrader.exact_monthly_pnl
                                 ),
                         exact_monthly_roi:
                             binance.
@@ -509,7 +514,7 @@ console.log(IS_LIVE);
                                         periodType:"EXACT_MONTHLY",
                                         statisticsType:"ROI"
                                     },
-                                    savedTrader.exactMonthlyROI
+                                    savedTrader.exact_monthly_roi
                                 ),
                         exact_yearly_pnl:
                             binance.
@@ -521,7 +526,7 @@ console.log(IS_LIVE);
                                         periodType:"EXACT_YEARLY",
                                         statisticsType:"PNL"
                                     },
-                                    savedTrader.exactYearlyPNL
+                                    savedTrader.exact_yearly_pnl
                                 ),
                         exact_yearly_roi:
                             binance.
@@ -533,7 +538,7 @@ console.log(IS_LIVE);
                                         periodType:"EXACT_YEARLY",
                                         statisticsType:"ROI"
                                     },
-                                    savedTrader.exactYearlyROI
+                                    savedTrader.exact_yearly_roi
                                 ),
                     });
 
@@ -552,7 +557,8 @@ console.log(IS_LIVE);
 
                 await browser.close();
                 await mongoDatabase.disconnect();
-                lastScrapedHourNumber = CURRENT_HOUR;
+                // lastScrapedHourNumber = CURRENT_HOUR;
+                lastScrapedDayNumber=TODAY_DAY_NUMBER;
                 
                 await sleepAsync(1000);
             }catch(error){

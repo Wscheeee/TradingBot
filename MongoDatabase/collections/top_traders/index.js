@@ -160,7 +160,7 @@ module.exports.TopTradersCollection =  class TopTradersCollection{
     }
 
     /**
-     * @param {import("./types").TopTraderCollection_Document_Interface} by
+     * @param {import("mongodb").Filter<import("./types").TopTraderCollection_Document_Interface>} by
      * @param {boolean} sort 
      * @returns 
      */

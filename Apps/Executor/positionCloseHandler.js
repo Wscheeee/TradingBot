@@ -353,13 +353,9 @@ async function handler({
                         close_price: closedPositionAccumulatedDetails.avgExitPrice,
                         direction: position.direction,
                         entry_price:closedPositionAccumulatedDetails.avgEntryPrice,
-                        leverage: position.leverage
+                        leverage: position.leverage,
+                        size: closedPositionAccumulatedDetails.qty
                     }),
-                    // closed_roi_percentage: bybit.calculateClosedPositionROI({
-                    //     averageEntryPrice: closedPositionAccumulatedDetails.averageEntryPrice,
-                    //     positionCurrentValue:  closedPositionAccumulatedDetails.positionCurrentValue,
-                    //     positionSize: closedPositionAccumulatedDetails.qty
-                    // }),
                     leverage: closedPositionAccumulatedDetails.leverage,
                     position_id_in_oldTradesCollection: position._id,
                     size: closedPositionAccumulatedDetails.qty,
@@ -382,13 +378,9 @@ async function handler({
                     close_price: closedPositionAccumulatedDetails.avgExitPrice,
                     direction: position.direction,
                     entry_price:closedPositionAccumulatedDetails.avgEntryPrice,
-                    leverage: position.leverage
+                    leverage: position.leverage,
+                    size: closedPositionAccumulatedDetails.qty
                 }),
-                // position_roi: bybit.calculateClosedPositionROI({
-                //     averageEntryPrice: closedPositionAccumulatedDetails.averageEntryPrice,
-                //     positionCurrentValue:  closedPositionAccumulatedDetails.positionCurrentValue,
-                //     positionSize: closedPositionAccumulatedDetails.qty
-                // }),
                 position_pnl: closedPositionAccumulatedDetails.closedPNL
             });
         }

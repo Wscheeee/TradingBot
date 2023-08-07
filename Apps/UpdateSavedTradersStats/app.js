@@ -46,7 +46,6 @@ console.log(IS_LIVE);
         const CURRENT_HOUR = dateTimeNow.hours;
         const TODAY_DAY_NUMBER = dateTimeNow.day_index;
         const CURRENT_MINUTE = dateTimeNow.minutes;
-        // while(lastScrapedHourNumber != CURRENT_HOUR && ( CURRENT_MINUTE==0 || CURRENT_MINUTE==30) ){// Scrape when day changes
         // while(true){// Scrape immediitately
         while(lastScrapedDayNumber!==TODAY_DAY_NUMBER && CURRENT_HOUR===2 && CURRENT_MINUTE>30){// Scrape when day changes
             logger.error("RUNNING "+APP_NAME);
@@ -300,18 +299,23 @@ console.log(IS_LIVE);
                                 ),
                     });
 
+                    const updatedTraderDoc = await mongoDatabase.collection.topTradersCollection.findOne({_id:savedTrader._id});
 
+                    if(!updatedTraderDoc){
+                        logger.error("updatedTraderDoc not found for trader: "+savedTrader.username);
+                        continue;
+                    }
 
                     // Perform the estimate trader's balance calculation
                     const estimateBalance = await mongoDatabase.collection.topTradersCollection.utils.estimateTotalTraderBalance({
                         mongoDatabase,
-                        traderDocument: savedTrader
+                        traderDocument: updatedTraderDoc
                     });
                     if (estimateBalance===0){
 
                         await saveTraderEstimatedTotalTodayBalance({
                             mongoDatabase,
-                            traderDocument: savedTrader,
+                            traderDocument: updatedTraderDoc,
                             estimated_total_balance: savedTrader.today_estimated_balance||0
                         });
 
@@ -319,7 +323,7 @@ console.log(IS_LIVE);
 
                         await saveTraderEstimatedTotalTodayBalance({
                             mongoDatabase,
-                            traderDocument: savedTrader,
+                            traderDocument: updatedTraderDoc,
                             estimated_total_balance: estimateBalance
                         });
                     }
@@ -540,16 +544,22 @@ console.log(IS_LIVE);
                                     },
                                     savedTrader.exact_yearly_roi
                                 ),
-                    });
+                    }); 
 
+                    const updatedTraderDoc = await mongoDatabase.collection.topTradersCollection.findOne({_id:savedTrader._id});
+
+                    if(!updatedTraderDoc){
+                        logger.error("updatedTraderDoc not found for trader: "+savedTrader.username);
+                        continue;
+                    }
                     // Perform the estimate trader's balance calculation
                     const estimateBalance = await mongoDatabase.collection.topTradersCollection.utils.estimateTotalTraderBalance({
                         mongoDatabase,
-                        traderDocument: savedTrader
+                        traderDocument: updatedTraderDoc
                     });
                     await saveTraderEstimatedTotalTodayBalance({
                         mongoDatabase,
-                        traderDocument: savedTrader,
+                        traderDocument: updatedTraderDoc,
                         estimated_total_balance: estimateBalance
                     });
 

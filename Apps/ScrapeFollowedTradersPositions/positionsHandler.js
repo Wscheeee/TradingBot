@@ -9,8 +9,7 @@
 const {DecimalMath} = require("../../Math/DecimalMath");
 const { sleepAsync} = require("../../Utils/sleepAsync");
 
-const {calculateRoiFromPosition} = require("./calculateRoiFromPosition");
-const {calculatePnlFromPosition} = require("./calculatePnlFromPosition");
+const {calculateFromPosition} = require("./calculateFromPosition");
 
 /**
  *  
@@ -57,13 +56,18 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                                 currentPositionsTotalParts = savedPosition_.total_parts+1;
                                 // means that a partial position was closed
                                 const partialPositionsSize = new DecimalMath(Math.abs(savedPosition_.size)).subtract(Math.abs(position_.amount)).getResult();
-                                const roi = calculateRoiFromPosition({
+                                
+                                const positionData = calculateFromPosition({
                                     close_price: savedPosition_.mark_price,
                                     entry_price: savedPosition_.entry_price,
+                                    direction: savedPosition_.direction,
                                     leverage: savedPosition_.leverage,
-                                    direction: savedPosition_.direction
-
+                                    size: savedPosition_.size,
                                 });
+
+                                const roi = positionData.roi;
+                                const pnl = positionData.pnl;
+
                                 await mongoDatabase.collection.oldTradesCollection.createNewDocument({
                                     original_position_id: savedPosition_._id,
                                     close_datetime: new Date(),
@@ -78,12 +82,7 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                                     original_size: savedPosition_.original_size,
                                     pair:savedPosition_.pair,
                                     part: savedPosition_.total_parts,
-                                    pnl: calculatePnlFromPosition({
-                                        roi: roi,
-                                        entry_price: savedPosition_.entry_price,
-                                        size: partialPositionsSize,
-                                        leverage: savedPosition_.leverage
-                                    }),
+                                    pnl: pnl,
                                     roi: roi,
                                     size: partialPositionsSize,
                                     previous_size_before_partial_close: savedPosition_.size,
@@ -226,12 +225,17 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                 // loop through the closed positions and close them and delete them from openPositions collection
                 for(const positionToClose_ of positionsToClose){
                     const datetimeNow = new Date();
-                    const roi = calculateRoiFromPosition({
+                    const positionData = calculateFromPosition({
                         close_price: positionToClose_.mark_price,
                         entry_price: positionToClose_.entry_price,
+                        direction: positionToClose_.direction,
                         leverage: positionToClose_.leverage,
-                        direction: positionToClose_.direction
+                        size: positionToClose_.size,
                     });
+
+                    const roi = positionData.roi;
+                    const pnl = positionData.pnl;
+
                     await mongoDatabase.collection.oldTradesCollection.createNewDocument({
                         original_position_id: positionToClose_._id,
                         close_datetime: new Date(),
@@ -246,12 +250,7 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                         original_size: positionToClose_.original_size,
                         pair:positionToClose_.pair,
                         part: positionToClose_.part,
-                        pnl: calculatePnlFromPosition({
-                            roi: roi,
-                            entry_price: positionToClose_.entry_price,
-                            size: positionToClose_.size,
-                            leverage: positionToClose_.leverage
-                        }),
+                        pnl: pnl,
                         roi: roi,
                         size: positionToClose_.size,
                         previous_size_before_partial_close: positionToClose_.previous_size_before_partial_close,

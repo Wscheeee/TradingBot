@@ -102,16 +102,6 @@ async function handler({
 }){
     try {
         if(!user.privateKey.trim() ||!user.publicKey.trim()){
-            // sendTradeExecutionFailedMessage_toUser({
-            //     bot,
-            //     chatId: user.chatId,
-            //     position_direction: position.direction,
-            //     position_entry_price: position.entry_price,
-            //     position_leverage: position.leverage,
-            //     position_pair: position.pair,
-            //     trader_username: trader.username,
-            //     reason: "Trade Execution Error: NO API KEYS PRESENT IN USER DOCUMENT"
-            // });
             throw new Error("NO API KEYS PRESENT IN USER DOCUMENT");
         }
         /////////////////////////////////////////////
@@ -126,16 +116,6 @@ async function handler({
             testnet: user.testnet 
         });
         if(!subAccountDocument) {
-            // await sendTradeExecutionFailedMessage_toUser({
-            //     bot,
-            //     chatId: user.chatId,
-            //     position_direction: position.direction,
-            //     position_entry_price: position.entry_price,
-            //     position_leverage: position.leverage,
-            //     position_pair: position.pair,
-            //     trader_username:  trader.username,
-            //     reason: "Position Full Close Execution Error: No SubAccount found for trader"
-            // });
             // onErrorCb(new Error(`Position Full Close Error: No SubAccount found in subAccountDocument for trader :${trader.username}) and user :(${user.tg_user_id})`));
             throw new Error("No SubAccount found in subAccountDocument for trader");
         }

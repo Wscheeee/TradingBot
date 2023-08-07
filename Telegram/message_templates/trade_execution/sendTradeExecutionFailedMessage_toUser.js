@@ -42,6 +42,8 @@ Contact @AzmaFr`;
             reason_msg = "Original Position was not Opened";
         } else if (reason.toLowerCase().includes("traded/open")){
             reason_msg = "Original Position was not Opened";
+        } else if (reason.toLowerCase().includes("thetradeinbybit is undefined ")){
+            reason_msg = "Original Position was not Opened";
         }
 
         await bot.sendMessage(chatId,

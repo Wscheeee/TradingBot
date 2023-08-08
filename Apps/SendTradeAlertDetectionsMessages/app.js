@@ -116,10 +116,10 @@ process.env.TZ = dotEnvObj.TZ;
                             tg_user_id: user.tg_user_id
                         });
                         if(traderSubAccount){
-                            await sendTradeFullClosedDetectedMessage_toUser({
+                            await sendTradeFullClosedDetectedMessage_toUser({ 
                                 bot,
                                 position_direction:position.direction,
-                                position_entry_price: position.entry_price,
+                                position_close_price: position.close_price,
                                 position_leverage:position.leverage,
                                 position_pair: position.pair,
                                 chatId: user.tg_user_id,
@@ -155,7 +155,7 @@ process.env.TZ = dotEnvObj.TZ;
                             await sendTradePartialClosedDetectedMessage_toUser({
                                 bot,
                                 position_direction:originalPosition.direction, 
-                                position_entry_price: originalPosition.entry_price,
+                                position_close_price: closedPartPosition.close_price,
                                 position_leverage:originalPosition.leverage,
                                 position_pair: originalPosition.pair,
                                 chatId: user.tg_user_id,

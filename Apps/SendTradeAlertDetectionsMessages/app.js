@@ -152,7 +152,7 @@ process.env.TZ = dotEnvObj.TZ;
                             tg_user_id: user.tg_user_id
                         }); 
                         if(traderSubAccount){
-                            await sendTradePartialClosedDetectedMessage_toUser({
+                            await sendTradePartialClosedDetectedMessage_toUser({ 
                                 bot,
                                 position_direction:originalPosition.direction, 
                                 position_close_price: closedPartPosition.close_price,
@@ -163,7 +163,7 @@ process.env.TZ = dotEnvObj.TZ;
                                 change_by: -(closedPartPosition.size),
                                 change_by_percentage: calculatePercentageChange(originalPosition.size,originalPosition.previous_size_before_partial_close),
                                 position_roi:closedPartPosition.roi,
-                                position_pnl: closedPartPosition.pnl
+                                position_pnl: closedPartPosition.pnl 
                             });
 
                         }

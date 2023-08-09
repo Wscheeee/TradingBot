@@ -150,7 +150,7 @@ module.exports.PositionsStateDetector = class PositionsStateDetector {
 
     listenToOldTradesCollection() {
         const watcher = this.#mongoDatabase.collection.oldTradesCollection.watchCollection();
-        watcher.addListener("change", async (change) => {
+        watcher.addListener("change", async (change) => { 
             if(change.operationType==="drop")process.exit();//restart the app when the collection is dropped
             if (change.operationType === "insert") {
                 console.log("(oldTradesCollection):INSERT event");

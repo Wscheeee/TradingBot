@@ -225,11 +225,18 @@ module.exports.closeAllPositionsInASubAccount = async function closeAllPositions
                         updateDocument(tradedOpenPositionDocument._id,{
                             close_price: closedPositionAccumulatedDetails.avgExitPrice,
                             closed_pnl: closedPositionAccumulatedDetails.closedPNL,
-                            closed_roi_percentage: bybit.calculateClosedPositionROI({
-                                averageEntryPrice: closedPositionAccumulatedDetails.averageEntryPrice,
-                                positionCurrentValue:  closedPositionAccumulatedDetails.positionCurrentValue,
-                                positionSize: closedPositionAccumulatedDetails.qty
+                            closed_roi_percentage: calculateRoiFromPosition({
+                                close_price: closedPositionAccumulatedDetails.avgExitPrice,
+                                direction: position_direction,
+                                entry_price:closedPositionAccumulatedDetails.avgEntryPrice,
+                                leverage: leverage,
+                                size: closedPositionAccumulatedDetails.qty
                             }),
+                            // closed_roi_percentage: bybit.calculateClosedPositionROI({
+                            //     averageEntryPrice: closedPositionAccumulatedDetails.averageEntryPrice,
+                            //     positionCurrentValue:  closedPositionAccumulatedDetails.positionCurrentValue,
+                            //     positionSize: closedPositionAccumulatedDetails.qty
+                            // }),
                             leverage: closedPositionAccumulatedDetails.leverage,
                             position_id_in_oldTradesCollection: undefined, // Because ttrade not closed by trader
                             size: closedPositionAccumulatedDetails.qty,
@@ -253,7 +260,8 @@ module.exports.closeAllPositionsInASubAccount = async function closeAllPositions
                         close_price: closedPositionAccumulatedDetails.avgExitPrice,
                         direction: position_direction,
                         entry_price:closedPositionAccumulatedDetails.averageEntryPrice,
-                        leverage: leverage
+                        leverage: leverage,
+                        size: closedPositionAccumulatedDetails.qty
                     }),
                     position_pnl: closedPositionAccumulatedDetails.closedPNL
                 });

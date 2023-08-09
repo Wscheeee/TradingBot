@@ -68,6 +68,15 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                                 const roi = positionData.roi;
                                 const pnl = positionData.pnl;
 
+                                const currentOpenPositionNewSize = new DecimalMath(savedPosition_.size).subtract(new DecimalMath(savedPosition_.size).subtract(position_.amount).getResult()).getResult();
+                                // adjust the open position to partial closed
+                                await mongoDatabase.collection.openTradesCollection.updateDocument(savedPosition_._id,{
+                                    size: currentOpenPositionNewSize,
+                                    previous_size_before_partial_close: savedPosition_.size,
+                                    document_last_edited_at_datetime: new Date(),
+                                    total_parts: currentPositionsTotalParts,
+    
+                                });
                                 await mongoDatabase.collection.oldTradesCollection.createNewDocument({
                                     original_position_id: savedPosition_._id,
                                     close_datetime: new Date(),
@@ -98,15 +107,7 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                                     //@ts-ignore
                                     server_timezone: process.env.TZ
                                 });
-                                const currentOpenPositionNewSize = new DecimalMath(savedPosition_.size).subtract(new DecimalMath(savedPosition_.size).subtract(position_.amount).getResult()).getResult();
-                                // adjust the open position to partial closed
-                                await mongoDatabase.collection.openTradesCollection.updateDocument(savedPosition_._id,{
-                                    size: currentOpenPositionNewSize,
-                                    previous_size_before_partial_close: savedPosition_.size,
-                                    document_last_edited_at_datetime: new Date(),
-                                    total_parts: currentPositionsTotalParts,
-    
-                                });
+                                
                             }else if(savedPosition_.size < position_.amount){// The size was increased
                                 // so update the position 
                                 await mongoDatabase.collection.openTradesCollection.updateDocument(savedPosition_._id,{

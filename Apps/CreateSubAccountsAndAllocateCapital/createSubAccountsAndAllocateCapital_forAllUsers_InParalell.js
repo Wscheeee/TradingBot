@@ -149,6 +149,7 @@ module.exports.createSubAccountsAndAllocateCapital_forAllUsers_InParalell =  asy
                         });
 
                     }catch(error){
+                        await tg_user_bot.sendMessage(user.chatId,error.message);
                         const nwErrorMessage = `(fn:createSubAccountsAndAllocateCapital_forAllUsers_InParalell) => (fn:request) user:${user.username} (${user.tg_user_id}) ${error.message}`;
                         error.message = nwErrorMessage;
                         onError(error);

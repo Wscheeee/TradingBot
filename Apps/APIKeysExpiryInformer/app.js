@@ -94,29 +94,36 @@ process.env.TZ = dotEnvObj.TZ;
                     const users = await users_Cursor.toArray();
                     // Loop through all users and query about their APII kes expiry
                     for(const user of users){
-                        const bybit = new Bybit({
-                            millisecondsToDelayBetweenRequests: 7000,
-                            privateKey: user.privateKey,
-                            publicKey: user.publicKey,
-                            testnet: user.testnet===false?false:true
-                        });
-                        const apiKeyInfo_Res = await bybit.clients.bybit_RestClientV5.getAPIKeyInformation();
-                        // console.log({apiKeyInfo_Res});
-                        //@ts-ignore
-                        if(apiKeyInfo_Res.retCode!==0)throw new Error("apiKeyInfo_Res:"+apiKeyInfo_Res.retMsg);
-    
-                        const createdAt = apiKeyInfo_Res.result.createdAt;
-                        const expiringAt = apiKeyInfo_Res.result.expiredAt;
-                        console.log({
-                            createdAt,
-                            expiringAt
-                        });
-                        if(!expiringAt)continue;
-                        const timeDelta_inMs = new Date(expiringAt).getTime() - new Date(createdAt).getTime();
-                        const SEVEN_DAYS_IN_MS = (((((1000)*60)*60)*24) *7);
-                        const EXPIRATIION_CRITICAL = SEVEN_DAYS_IN_MS>timeDelta_inMs;
-                        if(EXPIRATIION_CRITICAL){// less than 7 days remaining
-                            await userMessagingBot.sendMessage(user.chatId, "⚠️ Warning : Your API is almost expired please update it on Bybit or contact @AzmaFr");
+                        try{
+                            const bybit = new Bybit({
+                                millisecondsToDelayBetweenRequests: 7000,
+                                privateKey: user.privateKey,
+                                publicKey: user.publicKey,
+                                testnet: user.testnet===false?false:true
+                            });
+                            const apiKeyInfo_Res = await bybit.clients.bybit_RestClientV5.getAPIKeyInformation();
+                            // console.log({apiKeyInfo_Res});
+                            //@ts-ignore
+                            if(apiKeyInfo_Res.retCode!==0)throw new Error("apiKeyInfo_Res:"+apiKeyInfo_Res.retMsg);
+        
+                            const createdAt = apiKeyInfo_Res.result.createdAt;
+                            const expiringAt = apiKeyInfo_Res.result.expiredAt;
+                            console.log({
+                                createdAt,
+                                expiringAt
+                            });
+                            if(!expiringAt)continue;
+                            const timeDelta_inMs = new Date(expiringAt).getTime() - new Date(createdAt).getTime();
+                            const SEVEN_DAYS_IN_MS = (((((1000)*60)*60)*24) *7);
+                            const EXPIRATIION_CRITICAL = SEVEN_DAYS_IN_MS>timeDelta_inMs;
+                            if(EXPIRATIION_CRITICAL){// less than 7 days remaining
+                                await userMessagingBot.sendMessage(user.chatId, "⚠️ Warning : Your API is almost expired please update it on Bybit or contact @AzmaFr");
+                            }
+
+                        }catch(error){
+                            await userMessagingBot.sendMessage(user.chatId,error.message);
+                            logger.error(JSON.stringify(error.message));
+                            // throw error;
                         }
                     }
     

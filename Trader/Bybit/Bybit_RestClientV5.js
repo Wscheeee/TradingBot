@@ -527,6 +527,13 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
     }
 
 
+
+    async upgradeToUnifiedAccount(){
+        console.log("[method: upgradeToUnifiedAccount]");
+        // console.log(universalTransferParamsV5);
+        const res = await bottleneck.schedule(()=> this.#restClientV5.upgradeToUnifiedAccount());
+        return res;
+    }
     
 
 

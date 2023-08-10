@@ -394,7 +394,17 @@ async function createSubAccount_itsApi_andUpdateInDB({
     const enableUniversalTransfer_Res = await bybit.clients.bybit_RestClientV5.enableUniversalTransferForSubAccountsWithUIDs([createdAccount.uid]);
     if(enableUniversalTransfer_Res.retCode!==0)throw new Error("enableUniversalTransfer_Res: "+enableUniversalTransfer_Res.retMsg);
     
-     
+    const SubAccount = bybit.createNewBybitSubClass();
+    const subAccount =  new SubAccount({
+        millisecondsToDelayBetweenRequests:0,
+        privateKey:createSubAccountUIDAPIKey_Res.result.secret,
+        publicKey: createSubAccountUIDAPIKey_Res.result.apiKey,
+        testnet: user.testnet
+    });
+    const upgradeToUnifiedAccount_Res = await subAccount.clients.bybit_RestClientV5.upgradeToUnifiedAccount();
+    if(upgradeToUnifiedAccount_Res.retCode!==0){
+        throw  new Error("upgradeToUnifiedAccount_Res: "+upgradeToUnifiedAccount_Res.retMsg);
+    }
     //update
     const updateDocument_Res = await mongoDatabase.collection.subAccountsCollection.updateDocument(sub_account_document._id,{
         sub_account_username: createdAccount.username,

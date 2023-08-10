@@ -21,7 +21,7 @@ module.exports.performUniversalTransfer =  async function performUniversalTransf
     masterBybit,bybit,amount,fromMemberId,subAccountsUids,toMemberId,isRetry
     // onError
 }){
-    console.log("(fn:performUniversalTransfer)");
+    console.log("(fn:performUniversalTransfer)"); 
     try{
         // Activate universal transfer for the accounts
         const createUniversalTransfer_Res = await bybit.clients.bybit_RestClientV5.createUniversalTransfer({

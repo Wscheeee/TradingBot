@@ -4,6 +4,6 @@
   "main": "index.js",
   "license": "MIT",
   "dependencies": {
-    "bybit-api": "^3.5.5"
+    "bybit-api": "^3.7.1"
   }
 }

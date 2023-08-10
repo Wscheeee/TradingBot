@@ -11,10 +11,11 @@ const { ifUserHasAtomosSubAccountsCreatedButNotLinkedInDBLink_andUserAtomosIsTru
  * 
  * @param {{
  *    user: import("../../MongoDatabase/collections/users/types").Users_Collection_Document_Interface,
- *    mongoDatabase: import("../../MongoDatabase").MongoDatabase
+ *    mongoDatabase: import("../../MongoDatabase").MongoDatabase,
+ *     tg_user_bot:  import("../../Telegram").Telegram
  * }} param0 
  */
-module.exports.setUpSubAccountsForUser = async function ({user,mongoDatabase}){
+module.exports.setUpSubAccountsForUser = async function ({user,mongoDatabase,tg_user_bot}){
     const FUNCTION_NAME = "(fn:setUpSubAccountsForUser)";
     console.log(FUNCTION_NAME);
     try {
@@ -114,6 +115,7 @@ module.exports.setUpSubAccountsForUser = async function ({user,mongoDatabase}){
             user
         });
         await allocateCapitalToSubAccounts({
+            tg_user_bot: tg_user_bot,
             bybit,mongoDatabase,user,onError:(error)=>{
                 throw error;
             }

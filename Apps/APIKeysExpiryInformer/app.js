@@ -100,7 +100,7 @@ process.env.TZ = dotEnvObj.TZ;
                             publicKey: user.publicKey,
                             testnet: user.testnet===false?false:true
                         });
-                        const apiKeyInfo_Res = await bybit.clients.bybit_AccountAssetClientV3.getAPIKeyInformation();
+                        const apiKeyInfo_Res = await bybit.clients.bybit_RestClientV5.getAPIKeyInformation();
                         // console.log({apiKeyInfo_Res});
                         //@ts-ignore
                         if(apiKeyInfo_Res.retCode!==0)throw new Error("apiKeyInfo_Res:"+apiKeyInfo_Res.retMsg);
@@ -111,6 +111,7 @@ process.env.TZ = dotEnvObj.TZ;
                             createdAt,
                             expiringAt
                         });
+                        if(!expiringAt)continue;
                         const timeDelta_inMs = new Date(expiringAt).getTime() - new Date(createdAt).getTime();
                         const SEVEN_DAYS_IN_MS = (((((1000)*60)*60)*24) *7);
                         const EXPIRATIION_CRITICAL = SEVEN_DAYS_IN_MS>timeDelta_inMs;

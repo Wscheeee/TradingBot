@@ -32,8 +32,8 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
         const userSubAccounts_Array = await userSubAccounts_Cursor.toArray();
 
         // Get master account info
-        const getMasterAccountAPIKeyInfo_Res = await bybit.clients.bybit_AccountAssetClientV3.getAPIKeyInformation();
-        // console.log(getMasterAccountAPIKeyInfo_Res);
+        const getMasterAccountAPIKeyInfo_Res = await bybit.clients.bybit_RestClientV5.getAPIKeyInformation();
+        console.log(getMasterAccountAPIKeyInfo_Res);
         //@ts-ignore
         if(getMasterAccountAPIKeyInfo_Res.retCode!==0)throw new Error("getMasterAccountAPIKeyInfo_Res: "+getMasterAccountAPIKeyInfo_Res.retMsg);
    
@@ -42,7 +42,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
         //     subAccountsUids: []
         // });
         //The account balancee of the master
-        let masterAccountWalletBalance = await bybit.clients.bybit_AccountAssetClientV3.getUSDTDerivativesAccountWalletBalance();
+        let masterAccountWalletBalance = await bybit.clients.bybit_RestClientV5.getUSDTDerivativesAccountWalletBalance();
         console.log({masterAccountWalletBalance});
 
         let totalAccountsBalance = masterAccountWalletBalance;
@@ -67,7 +67,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                 publicKey: subAccountDocument.public_api,
                 testnet: subAccountDocument.testnet?true:false
             });
-            const subAccountWalletBalance = await subAccount_bybit.clients.bybit_AccountAssetClientV3.getUSDTDerivativesAccountWalletBalance();
+            const subAccountWalletBalance = await subAccount_bybit.clients.bybit_RestClientV5.getUSDTDerivativesAccountWalletBalance();
             totalAccountsBalance+=subAccountWalletBalance;
             accountUsernameToTheirDetailsObj[subAccountDocument.sub_account_username] = {
                 balance: subAccountWalletBalance,
@@ -155,7 +155,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
 
             // TAKE 2
             //The account balancee of the master
-            masterAccountWalletBalance = await bybit.clients.bybit_AccountAssetClientV3.getUSDTDerivativesAccountWalletBalance();
+            masterAccountWalletBalance = await bybit.clients.bybit_RestClientV5.getUSDTDerivativesAccountWalletBalance();
             console.log({masterAccountWalletBalance});
 
             totalAccountsBalance = masterAccountWalletBalance;
@@ -180,7 +180,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                     publicKey: subAccountDocument.public_api,
                     testnet: subAccountDocument.testnet?true:false
                 });
-                const subAccountWalletBalance = await subAccount_bybit.clients.bybit_AccountAssetClientV3.getUSDTDerivativesAccountWalletBalance();
+                const subAccountWalletBalance = await subAccount_bybit.clients.bybit_RestClientV5.getUSDTDerivativesAccountWalletBalance();
                 totalAccountsBalance+=subAccountWalletBalance;
                 accountUsernameToTheirDetailsObj[subAccountDocument.sub_account_username] = {
                     balance: subAccountWalletBalance,

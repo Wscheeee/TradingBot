@@ -38,11 +38,11 @@ module.exports.IntervalLastInStackTaskRunner = class IntervalLastInStackTaskRunn
         // Run only the last in stack
         this.#intervalId = setInterval(async ()=>{
             // Run must run jobs 
-            console.log("[Class:IntervalLastInStackTaskRunner => #jobRunner:] running job",{"#jobIsRunning":this.#jobIsRunning,"#this.#mustRunJobIsRunning":this.#mustRunJobIsRunning});
+            // console.log("[Class:IntervalLastInStackTaskRunner => #jobRunner:] running job",{"#jobIsRunning":this.#jobIsRunning,"#this.#mustRunJobIsRunning":this.#mustRunJobIsRunning});
             
             if(this.#mustRunJobIsRunning===false){
                 this.#mustRunJobIsRunning = true;
-                console.log("Must Run Jobs length = "+this.#mustRunJobStack.length);
+                // console.log("Must Run Jobs length = "+this.#mustRunJobStack.length);
                 for(const job of this.#mustRunJobStack){
                     console.log("Running must run jobs");
                     await job();
@@ -76,7 +76,7 @@ module.exports.IntervalLastInStackTaskRunner = class IntervalLastInStackTaskRunn
 
             }else {
                 if(!jobInEndOfStack){
-                    console.log("[Class:IntervalLastInStackTaskRunner => #jobRunner:] no job to run");
+                    // console.log("[Class:IntervalLastInStackTaskRunner => #jobRunner:] no job to run");
 
                 }else if(!!jobInEndOfStack && this.#jobIsRunning===true){
                     console.log("[Class:IntervalLastInStackTaskRunner => #jobRunner:] there is a job running "+(jobsLength>1?"and there is a job to run next after it":""));

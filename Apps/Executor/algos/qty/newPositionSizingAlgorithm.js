@@ -55,21 +55,6 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
             if (position.pair.toLowerCase().includes("usdt") === false) {
                 throw new Error("Coin does not include usdt: " + position.pair);
             }
-            // const COIN = "USDT";//position.pair.toLowerCase().replace("usdt","").toUpperCase();
-            // const accountBalance_Resp = await bybit.clients.bybit_AccountAssetClientV3.getDerivativesCoinBalance({
-            //     accountType: "CONTRACT",
-            //     coin: COIN
-            // }); 
-            // if (!accountBalance_Resp.result || !accountBalance_Resp.result.balance) {
-            //     console.log({ accountBalance_Resp });
-            //     throw new Error(accountBalance_Resp.ret_msg);
-            // }
-            // const openPositionsTotalUSDTValue = await bybit.clients.bybit_RestClientV5.getTotalOpenPositionsUSDTValue({
-            //     category:"linear",
-            //     settleCoin:"USDT"
-            // });
-            // console.log({openPositionsTotalUSDTValue});
-            // const totalUSDT_balance = new DecimalMath(parseFloat(accountBalance_Resp.result.balance.walletBalance)).add(openPositionsTotalUSDTValue).getResult();
             console.log({totalUSDT_balance});
             /** TRADE VALUE
             * - Get the trade size + entry price + leverage

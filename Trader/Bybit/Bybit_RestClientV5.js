@@ -56,6 +56,7 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
             secret: privateKey,
             testnet:testnet
         });
+        
         return client;
     }
 
@@ -63,6 +64,7 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
      * Query the margin mode and the upgraded status of account
      */
     async getAccountInfo(){
+        
         // await this.#rateLimiter.addJob();
         const res = await bottleneck.schedule(()=> {
             console.log("[method: getAccountInfo]");
@@ -73,6 +75,67 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
         });
         return res;
     }
+
+    /**
+     * returns api info of the logged in account
+     */
+    async getAPIKeyInformation(){
+        // await this.#rateLimiter.addJob();
+        const res = await bottleneck.schedule(()=> {
+            console.log("[method: getAPIKeyInformation]");
+            return this.#restClientV5.getQueryApiKey();
+        });
+        return res;
+    }
+
+    /**
+     * 
+     * @param {import("bybit-api").GetAccountCoinBalanceParamsV5} getAccountCoinBalanceParamsV5 
+     */
+    async getDerivativesCoinBalance(getAccountCoinBalanceParamsV5){
+        // await this.#rateLimiter.addJob();
+        const getCoinInformation_Res = await bottleneck.schedule(()=> this.#restClientV5.getCoinBalance(getAccountCoinBalanceParamsV5));
+        // const getCoinInformation_Res = await bottleneck.schedule(()=> this.#accountAssetClient.getPrivate("/v5/account/wallet-balance","accountType=UNIFIED&coin=BTC"));
+        return getCoinInformation_Res;
+    }
+
+    async getUSDTDerivativesAccountWalletBalance(){ 
+        console.log("(fn:getUSDTDerivativesAccountWalletBalance)");
+        const COIN = "USDT";//position.pair.toLowerCase().replace("usdt","").toUpperCase();
+        const accountBalance_Resp = await this.getDerivativesCoinBalance({
+            accountType: "CONTRACT",
+            coin: COIN,
+            
+        });
+        if (!accountBalance_Resp.result || !accountBalance_Resp.result.balance) {
+            console.log({ accountBalance_Resp });
+            throw new Error(accountBalance_Resp.ret_msg);
+        }
+        const totalUSDT_balance = parseFloat(accountBalance_Resp.result.balance.walletBalance);
+        return totalUSDT_balance;
+    }
+ 
+
+    //  // SUB ACCOUNTS
+    // /**
+    //  * @param {import("bybit-api").CreateSubMemberParamsV5} createSubMemberParamsV5
+    //  */
+    // async createSubAccount(createSubMemberParamsV5){
+    //     // await this.#rateLimiter.addJob();
+    //     const createSubMember_Res = await bottleneck.schedule(()=> this.#restClientV5.createSubMember(createSubMemberParamsV5));
+    //     return createSubMember_Res;
+    // }
+    // /**
+    //  * @param {import("bybit-api").CreateSubMemberRequestV3} createSubMemberRequestV3
+    //  */
+    // async getSubAccounts(){
+    //     // await this.#rateLimiter.addJob();
+    //     const res = await bottleneck.schedule(()=> this.#accountAssetClientV3.getSubAccounts());
+    //     return res;
+    // }
+
+
+
 
     // public
     // /**

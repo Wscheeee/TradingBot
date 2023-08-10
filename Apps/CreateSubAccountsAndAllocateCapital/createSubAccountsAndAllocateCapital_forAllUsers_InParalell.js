@@ -31,7 +31,9 @@ module.exports.createSubAccountsAndAllocateCapital_forAllUsers_InParalell =  asy
         const usersDocuments_Cursor = await mongoDatabase.collection.usersCollection.getAllDocumentsBy({
             status: true
         });
+        // const l = (await usersDocuments_Cursor.toArray()).length;
         console.log("Got users");
+    
         const requestsPromiseArray = [];
         while(await usersDocuments_Cursor.hasNext()){
             try{
@@ -41,6 +43,7 @@ module.exports.createSubAccountsAndAllocateCapital_forAllUsers_InParalell =  asy
                 if(!user){
                     throw new Error(`user:!user ${user}`);
                 }
+                // if(user.username!=="icey6969")continue;
                 if(passedInUser && passedInUser.tg_user_id!==user.tg_user_id)continue;
                 if(user.atomos===false && !user.custom_sub_account_configs || user.atomos===false && user.custom_sub_account_configs.length===0){
                     // User is set to use custom sub account config but has none

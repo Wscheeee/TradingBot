@@ -122,6 +122,9 @@ module.exports.Bybit = class Bybit {
             accountAssetClientV3: Bybit_AccountAssetClientV3.createAccountAssetClientV3({
                 privateKey,publicKey,testnet
             }),
+            accountAssetClient: Bybit_AccountAssetClientV3.createAccountAssetClient({
+                privateKey,publicKey,testnet
+            }),
             millisecondsToDelayBetweenRequests
         });
         this.#clients.websocket_Client = new WebsocketClient({

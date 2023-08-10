@@ -159,7 +159,8 @@ async function handler({
         if(subAccountsAreSetAndReady===false){
             // set up sub accounts for user
             await setUpSubAccountsForUser({
-                mongoDatabase,user
+                mongoDatabase,user,
+                tg_user_bot: bot
             });
         }  
 
@@ -202,13 +203,13 @@ async function handler({
         /////////////////////////////////////////
         const bybit = bybitSubAccount;
 
-        const accountBalance_Resp = await bybit.clients.bybit_AccountAssetClientV3.getDerivativesCoinBalance({
+        const accountBalance_Resp = await bybit.clients.bybit_RestClientV5.getDerivativesCoinBalance({
             accountType: "CONTRACT",
             coin: "USDT"
         }); 
         if (!accountBalance_Resp.result || !accountBalance_Resp.result.balance) {
             console.log({ accountBalance_Resp });
-            throw new Error("accountBalance_Resp"+accountBalance_Resp.ret_msg);
+            throw new Error("accountBalance_Resp"+accountBalance_Resp.retMsg);
         }
         const totalUSDT_balance = new DecimalMath(parseFloat(accountBalance_Resp.result.balance.walletBalance)).getResult();
         const leftBalance = new DecimalMath(parseFloat(accountBalance_Resp.result.balance.transferBalance)).getResult();

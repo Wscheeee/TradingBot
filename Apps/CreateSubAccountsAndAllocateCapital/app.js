@@ -275,7 +275,7 @@ process.env.TZ = dotEnvObj.TZ;
                 async function (){
                     await createSubAccountsAndAllocateCapital_forAllUsersWhoseLastAlloationIsMoreThan0neHourAgo_InParalell({
                         mongoDatabase,
-                        tg_user_bot,
+                        tg_user_bot, 
                         onError: (error)=>{
                             logger.error(error.message);
                         }
@@ -285,10 +285,27 @@ process.env.TZ = dotEnvObj.TZ;
             );
         },(1000*60)*60);//1 hr
         
+        // await createSubAccountsAndAllocateCapital_forAllUsersWhoseLastAlloationIsMoreThan0neHourAgo_InParalell({
+        //     mongoDatabase,
+        //     tg_user_bot,
+        //     onError: (error)=>{
+        //         logger.error(error.message);
+        //     }
+        // });
+
+        await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
+            mongoDatabase,
+            // user:userDocumentAfterUpdate,
+            tg_user_bot,
+            onError: (error)=>{
+                logger.error(error.message);
+            }
+        });
         
         
       
     }catch(error){
+        console.log(error);
         intervalLastInStackTaskRunner.stop();
         if(interval){
             clearInterval(interval);

@@ -27,8 +27,8 @@ module.exports.performUniversalTransfer =  async function performUniversalTransf
         const createUniversalTransfer_Res = await bybit.clients.bybit_RestClientV5.createUniversalTransfer({
             amount,
             coin:"USDT",
-            fromAccountType:"CONTRACT",
-            toAccountType:"CONTRACT",
+            fromAccountType:"UNIFIED",
+            toAccountType:"UNIFIED",
             toMemberId,
             fromMemberId,
             transferId: require("../../Utils/generateUID").generateUID()

@@ -95,6 +95,7 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
     async getDerivativesCoinBalance(getAccountCoinBalanceParamsV5){
         // await this.#rateLimiter.addJob();
         const getCoinInformation_Res = await bottleneck.schedule(()=> this.#restClientV5.getCoinBalance(getAccountCoinBalanceParamsV5));
+        console.log({getCoinInformation_Res, balance: getCoinInformation_Res.result.balance});
         // const getCoinInformation_Res = await bottleneck.schedule(()=> this.#accountAssetClient.getPrivate("/v5/account/wallet-balance","accountType=UNIFIED&coin=BTC"));
         return getCoinInformation_Res;
     }
@@ -103,7 +104,8 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
         console.log("(fn:getUSDTDerivativesAccountWalletBalance)");
         const COIN = "USDT";//position.pair.toLowerCase().replace("usdt","").toUpperCase();
         const accountBalance_Resp = await this.getDerivativesCoinBalance({
-            accountType: "CONTRACT",
+            // accountType: "CONTRACT",
+            accountType: "UNIFIED",
             coin: COIN,
             
         });

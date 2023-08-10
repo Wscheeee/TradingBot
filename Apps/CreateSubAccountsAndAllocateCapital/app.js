@@ -293,14 +293,14 @@ process.env.TZ = dotEnvObj.TZ;
         //     }
         // });
 
-        // await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
-        //     mongoDatabase,
-        //     // user:userDocumentAfterUpdate,
-        //     tg_user_bot,
-        //     onError: (error)=>{
-        //         logger.error(error.message);
-        //     }
-        // });
+        await createSubAccountsAndAllocateCapital_forAllUsers_InParalell({
+            mongoDatabase,
+            // user:userDocumentAfterUpdate,
+            tg_user_bot,
+            onError: (error)=>{
+                logger.error(error.message);
+            }
+        });
         
         
       

@@ -35,7 +35,7 @@ module.exports.createSubAccountsAndAllocateCapital_forAllUsers_InParalell =  asy
         console.log("Got users");
     
         const requestsPromiseArray = [];
-        while(await usersDocuments_Cursor.hasNext()){
+        while(await usersDocuments_Cursor.hasNext()){ 
             try{
                 const user = await usersDocuments_Cursor.next();
                 console.log({user});

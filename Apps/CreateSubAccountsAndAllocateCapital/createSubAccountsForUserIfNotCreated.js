@@ -264,9 +264,21 @@ async function createSubAccount_itsApi_andSaveInDB({
     if(createSubAccountUIDAPIKey_Res.retCode!==0)throw new Error(createSubAccountUIDAPIKey_Res.retMsg);
 
     // Enale SubUID universal Transer After creating API keys
-    const enableUniversalTransfer_Res = await bybit.clients.bybit_RestClientV5.enableUniversalTransferForSubAccountsWithUIDs([createdAccount.uid]);
-    if(enableUniversalTransfer_Res.retCode!==0)throw new Error("enableUniversalTransfer_Res: "+enableUniversalTransfer_Res.retMsg);
-       
+    // const enableUniversalTransfer_Res = await bybit.clients.bybit_RestClientV5.enableUniversalTransferForSubAccountsWithUIDs([createdAccount.uid]);
+    // if(enableUniversalTransfer_Res.retCode!==0)throw new Error("enableUniversalTransfer_Res: "+enableUniversalTransfer_Res.retMsg);
+    
+    const SubAccount = bybit.createNewBybitSubClass();
+    const subAccount =  new SubAccount({
+        millisecondsToDelayBetweenRequests:0,
+        privateKey:createSubAccountUIDAPIKey_Res.result.secret,
+        publicKey: createSubAccountUIDAPIKey_Res.result.apiKey,
+        testnet: user.testnet
+    });
+    const upgradeToUnifiedAccount_Res = await subAccount.clients.bybit_RestClientV5.upgradeToUnifiedAccount();
+    if(upgradeToUnifiedAccount_Res.retCode!==0){
+        throw  new Error("upgradeToUnifiedAccount_Res: "+upgradeToUnifiedAccount_Res.retMsg);
+    }
+
     // create new sub_account_document
     // Save the Info About the created SUB ACCOUNT in SubAccountsCollection
     const doc = await mongoDatabase.collection.subAccountsCollection.findOne({
@@ -391,8 +403,8 @@ async function createSubAccount_itsApi_andUpdateInDB({
     if(!sub_account_document ||!sub_account_document._id)throw new Error("error in sub_account_document:"+JSON.stringify(sub_account_document));
 
     // Enale SubUID universal Transer
-    const enableUniversalTransfer_Res = await bybit.clients.bybit_RestClientV5.enableUniversalTransferForSubAccountsWithUIDs([createdAccount.uid]);
-    if(enableUniversalTransfer_Res.retCode!==0)throw new Error("enableUniversalTransfer_Res: "+enableUniversalTransfer_Res.retMsg);
+    // const enableUniversalTransfer_Res = await bybit.clients.bybit_RestClientV5.enableUniversalTransferForSubAccountsWithUIDs([createdAccount.uid]);
+    // if(enableUniversalTransfer_Res.retCode!==0)throw new Error("enableUniversalTransfer_Res: "+enableUniversalTransfer_Res.retMsg);
     
     const SubAccount = bybit.createNewBybitSubClass();
     const subAccount =  new SubAccount({

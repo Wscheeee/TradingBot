@@ -62,7 +62,7 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
 
     /**
      * Query the margin mode and the upgraded status of account
-     */
+     */ 
     async getAccountInfo(){
         
         // await this.#rateLimiter.addJob();

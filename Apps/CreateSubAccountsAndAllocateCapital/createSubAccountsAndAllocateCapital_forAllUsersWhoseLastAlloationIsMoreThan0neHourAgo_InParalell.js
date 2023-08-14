@@ -83,6 +83,15 @@ module.exports.createSubAccountsAndAllocateCapital_forAllUsersWhoseLastAlloation
                             publicKey: user.publicKey,
                             testnet: user.testnet===true?true:false // Doing this incase testnet is undefined but it shouldn't
                         });
+                        // Check iif user account is UNIFIED 
+                        const accountInfo_Res = await bybit.clients.bybit_RestClientV5.getAccountInfo();
+                        console.log({accountInfo_Res});
+                        if(accountInfo_Res.retCode!==0)throw new Error("accountInfo_Res:"+accountInfo_Res.retMsg);
+
+                        if(accountInfo_Res.result.unifiedMarginStatus!==4){
+                            console.log("unifiedMarginStatus!==4:");
+                            throw new Error("Please upgrade your account to the pro version of Unified trade account or contact @Azmafr");
+                        }
                         if(user.atomos===true){
                             await ifUserHasAtomosSubAccountsCreatedButNotLinkedInDBLink_andUserAtomosIsTrue({
                                 bybit,mongoDatabase,user
@@ -147,7 +156,11 @@ module.exports.createSubAccountsAndAllocateCapital_forAllUsersWhoseLastAlloation
                             user
                         });
                         await allocateCapitalToSubAccounts({
-                            bybit,mongoDatabase,user,onError,
+                            bybit,mongoDatabase,user,
+                            onError:async (error)=>{
+                                await tg_user_bot.sendMessage(user.chatId,error.message);
+                                onError(error);
+                            },
                             tg_user_bot
                         });
                         // set last_sub_allocation_check_datetime

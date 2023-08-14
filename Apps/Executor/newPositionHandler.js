@@ -160,7 +160,19 @@ async function handler({
             // set up sub accounts for user
             await setUpSubAccountsForUser({
                 mongoDatabase,user,
-                tg_user_bot: bot
+                tg_user_bot: bot,
+                // onError:async (error)=>{
+                //     await sendTradeExecutionFailedMessage_toUser({
+                //         bot,
+                //         chatId: user.chatId,
+                //         position_direction: position.direction,
+                //         position_entry_price: position.entry_price,
+                //         position_leverage: position.leverage,
+                //         position_pair: position.pair,
+                //         reason:error.message,
+                //         trader_username: trader.username
+                //     });
+                // }
             });
         }  
 
@@ -204,7 +216,7 @@ async function handler({
         const bybit = bybitSubAccount;
 
         const accountBalance_Resp = await bybit.clients.bybit_RestClientV5.getDerivativesCoinBalance({
-            accountType: "CONTRACT",
+            accountType: "UNIFIED",
             coin: "USDT"
         }); 
         if (!accountBalance_Resp.result || !accountBalance_Resp.result.balance) {

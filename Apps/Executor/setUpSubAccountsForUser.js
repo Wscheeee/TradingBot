@@ -116,7 +116,8 @@ module.exports.setUpSubAccountsForUser = async function ({user,mongoDatabase,tg_
         });
         await allocateCapitalToSubAccounts({
             tg_user_bot: tg_user_bot,
-            bybit,mongoDatabase,user,onError:(error)=>{
+            bybit,mongoDatabase,user,onError:async (error)=>{
+                // onError(error);
                 throw error;
             }
         });

@@ -221,7 +221,7 @@ async function handler({
          * Get total USDT balance
          */
         const accountBalance_Resp = await bybit.clients.bybit_RestClientV5.getDerivativesCoinBalance({
-            accountType: "CONTRACT",
+            accountType: "UNIFIED",
             coin: "USDT"
         }); 
         if (!accountBalance_Resp.result || !accountBalance_Resp.result.balance) {

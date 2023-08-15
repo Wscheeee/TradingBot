@@ -79,7 +79,7 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
                 category:"linear",
                 cursor:nextPageCursor
             }));
-            if(res.retCode!==0)throw new Error(`"[method: getAllSymbols] restClientV5.getInstrumentsInfo res: ${res.retMsg}`)
+            if(res.retCode!==0)throw new Error(`"[method: getAllSymbols] restClientV5.getInstrumentsInfo res: ${res.retMsg}`);
             if(res.result){
                 /**
                  * @type {import("bybit-api").LinearInverseInstrumentInfoV5[]}
@@ -104,10 +104,10 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
         // await this.#rateLimiter.addJob();
         console.log("[method: getSymbolInfo]");
         
-        let symbolInfo =  this.#symbols.find((s)=> s.name===symbolName);
+        let symbolInfo =  this.#symbols.find((s)=> s.symbol===symbolName);
         if(!symbolInfo){
             await this.getAllSymbols();
-            symbolInfo =  this.#symbols.find((s)=> s.name===symbolName);
+            symbolInfo =  this.#symbols.find((s)=> s.symbol===symbolName);
             if(!symbolInfo)throw new Error(`Symbol:${symbolName} info not found on bybit`);
         }
         return symbolInfo;
@@ -122,11 +122,11 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
         // await this.#rateLimiter.addJob();
         const symbolInfo = await this.getSymbolInfo(symbol);
         console.log({symbolInfo,symbol});
-        if(!symbolInfo || !symbolInfo.name){
+        if(!symbolInfo || !symbolInfo.symbol){
             throw new Error("getSymbolInfo res: symbolInfo not found for symbol:"+symbol);
         }else {
-            const minQty = symbolInfo.lot_size_filter.min_trading_qty;
-            const qtyStep = symbolInfo.lot_size_filter.qty_step;
+            const minQty = parseFloat(symbolInfo.lotSizeFilter.minOrderQty);
+            const qtyStep = parseFloat(symbolInfo.lotSizeFilter.qtyStep);
             const maxQty =  this.calculateQty_ForOrder({
                 qty: quantity,
                 minQty:minQty,

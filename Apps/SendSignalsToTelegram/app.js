@@ -35,7 +35,7 @@ console.log(process.env);
 
         positionsStateDetector.onNewPosition(async (position, trader) => {
             console.log("New position added");
-            bot.sendMessage("@AtomosTradingSignals",
+            await bot.sendMessage("@AtomosTradingSignals",
                 `✅ New Position ✅
 
 👨🏽‍💻 Trader : ${"Anonymous"}
@@ -77,9 +77,9 @@ console.log(process.env);
                     sizeChange = "+" + sizeChange; }
     
                 if(Number.isNaN(sizeChange)){
-                    logger.error(`Size change is :${sizeChange} \n ${{"position.size":position.size, "position.original_size":position.previous_size_before_partial_close }}`);
+                    logger.error(`Size change is :${sizeChange} \n ${JSON.stringify({"position.size":position.size, "position.original_size":position.previous_size_before_partial_close })}`);
                 }
-                bot.sendMessage("@AtomosTradingSignals",`✴️ Position Updated ✴️
+                await bot.sendMessage("@AtomosTradingSignals",`✴️ Position Updated ✴️
 
 👨🏽‍💻 Trader : ${"Anonymous"}
 💰 Pair : ${position.pair}
@@ -102,7 +102,7 @@ console.log(process.env);
                 if(Number.isNaN(leverageChange)){
                     logger.error(`Leverage change is :${leverageChange} \n ${{"previousPosition.leverage":previousPosition.leverage, "position.leverage":position.leverage }}`);
                 }
-                bot.sendMessage("@AtomosTradingSignals",`✴️ Position Updated ✴️
+                await bot.sendMessage("@AtomosTradingSignals",`✴️ Position Updated ✴️
 
 👨🏽‍💻 Trader : ${"Anonymous"}
 💰 Pair : ${position.pair}
@@ -122,7 +122,7 @@ console.log(process.env);
             console.log({originalPosition, position,trader});
             // let roi = (position.roi * 100).toFixed(2); 
             let roi = (position.roi).toFixed(2); 
-            bot.sendMessage("@AtomosTradingSignals",
+            await bot.sendMessage("@AtomosTradingSignals",
                 `🛑 Partial Position Closed 🛑
 
 👨🏽‍💻 Trader : ${"Anonymous"}
@@ -143,7 +143,7 @@ console.log(process.env);
             console.log("Close position");
             // let roi = (position.roi * 100).toFixed(2);
             let roi = (position.roi).toFixed(2);
-            bot.sendMessage("@AtomosTradingSignals",
+            await bot.sendMessage("@AtomosTradingSignals",
                 `🛑 Position Closed 🛑
 
 👨🏽‍💻 Trader : ${"Anonymous"}

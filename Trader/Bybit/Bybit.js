@@ -228,22 +228,22 @@ module.exports.Bybit = class Bybit {
     async standardizeQuantity({quantity,symbol,isRetry}){
         console.log("[method: standardizeQuantity]");
         console.log({quantity,symbol});
-        const symbolInfo = await this.#clients.bybit_LinearClient.getSymbolInfo(symbol);
+        const symbolInfo = await this.#clients.bybit_RestClientV5.getSymbolInfo(symbol);
         console.log({symbolInfo});
-        if(!symbolInfo || !symbolInfo.name){
+        if(!symbolInfo || !symbolInfo.symbol){
             if(isRetry){
                 throw symbolInfo;
 
             }
             return await this.standardizeQuantity({quantity,symbol,isRetry:true});
         }else {
-            const minQty = symbolInfo.lot_size_filter.min_trading_qty;
-            const qtyStep = symbolInfo.lot_size_filter.qty_step;
+            const minQty = parseFloat(symbolInfo.lotSizeFilter.minOrderQty);
+            const qtyStep = parseFloat(symbolInfo.lotSizeFilter.qtyStep);
             const quantities =  this.#calculateQty_ForOrder({
                 qty: quantity,
                 minQty:minQty,
                 stepSize:qtyStep,
-                maxQty: symbolInfo.lot_size_filter.max_trading_qty
+                maxQty: parseFloat(symbolInfo.lotSizeFilter.maxOrderQty)
             });
             
             return quantities;
@@ -260,12 +260,12 @@ module.exports.Bybit = class Bybit {
      */
     async standardizedPrice({price, symbol}) {
         console.log("[method: standardizedPrice]");
-        const symbolInfo = await this.#clients.bybit_LinearClient.getSymbolInfo(symbol);
+        const symbolInfo = await this.#clients.bybit_RestClientV5.getSymbolInfo(symbol);
         console.log({symbolInfo});
-        if(!symbolInfo || !symbolInfo.name){
+        if(!symbolInfo || !symbolInfo.symbol){
             throw symbolInfo;
         }
-        const priceFilter = symbolInfo.price_filter;
+        const priceFilter = symbolInfo.priceFilter;
         /**
          * Helper function to get the number of decimal places in a number.
          * @param {number} num - The input number.

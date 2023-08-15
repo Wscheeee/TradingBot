@@ -17,7 +17,7 @@ const {
 } = require("../../Telegram/message_templates/trade_detection");
 
 
-const APP_NAME = "App:TradeSignals";
+const APP_NAME = "App:SendTradeAlertDetectionsMessages";
 const logger = new Logger({app_name:APP_NAME});
 const {IS_LIVE} = require("../../appConfig");
 const { calculatePercentageChange } = require("../../Math/calculatePercentageChange");
@@ -188,7 +188,7 @@ process.env.TZ = dotEnvObj.TZ;
                             trader_uid: trader.uid,
                             testnet: user.testnet,
                             tg_user_id: user.tg_user_id
-                        });
+                        }); 
                         if(traderSubAccount){
                             // What changed
                             if(previousPositionDocument.size!==position.size){

@@ -11,6 +11,7 @@ const { setUpSubAccountsForUser } = require("./setUpSubAccountsForUser");
 
 const {calculateStopLossPrice} = require("./algos/stoploss/calculateStopLossPrice");
 const { checkIfUserIsFollowingTheTrader } = require("./shared/checkIfUserIsFollowingTheTrader");
+const { runPositionSetupsBeforeExecution } = require("./shared/runPositionSetupsBeforeExecution");
 
 /**
  * 
@@ -265,42 +266,10 @@ async function handler({
             throw new Error("more than 35% of capital used for trader");
         }
 
-        // Switch position mode
-        const switchPositionMode_Res = await bybit.clients.bybit_LinearClient.switchPositionMode({
-            mode:"BothSide",// 3:Both Sides
-            symbol:position.pair,
+
+        await runPositionSetupsBeforeExecution({
+            bybit,logger,position 
         });
-        if(String(switchPositionMode_Res.ext_code)!=="0"){
-            // an error
-            logger.error("switchPositionMode_Res: "+""+switchPositionMode_Res.ret_msg);
-        }
-    
-        /**
-                 * Switch Margin
-                 */
-        const setPositionLeverage_Resp = await bybit.clients.bybit_LinearClient.switchMargin({
-            is_isolated: false,
-            buy_leverage:1,
-            sell_leverage:1,
-            symbol: position.pair,
-        });
-        if(setPositionLeverage_Resp.ret_code!==0){
-            // an error
-            logger.error("setPositionLeverage_Resp: "+""+setPositionLeverage_Resp.ret_msg+"("+position.pair+")");
-        }
-        /**
-                 * Seet User Leverage
-                 */
-        const setUserLeverage_Res = await bybit.clients.bybit_LinearClient.setUserLeverage({
-            buy_leverage: position.leverage,
-            sell_leverage: position.leverage,
-            symbol: position.pair
-        });
-        if(setUserLeverage_Res.ret_code!==0){
-            // an error
-            logger.error("setUserLeverage_Res: "+""+setUserLeverage_Res.ret_msg+"("+position.pair+")");
-        }
-        logger.info("Sending openANewPosition Order to bybit_RestClientV5");
 
         
 

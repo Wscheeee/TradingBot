@@ -8,9 +8,9 @@
  */
 
 const {WebsocketClient} = require("bybit-api");
-const {Bybit_LinearClient} = require("./Bybit_LinearClient");
+// const {Bybit_LinearClient} = require("./Bybit_LinearClient");
 const {Bybit_RestClientV5} = require("./Bybit_RestClientV5");
-const {Bybit_AccountAssetClientV3} = require("./Bybit_AccountAssetClientV3");
+// const {Bybit_AccountAssetClientV3} = require("./Bybit_AccountAssetClientV3");
 const {
     getClosedPositionPNLObject,
     getActualOpenPositionInBybit
@@ -21,11 +21,11 @@ const {DecimalMath} = require("../../Math/DecimalMath");
 /**
  * @typedef {{ sendOrders_taskRunnerInterval_duration:number}} Bybit_Settings_Interface
  */
+//  *      bybit_LinearClient: Bybit_LinearClient,
+// *      bybit_AccountAssetClientV3: Bybit_AccountAssetClientV3,
 /**
  * @typedef {{
- *      bybit_LinearClient: Bybit_LinearClient,
  *      bybit_RestClientV5: Bybit_RestClientV5,
- *      bybit_AccountAssetClientV3: Bybit_AccountAssetClientV3,
  *      websocket_Client: WebsocketClient
  * }} BybitClients_Interface
  */
@@ -103,12 +103,12 @@ module.exports.Bybit = class Bybit {
      * @param {{millisecondsToDelayBetweenRequests:number,publicKey:string,privateKey:string,testnet:boolean}} settings 
      */
     constructor({millisecondsToDelayBetweenRequests,privateKey,publicKey,testnet}){ 
-        this.#clients.bybit_LinearClient = new Bybit_LinearClient({
-            linearClient: Bybit_LinearClient.createLinearClient({
-                privateKey,publicKey,testnet
-            }),
-            millisecondsToDelayBetweenRequests
-        });
+        // this.#clients.bybit_LinearClient = new Bybit_LinearClient({
+        //     linearClient: Bybit_LinearClient.createLinearClient({
+        //         privateKey,publicKey,testnet
+        //     }),
+        //     millisecondsToDelayBetweenRequests
+        // });
 
         this.#clients.bybit_RestClientV5 = new Bybit_RestClientV5({
             restClientV5: Bybit_RestClientV5.createRestClientV5({
@@ -118,15 +118,15 @@ module.exports.Bybit = class Bybit {
             bybit:this
         });
 
-        this.#clients.bybit_AccountAssetClientV3 = new Bybit_AccountAssetClientV3({
-            accountAssetClientV3: Bybit_AccountAssetClientV3.createAccountAssetClientV3({
-                privateKey,publicKey,testnet
-            }),
-            accountAssetClient: Bybit_AccountAssetClientV3.createAccountAssetClient({
-                privateKey,publicKey,testnet
-            }),
-            millisecondsToDelayBetweenRequests
-        });
+        // this.#clients.bybit_AccountAssetClientV3 = new Bybit_AccountAssetClientV3({
+        //     accountAssetClientV3: Bybit_AccountAssetClientV3.createAccountAssetClientV3({
+        //         privateKey,publicKey,testnet
+        //     }),
+        //     accountAssetClient: Bybit_AccountAssetClientV3.createAccountAssetClient({
+        //         privateKey,publicKey,testnet
+        //     }),
+        //     millisecondsToDelayBetweenRequests
+        // });
         this.#clients.websocket_Client = new WebsocketClient({
             market:"linear",
             secret: privateKey,

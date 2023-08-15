@@ -8,6 +8,7 @@ const {newPositionSizingAlgorithm} = require("./algos/qty");
 
 const {sleepAsync} = require("../../Utils/sleepAsync");
 const { calculateRoiFromPosition } = require("../ScrapeFollowedTradersPositions/calculateRoiFromPosition");
+const { runPositionSetupsBeforeExecution } = require("./shared/runPositionSetupsBeforeExecution");
 
 /**
  * 
@@ -265,39 +266,10 @@ async function handler({
         if(sizeToExecute===0||!sizeToExecute)throw new Error("sizeToExecute==="+sizeToExecute);
         const total_standardized_qty = sizesToExecute.reduce((a,b)=>a+b,0);
         console.log({total_standardized_qty});
-        /**
-     * Switch position mode
-     * */
-        const switchPositionMode_Res = await bybit.clients.bybit_LinearClient.switchPositionMode({
-            mode:"BothSide",// 3:Both Sides
-            symbol:position.pair,
+        
+        await runPositionSetupsBeforeExecution({
+            bybit,logger,position 
         });
-        if(Number(switchPositionMode_Res.ext_code)!==0){
-        // an error
-            logger.error("switchPositionMode_Res: "+""+switchPositionMode_Res.ret_msg);
-        }
-    
-        // Switch user margin
-        const setPositionLeverage_Resp = await bybit.clients.bybit_LinearClient.switchMargin({
-            is_isolated: false,
-            buy_leverage: 1,
-            sell_leverage: 1,
-            symbol: position.pair
-        });
-        if(setPositionLeverage_Resp.ret_code!==0){
-        // an error
-            logger.error("setPositionLeverage_Resp: "+setPositionLeverage_Resp.ret_msg);
-        }
-        // Set user leverage
-        const setUserLeverage_Res = await bybit.clients.bybit_LinearClient.setUserLeverage({
-            buy_leverage: position.leverage,
-            sell_leverage: position.leverage,
-            symbol: position.pair
-        });
-        if(setUserLeverage_Res.ret_code!==0){
-        // an error
-            logger.error("setUserLeverage_Res: "+""+setUserLeverage_Res.ret_msg+"("+position.pair+")");
-        }
     
         //     /**
         //  * Get the position

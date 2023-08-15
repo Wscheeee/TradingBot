@@ -13,6 +13,10 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
      * @type {import("bybit-api").RestClientV5}
      */
     #restClientV5;
+    /**
+     * @type {import("bybit-api").LinearInverseInstrumentInfoV5[]}
+     */
+    #symbols = [];
 
     /**
      * @type {number}
@@ -59,6 +63,130 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
         
         return client;
     }
+
+
+
+    async getAllSymbols(){
+        console.log("[method: getAllSymbols]");
+        // await this.#rateLimiter.delayAsync(this.#millisecondsToDelayBetweenRequests);
+        // await this.#rateLimiter.addJob();]]
+        /**
+         * 
+         * @param {string|undefined} nextPageCursor 
+         */
+        const getLinearSymbols = async (nextPageCursor)=>{
+            const res = await bottleneck.schedule(()=> this.#restClientV5.getInstrumentsInfo({
+                category:"linear",
+                cursor:nextPageCursor
+            }));
+            if(res.retCode!==0)throw new Error(`"[method: getAllSymbols] restClientV5.getInstrumentsInfo res: ${res.retMsg}`)
+            if(res.result){
+                /**
+                 * @type {import("bybit-api").LinearInverseInstrumentInfoV5[]}
+                 */
+                this.#symbols = res.result.list.map(s => s);
+            }
+            if(res.result.nextPageCursor){
+                await getLinearSymbols(res.result.nextPageCursor);
+            }
+
+        };
+        await getLinearSymbols();
+
+        return;
+    }
+
+    /**
+     * @description get te information regarding a certain symbol
+     * @param {string} symbolName 
+     */
+    async getSymbolInfo(symbolName){
+        // await this.#rateLimiter.addJob();
+        console.log("[method: getSymbolInfo]");
+        
+        let symbolInfo =  this.#symbols.find((s)=> s.name===symbolName);
+        if(!symbolInfo){
+            await this.getAllSymbols();
+            symbolInfo =  this.#symbols.find((s)=> s.name===symbolName);
+            if(!symbolInfo)throw new Error(`Symbol:${symbolName} info not found on bybit`);
+        }
+        return symbolInfo;
+    }
+
+    /**
+     * 
+     * @param {{symbol:string,quantity:number}} param0 
+     */
+    async standardizeQuantity({quantity,symbol}){
+        console.log("[method: standardizeQuantity]");
+        // await this.#rateLimiter.addJob();
+        const symbolInfo = await this.getSymbolInfo(symbol);
+        console.log({symbolInfo,symbol});
+        if(!symbolInfo || !symbolInfo.name){
+            throw new Error("getSymbolInfo res: symbolInfo not found for symbol:"+symbol);
+        }else {
+            const minQty = symbolInfo.lot_size_filter.min_trading_qty;
+            const qtyStep = symbolInfo.lot_size_filter.qty_step;
+            const maxQty =  this.calculateQty_ForOrder({
+                qty: quantity,
+                minQty:minQty,
+                stepSize:qtyStep
+            });
+            
+            return maxQty;
+        } 
+    }
+
+   
+ 
+   
+    // /****
+    //  * @param {import("bybit-api").LinearSetMarginSwitchRequest} linearSetMarginSwitchRequest
+    //  */
+    // async switchMargin(linearSetMarginSwitchRequest){
+    //     // await this.#rateLimiter.addJob();
+    //     console.log("[method: switchMargin]");
+    //     return await bottleneck.schedule(()=> this.#restClientV5.swi(linearSetMarginSwitchRequest));
+    // }
+
+    /**
+     * @param {import("bybit-api").SwitchIsolatedMarginParamsV5} switchIsolatedMarginParamsV5
+     */
+    async switchMarginToCrossOrIsolated(switchIsolatedMarginParamsV5){
+        // await this.#rateLimiter.addJob();
+        console.log("[method: switchMarginToCrossOrIsolated]");
+        return await bottleneck.schedule(()=> this.#restClientV5.switchIsolatedMargin(switchIsolatedMarginParamsV5));
+    }
+    // /**
+    //  * @param {import("bybit-api").AccountMarginModeV5} accountMarginModeV5
+    //  */
+    // async setMarginMode(accountMarginModeV5){
+    //     // await this.#rateLimiter.addJob();
+    //     console.log("[method: setMarginMode]");
+    //     return await bottleneck.schedule(()=> this.#restClientV5.setMarginMode({
+
+    //     }));
+    // }
+    /**
+     * @param {import("bybit-api").SwitchPositionModeParamsV5} switchPositionModeParamsV5
+     */
+    async switchPositionMode(switchPositionModeParamsV5){
+        // await this.#rateLimiter.addJob();
+        console.log("[method: switchPositionMode]");
+        return await bottleneck.schedule(()=> this.#restClientV5.switchPositionMode(switchPositionModeParamsV5));
+    }
+
+    /** 
+     * @param {import("bybit-api").SetLeverageParamsV5} setLeverageParamsV5
+     */
+    async setUserLeverage(setLeverageParamsV5){
+        // await this.#rateLimiter.addJob();
+        console.log("[method: setUserLeverage]");
+        console.log({setLeverageParamsV5});
+        return await bottleneck.schedule(()=> this.#restClientV5.setLeverage(setLeverageParamsV5));
+    }
+
+    ////////////
 
     /**
      * Query the margin mode and the upgraded status of account

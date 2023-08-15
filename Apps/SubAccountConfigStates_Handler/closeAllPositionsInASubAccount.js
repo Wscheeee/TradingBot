@@ -56,44 +56,47 @@ module.exports.closeAllPositionsInASubAccount = async function closeAllPositions
                 if(sizeToExecute===0||!sizeToExecute)throw new Error("sizeToExecute==="+sizeToExecute);
                 const total_standardized_qty = sizesToExecute.reduce((a,b)=>a+b,0);
                 console.log({total_standardized_qty});
-
-                const symbolInfo = await bybit.clients.bybit_LinearClient.getSymbolInfo(symbol);
+ 
+                const symbolInfo = await bybit.clients.bybit_RestClientV5.getSymbolInfo(symbol);
                 if(!symbolInfo)throw new Error("symbolInfo is undefined");
-                const symbolMaxLotSize = symbolInfo.lot_size_filter.max_trading_qty;
-                const symbolLotStepSize = symbolInfo.lot_size_filter.qty_step;
+                const symbolMaxLotSize = parseFloat(symbolInfo.lotSizeFilter.maxOrderQty);
+                const symbolLotStepSize = parseFloat(symbolInfo.lotSizeFilter.qtyStep);
 
                 /**
              * Switch position mode
              * */
-                const switchPositionMode_Res = await bybit.clients.bybit_LinearClient.switchPositionMode({
-                    mode:"BothSide",// 3:Both Sides
-                    symbol
+                const switchPositionMode_Res = await bybit.clients.bybit_RestClientV5.switchPositionMode({
+                    mode:3, //Position mode. 0: Merged Single. 3: Both Sides
+                    symbol,
+                    category:"linear"
                 });
-                if(Number(switchPositionMode_Res.ext_code)!==0){
+                if(Number(switchPositionMode_Res.retCode)!==0){
                 // an error
-                    onError(new Error("switchPositionMode_Res: "+""+switchPositionMode_Res.ret_msg));
+                    onError(new Error("switchPositionMode_Res: "+""+switchPositionMode_Res.retMsg));
                 }
     
                 // Switch user margin
-                const setPositionLeverage_Resp = await bybit.clients.bybit_LinearClient.switchMargin({
-                    is_isolated: true,
-                    buy_leverage: 1,
-                    sell_leverage: 1,
-                    symbol
+                const setPositionLeverage_Resp = await bybit.clients.bybit_RestClientV5.switchMarginToCrossOrIsolated({
+                    buyLeverage: String(leverage),
+                    sellLeverage: String(leverage),
+                    category:"inverse",
+                    symbol,
+                    tradeMode: 1//0: cross margin. 1: isolated margin
                 });
-                if(setPositionLeverage_Resp.ret_code!==0){
+                if(setPositionLeverage_Resp.retCode!==0){
                 // an error
-                    onError(new Error("setPositionLeverage_Resp: "+setPositionLeverage_Resp.ret_msg));
+                    onError(new Error("setPositionLeverage_Resp: "+setPositionLeverage_Resp.retMsg));
                 }
                 // Set user leverage
-                const setUserLeverage_Res = await bybit.clients.bybit_LinearClient.setUserLeverage({
-                    buy_leverage: leverage,
-                    sell_leverage: leverage,
-                    symbol
+                const setUserLeverage_Res = await bybit.clients.bybit_RestClientV5.setUserLeverage({
+                    buyLeverage: String(leverage),
+                    sellLeverage: String(leverage),
+                    symbol,
+                    category:"linear"
                 });
-                if(setUserLeverage_Res.ret_code!==0){
+                if(setUserLeverage_Res.retCode!==0){
                 // an error
-                    onError(new Error("setUserLeverage_Res: "+""+setUserLeverage_Res.ret_msg+"("+symbol+")"));
+                    onError(new Error("setUserLeverage_Res: "+""+setUserLeverage_Res.retMsg+"("+symbol+")"));
                 }
 
                 // /**

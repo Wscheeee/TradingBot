@@ -94,7 +94,7 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                                     pnl: pnl,
                                     roi: roi,
                                     size: partialPositionsSize,
-                                    previous_size_before_partial_close: savedPosition_.size,
+                                    previous_size_before_partial_close: savedPosition_.size, 
                                     status: "CLOSED",
                                     total_parts: currentPositionsTotalParts,
                                     trader_id: savedPosition_.trader_id,

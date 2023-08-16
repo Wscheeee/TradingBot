@@ -102,8 +102,9 @@ module.exports.positionUpdateHandler = async function positionUpdateHandler({
 async function handler({ 
     logger,mongoDatabase,position,trader,user,bot,onErrorCb
 }){
+    const FUNCTION_NAME = "(fn:positionUpdateHandler) (fn:handler)";
     try {
-        if(!user.privateKey.trim() ||!user.publicKey.trim()){
+        if(!user.privateKey || !user.privateKey.trim() ||!user.publicKey ||!user.publicKey.trim()){
             throw new Error("NO API KEYS PRESENT IN USER DOCUMENT");
         }
         /////////////////////////////////////////////
@@ -181,7 +182,10 @@ async function handler({
     
         
         await runPositionSetupsBeforeExecution({
-            bybit,logger,position 
+            bybit,position,
+            onError:(error)=>{
+                logger.error(`${FUNCTION_NAME} ${error.message}`);
+            }
         });
 
         /**

@@ -156,17 +156,7 @@ async function handler({
     logger,mongoDatabase,position,trader,user,bot,onErrorCb
 }){
     try {
-        if(!user.privateKey.trim() ||!user.publicKey.trim()){
-            // await sendTradeExecutionFailedMessage_toUser({
-            //     bot,
-            //     chatId: user.chatId,
-            //     position_direction: position.direction,
-            //     position_entry_price: position.entry_price,
-            //     position_leverage: position.leverage,
-            //     position_pair: position.pair,
-            //     trader_username: trader.username,
-            //     reason: "Position Close Error: NO API KEYS PRESENT IN USER DOCUMENT"
-            // });
+        if(!user.privateKey || !user.privateKey.trim() ||!user.publicKey ||!user.publicKey.trim()){
             throw new Error("NO API KEYS PRESENT IN USER DOCUMENT");
         }
         /////////////////////////////////////////////
@@ -267,9 +257,12 @@ async function handler({
         const total_standardized_qty = sizesToExecute.reduce((a,b)=>a+b,0);
         console.log({total_standardized_qty});
         
-        await runPositionSetupsBeforeExecution({
-            bybit,logger,position 
-        });
+        // await runPositionSetupsBeforeExecution({
+        //     bybit,position,
+        //     onError:(error)=>{
+        //         logger.error(`${FUNCTION_NAME} ${error.message}`);
+        //     }
+        // });
     
         //     /**
         //  * Get the position

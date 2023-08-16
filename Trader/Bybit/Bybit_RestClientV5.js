@@ -150,12 +150,13 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
     // }
 
     /**
-     * @param {import("bybit-api").SwitchIsolatedMarginParamsV5} switchIsolatedMarginParamsV5
+     * @param {import("bybit-api").AccountMarginModeV5} accountMarginModeV5
      */
-    async switchMarginToCrossOrIsolated(switchIsolatedMarginParamsV5){
-        // await this.#rateLimiter.addJob();
-        console.log("[method: switchMarginToCrossOrIsolated]");
-        return await bottleneck.schedule(()=> this.#restClientV5.switchIsolatedMargin(switchIsolatedMarginParamsV5));
+    async setMarginMode(accountMarginModeV5){
+        return await bottleneck.schedule(()=> {
+            console.log("[method: setMarginMode]");
+            return this.#restClientV5.setMarginMode(accountMarginModeV5)
+        });
     }
     // /**
     //  * @param {import("bybit-api").AccountMarginModeV5} accountMarginModeV5

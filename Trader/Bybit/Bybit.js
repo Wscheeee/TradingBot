@@ -283,7 +283,7 @@ module.exports.Bybit = class Bybit {
             }
             return p;
         }
-        const tickSize = parseFloat(priceFilter.tick_size);
+        const tickSize = parseFloat(priceFilter.tickSize);
 
         // Convert the input price to a numeric value
         const numericPrice = price;

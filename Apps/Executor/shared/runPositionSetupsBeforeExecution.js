@@ -5,11 +5,11 @@
  * 
  * @param {{
  *    bybit: import("../../../Trader").Bybit,
- *    logger: import("../../../Logger").Logger,
  *    position: import("../../../MongoDatabase/collections/open_trades/types").OpenTrades_Collection_Document_Interface,
+ *    onError:(error:Error)=>any
  * }} param0 
  */
-module.exports.runPositionSetupsBeforeExecution = async ({bybit,logger,position})=>{
+module.exports.runPositionSetupsBeforeExecution = async ({bybit,position,onError})=>{
     const FUNCTION_NAME = "(fn:runPositionSetupsBeforeExecution)";
     console.log(FUNCTION_NAME);
     try {
@@ -21,30 +21,22 @@ module.exports.runPositionSetupsBeforeExecution = async ({bybit,logger,position}
         });
         if(switchPositionMode_Res.retCode!==0){
             // an error
-            logger.error("switchPositionMode_Res: "+""+switchPositionMode_Res.retMsg);
-        }
+            // logger.error("switchPositionMode_Res: "+""+switchPositionMode_Res.retMsg);
+            onError(new Error("switchPositionMode_Res: "+""+switchPositionMode_Res.retMsg));
+        } 
 
         /**
                     * Switch Margin
                     */
-        const switchMarginToCrossOrIsolated_Resp = await bybit.clients.bybit_RestClientV5.switchMarginToCrossOrIsolated({
-            // is_isolated: false,
-            // buy_leverage:1,
-            // sell_leverage:1,
-            // symbol: position.pair,
-            buyLeverage: String(position.leverage),
-            sellLeverage: String(position.leverage),
-            category:"inverse",
-            symbol:position.pair,
-            tradeMode: 1//0: cross margin. 1: isolated margin
-
-        });
+        //@ts-ignore
+        const switchMarginToCrossOrIsolated_Resp = await bybit.clients.bybit_RestClientV5.setMarginMode("ISOLATED_MARGIN");
         if(switchMarginToCrossOrIsolated_Resp.retCode!==0){
             // an error
-            logger.error("switchMarginToCrossOrIsolated_Resp: "+""+switchMarginToCrossOrIsolated_Resp.retMsg+"("+position.pair+")");
+            // logger.error("switchMarginToCrossOrIsolated_Resp: "+""+switchMarginToCrossOrIsolated_Resp.retMsg+"("+position.pair+")"+switchMarginToCrossOrIsolated_Resp.result.reasons.map(r=>r.reasonMsg).join(", "));
+            onError(new Error("switchMarginToCrossOrIsolated_Resp: "+""+switchMarginToCrossOrIsolated_Resp.retMsg+"("+position.pair+")"+switchMarginToCrossOrIsolated_Resp.result.reasons.map(r=>r.reasonMsg).join(", ")));
         }
         /**
-                    * Seet User Leverage
+                    * Set User Leverage
                     */
         const setUserLeverage_Res = await bybit.clients.bybit_RestClientV5.setUserLeverage({
             buyLeverage: String(position.leverage),
@@ -54,9 +46,10 @@ module.exports.runPositionSetupsBeforeExecution = async ({bybit,logger,position}
         });
         if(setUserLeverage_Res.retCode!==0){
             // an error
-            logger.error("setUserLeverage_Res: "+""+setUserLeverage_Res.retMsg+"("+position.pair+")");
+            // logger.error("setUserLeverage_Res: "+""+setUserLeverage_Res.retMsg+"("+position.pair+")");
+            onError(new Error("setUserLeverage_Res: "+""+setUserLeverage_Res.retMsg+"("+position.pair+")"));
         }
-        logger.info("Sending openANewPosition Order to bybit_RestClientV5");
+        // logger.info("Sending openANewPosition Order to bybit_RestClientV5");
     }catch(error){
         error.message = `${FUNCTION_NAME} ${error.message}`;
         throw error;

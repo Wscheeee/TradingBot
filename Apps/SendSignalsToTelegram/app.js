@@ -61,12 +61,12 @@ console.log(process.env);
             }else {
                 console.log("Pass");
             }
-            if(position.size<position.previous_size_before_partial_close){
-                console.log("position.size<position.previous_size_before_partial_close: It''s a resize");
-                return;// Its a resize
-            }else {
-                console.log("Pass");
-            }
+            // if(position.size<position.previous_size_before_partial_close){
+            //     console.log("position.size<position.previous_size_before_partial_close: It''s a resize");
+            //     return;// Its a resize
+            // }else {
+            //     console.log("Pass");
+            // }
             console.log("Position updated"); 
             if(previousPosition.size<position.size){
                 console.log("previousPosition.size<position.size");
@@ -89,7 +89,7 @@ console.log(process.env);
 ❇️ Size Change of : ${sizeChange}
 
 ✨ Size : ${position.previous_size_before_partial_close} ➡️ ${position.size} ✨`
-);
+                );
             }
 
             if(previousPosition.leverage!==position.leverage){

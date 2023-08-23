@@ -3,8 +3,7 @@ const {DecimalMath} = require("../../Math");
 const { closeAllPositionsInASubAccount } = require("./closeAllPositionsInASubAccount");
 // const { markPositionsInDB_asClosedForATrader } = require("./markPositionsInDB_asClosedForATrader");
 
-//locals
-const { performUniversalTransfer } = require("./performUniversalTransfer");
+
 
 /** 
  * @param {{
@@ -413,7 +412,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                 if(new DecimalMath(transactionLedger.amount).removeDecimals().getResult()>=1){
                     const amount = new DecimalMath(transactionLedger.amount).removeDecimals().getResult();
                     if(amount>0){
-                        await performUniversalTransfer({
+                        await bybit.helpers.performUniversalTransfer({
                             amount: String(amount),
                             toMemberId: Number(transactionLedger.toUid),
                             fromMemberId: Number(transactionLedger.fromUid),

@@ -6,15 +6,12 @@
  * : It is important to note that you can't send many request in a second, 
  * : So it is important to cache the request and have a job runner taking the trades .
  */
-
+const crypto = require("node:crypto");
 const {WebsocketClient} = require("bybit-api");
 // const {Bybit_LinearClient} = require("./Bybit_LinearClient");
 const {Bybit_RestClientV5} = require("./Bybit_RestClientV5");
 // const {Bybit_AccountAssetClientV3} = require("./Bybit_AccountAssetClientV3");
-const {
-    getClosedPositionPNLObject,
-    getActualOpenPositionInBybit
-} = require("./helpers");
+const helpers= require("./helpers");
 
 const {DecimalMath} = require("../../Math/DecimalMath");
 
@@ -58,13 +55,27 @@ module.exports.Bybit = class Bybit {
             const subAccountNumber = subAccountName.split("_").splice(1,).join("");//Sub_1
             let username = `atomos${randomDigits}a${subAccountNumber}`;
             return username;
+        },
+        
+        generateUID: function generateUID(){
+            return crypto.randomUUID();
+        },
+        sleepAsync:(ms)=>{
+            console.log("fn:sleepAsync (ms: "+ms+")");
+            return new Promise((resolve)=>{
+                const timeout = setTimeout(()=>{
+                    clearTimeout(timeout);
+                    resolve(true);
+                },ms);
+            });
         }
     };
 
     // HELPERS
     helpers = {
-        getClosedPositionPNLObject,
-        getActualOpenPositionInBybit
+        ...helpers
+        // getClosedPositionPNLObject,
+        // getActualOpenPositionInBybit
     };
 
     // CONSTS/ENUMS
@@ -212,11 +223,14 @@ module.exports.Bybit = class Bybit {
             quantitiesArray = [...quantitiesArray,...arrayWithQuantitiesLeftToExecute];
         }
 
+        const lenOf_quantitiesArray = quantitiesArray.length;
+        if(lenOf_quantitiesArray===1 && quantitiesArray[0]<minQty)throw new Error("not enough balance");
         /// standardize the qty in arrayWithQuantitiesLeftToExecute
         return quantitiesArray.map((unstandardizedQty)=>{
+        
             const maxQty = new DecimalMath(Math.floor(new DecimalMath(unstandardizedQty).divide(stepSize).getResult())).multiply(stepSize).getResult();
             return maxQty >= minQty ? maxQty : 0;
-        });
+        }).filter(q => q!==0);
 
     }  
 

@@ -155,7 +155,7 @@ module.exports.Bybit_RestClientV5 = class Bybit_RestClientV5  {
     async setMarginMode(accountMarginModeV5){
         return await bottleneck.schedule(()=> {
             console.log("[method: setMarginMode]");
-            return this.#restClientV5.setMarginMode(accountMarginModeV5)
+            return this.#restClientV5.setMarginMode(accountMarginModeV5);
         });
     }
     // /**

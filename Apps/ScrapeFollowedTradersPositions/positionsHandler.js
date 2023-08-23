@@ -124,7 +124,7 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                                 // update leverage incase of change
                                 await mongoDatabase.collection.openTradesCollection.updateDocument(savedPosition_._id,{
                                     leverage: savedPosition_.leverage,
-                                });
+                                }); 
                             }
     
                             // Update other details
@@ -135,34 +135,35 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                                 server_timezone: process.env.TZ
                             });
     
-                        }// End of isPositionRunning
+                        }else {// End of isPositionRunning
      
-                        // if(savedPosition_.size<position_.amount){
-                        // means that a size was added :: might happen even when position is not running
-                        // update even if nothing changed
-                        // so update the position 
-                        await mongoDatabase.collection.openTradesCollection.updateDocument(savedPosition_._id,{
-                            trader_id: savedPosition_.trader_id,
-                            trader_uid: savedPosition_.trader_uid,
-                            // close_datetime: null,
-                            direction: savedPosition_.direction,
-                            entry_price: position_.entryPrice,
-                            followed: savedPosition_.followed,
-                            copied: savedPosition_.copied,
-                            leverage: savedPosition_.leverage,
-                            mark_price: position_.markPrice,
-                            open_datetime: savedPosition_.open_datetime,
-                            original_size: savedPosition_.original_size<position_.amount?position_.amount:savedPosition_.original_size, // Adjust original size incase of size increase
-                            pair: savedPosition_.pair,
-                            part: savedPosition_.part,
-                            size: position_.amount,
-                            previous_size_before_partial_close: (position_.amount!=savedPosition_.size?position_.amount:savedPosition_.previous_size_before_partial_close),
-                            status: savedPosition_.status,
-                            total_parts: currentPositionsTotalParts,
-                            document_created_at_datetime: savedPosition_.document_created_at_datetime,
-                            document_last_edited_at_datetime: new Date(),
-                            server_timezone: process.env.TZ
-                        });
+                            // if(savedPosition_.size<position_.amount){
+                            // means that a size was added :: might happen even when position is not running
+                            // update even if nothing changed
+                            // so update the position 
+                            await mongoDatabase.collection.openTradesCollection.updateDocument(savedPosition_._id,{
+                                trader_id: savedPosition_.trader_id,
+                                trader_uid: savedPosition_.trader_uid,
+                                // close_datetime: null,
+                                direction: savedPosition_.direction,
+                                entry_price: position_.entryPrice,
+                                followed: savedPosition_.followed,
+                                copied: savedPosition_.copied,
+                                leverage: savedPosition_.leverage,
+                                mark_price: position_.markPrice,
+                                open_datetime: savedPosition_.open_datetime,
+                                original_size: savedPosition_.original_size<position_.amount?position_.amount:savedPosition_.original_size, // Adjust original size incase of size increase
+                                pair: savedPosition_.pair,
+                                part: savedPosition_.part,
+                                size: position_.amount,
+                                previous_size_before_partial_close: (position_.amount!=savedPosition_.size?position_.amount:savedPosition_.previous_size_before_partial_close),
+                                status: savedPosition_.status,
+                                total_parts: currentPositionsTotalParts,
+                                document_created_at_datetime: savedPosition_.document_created_at_datetime,
+                                document_last_edited_at_datetime: new Date(),
+                                server_timezone: process.env.TZ
+                            });
+                        }
                             
                         
                     }
@@ -213,8 +214,9 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
                     for(const openPosition_ of traderPositions){
                         if(
                             savedPosition_.pair===openPosition_.symbol &&
-                            savedPosition_.direction===openPosition_.direction &&
-                            savedPosition_.leverage===openPosition_.leverage
+                            savedPosition_.direction===openPosition_.direction 
+                            // &&
+                            // savedPosition_.leverage===openPosition_.leverage
                         ){
                             positionStillOpen = true;
                         }

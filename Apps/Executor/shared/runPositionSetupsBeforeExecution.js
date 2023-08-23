@@ -28,12 +28,24 @@ module.exports.runPositionSetupsBeforeExecution = async ({bybit,position,onError
         /**
                     * Switch Margin
                     */
-        //@ts-ignore
+        //@ts-ignore  
         const switchMarginToCrossOrIsolated_Resp = await bybit.clients.bybit_RestClientV5.setMarginMode("ISOLATED_MARGIN");
         if(switchMarginToCrossOrIsolated_Resp.retCode!==0){
-            // an error
+            // an errorr
+            const constructReasonsMessage = ()=>{
+                let msg = "";
+                if(switchMarginToCrossOrIsolated_Resp.result && switchMarginToCrossOrIsolated_Resp.result.reasons && Array.isArray(switchMarginToCrossOrIsolated_Resp.result.reasons)){
+                    switchMarginToCrossOrIsolated_Resp.result.reasons.forEach(r=>{
+                        msg += r.reasonMsg;
+                    });
+
+                }
+                return msg;
+            };
+            
+
             // logger.error("switchMarginToCrossOrIsolated_Resp: "+""+switchMarginToCrossOrIsolated_Resp.retMsg+"("+position.pair+")"+switchMarginToCrossOrIsolated_Resp.result.reasons.map(r=>r.reasonMsg).join(", "));
-            onError(new Error("switchMarginToCrossOrIsolated_Resp: "+""+switchMarginToCrossOrIsolated_Resp.retMsg+"("+position.pair+")"+switchMarginToCrossOrIsolated_Resp.result.reasons.map(r=>r.reasonMsg).join(", ")));
+            onError(new Error("switchMarginToCrossOrIsolated_Resp: "+""+switchMarginToCrossOrIsolated_Resp.retMsg+"("+position.pair+")"+ constructReasonsMessage()));
         }
         /**
                     * Set User Leverage

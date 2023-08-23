@@ -129,6 +129,9 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
             // standardize the qty
             const standardizedQTY = await bybit.standardizeQuantity({ quantity: qtyToByWith, symbol: position.pair });
             console.log({ standardizedQTY });
+
+            // check that the user accoun balance is able to buy the standardiized qty
+            
      
             sizesToExecute = standardizedQTY;
             const symbolInfo = await bybit.clients.bybit_RestClientV5.getSymbolInfo(position.pair);

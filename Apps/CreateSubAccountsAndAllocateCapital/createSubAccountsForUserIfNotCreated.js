@@ -247,19 +247,10 @@ async function createSubAccount_itsApi_andSaveInDB({
  
 
     // Create Api Key for the Sub Account
-    const createSubAccountUIDAPIKey_Res = await bybit.clients.bybit_RestClientV5.createSubAccountUIDAPIKey({
-        permissions:{
-            ContractTrade:["Order","Position"],
-            Derivatives:["DerivativesTrade"],
-            Wallet:["AccountTransfer","SubMemberTransferList"],
-            Exchange:["ExchangeHistory"]
-
-        },
-        //@ts-ignore
-        readOnly: bybit.API_KEYS_READ_ONLY_MODES.READ_AND_WRITE,//Read and Write
-        //@ts-ignore
-        subuid: createdAccount.uid,
-        note: sub_account_api_note,//"Atomos Default Config"
+    const createSubAccountUIDAPIKey_Res = await bybit.helpers.createSubAccountApiKeys({
+        bybit:bybit,
+        sub_account_api_note:sub_account_api_note,
+        sub_account_uid: createdAccount.uid
     });
     if(createSubAccountUIDAPIKey_Res.retCode!==0)throw new Error(createSubAccountUIDAPIKey_Res.retMsg);
 
@@ -385,18 +376,10 @@ async function createSubAccount_itsApi_andUpdateInDB({
     
 
     // Create Api Key for the Sub Account
-    const createSubAccountUIDAPIKey_Res = await bybit.clients.bybit_RestClientV5.createSubAccountUIDAPIKey({
-        permissions:{
-            ContractTrade:["Order","Position"],
-            Derivatives:["DerivativesTrade"],
-            Wallet:["AccountTransfer","SubMemberTransferList"],
-            Exchange:["ExchangeHistory"]
-
-        }, 
-        //@ts-ignore
-        readOnly: bybit.API_KEYS_READ_ONLY_MODES.READ_AND_WRITE,//Read and Write
-        subuid: Number(createdAccount.uid),
-        note: sub_account_api_note,//"Atomos Default Config"
+    const createSubAccountUIDAPIKey_Res = await bybit.helpers.createSubAccountApiKeys({
+        bybit:bybit,
+        sub_account_api_note:sub_account_api_note,
+        sub_account_uid: createdAccount.uid
     });
     if(createSubAccountUIDAPIKey_Res.retCode!==0)throw new Error(createSubAccountUIDAPIKey_Res.retMsg);
     console.log("API kes created");

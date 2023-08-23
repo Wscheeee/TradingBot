@@ -2,7 +2,7 @@
 /**
  * 
  * @param {{
- *   bybit: import("../../Trader/Bybit").Bybit,
+ *   bybit: import("../Trader/Bybit").Bybit,
  *   sub_account_uid: string,
  *   sub_account_api_note: string
  * }} param0 
@@ -19,7 +19,9 @@ module.exports.createSubAccountApiKeys = async function createSubAccountApiKeys(
                 ContractTrade:["Order","Position"],
                 Derivatives:["DerivativesTrade"],
                 Wallet:["AccountTransfer","SubMemberTransferList"],
-                Exchange:["ExchangeHistory"]
+                Exchange:["ExchangeHistory"],
+                Spot:["SpotTrade"],
+                Options:["DerivativesTrade"]
 
             }, 
             //@ts-ignore

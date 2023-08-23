@@ -61,17 +61,18 @@ console.log(process.env);
             }else {
                 console.log("Pass");
             }
-            // if(position.size<position.previous_size_before_partial_close){
-            //     console.log("position.size<position.previous_size_before_partial_close: It''s a resize");
-            //     return;// Its a resize
-            // }else {
-            //     console.log("Pass");
-            // }
+            if(position.size<position.previous_size_before_partial_close){
+                console.log("position.size<position.previous_size_before_partial_close: It''s a resize");
+                return;// Its a resize
+            }else {
+                console.log("Pass");
+            }
             console.log("Position updated"); 
             if(previousPosition.size<position.size){
                 console.log("previousPosition.size<position.size");
                 // size increased
-                let sizeChange = new DecimalMath(position.size).subtract(position.previous_size_before_partial_close).getResult();
+                // let sizeChange = new DecimalMath(position.size).subtract(position.previous_size_before_partial_close).getResult();
+                let sizeChange = new DecimalMath(position.size).subtract(previousPosition.size).getResult();
                 if(sizeChange===0)return;
                 if (sizeChange >= 0) {
                     sizeChange = "+" + sizeChange; }
@@ -88,7 +89,7 @@ console.log(process.env);
 ⌛ Entry Price : ${new DecimalMath(position.entry_price).truncateToDecimalPlaces(5).getResult()}
 ❇️ Size Change of : ${sizeChange}
 
-✨ Size : ${position.previous_size_before_partial_close} ➡️ ${position.size} ✨`
+✨ Size : ${previousPosition.size} ➡️ ${position.size} ✨`
                 );
             }
 

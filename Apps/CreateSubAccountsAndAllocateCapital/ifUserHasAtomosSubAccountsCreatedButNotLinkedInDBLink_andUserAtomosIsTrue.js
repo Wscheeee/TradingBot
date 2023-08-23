@@ -2,8 +2,6 @@
 // ifUserHasAttomosSubAccountsCreatedButNotLinkedInDBLink.js
 
 
-//locals
-const {createSubAccountApiKeys} = require("./createSubAccountApiKeys");
 
 /** 
  * @param {{
@@ -80,7 +78,7 @@ module.exports.ifUserHasAtomosSubAccountsCreatedButNotLinkedInDBLink_andUserAtom
             const atomosSubAccountInBybit = unlinked_atomosSubAccountsPresentInUserBybitAccount_Array.pop();
             if(!atomosSubAccountInBybit)return;
             // Create apis
-            const createSubAccountAPIKeys_Response = await createSubAccountApiKeys({
+            const createSubAccountAPIKeys_Response = await bybit.helpers.createSubAccountApiKeys({
                 bybit,
                 sub_account_api_note:"Atomos Default Config",
                 sub_account_uid:atomosSubAccountInBybit.uid

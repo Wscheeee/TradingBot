@@ -28,6 +28,7 @@ module.exports.closeAllPositionsInASubAccount = async function closeAllPositions
 
                 const {side,size:size_string,symbol, leverage:leverage_string, avgPrice:avgPrice_string} = order;
                 const size = parseFloat(size_string);
+                
                 const leverage = parseFloat(leverage_string);
                 const position_direction = side==="Buy"?"LONG":"SHORT";
                 const entry_price = parseFloat(avgPrice_string);
@@ -59,43 +60,7 @@ module.exports.closeAllPositionsInASubAccount = async function closeAllPositions
                 const symbolMaxLotSize = parseFloat(symbolInfo.lotSizeFilter.maxOrderQty);
                 const symbolLotStepSize = parseFloat(symbolInfo.lotSizeFilter.qtyStep);
     
-            //     /**
-            //  * Switch position mode
-            //  * */
-            //     const switchPositionMode_Res = await bybit.clients.bybit_RestClientV5.switchPositionMode({
-            //         mode:3, //Position mode. 0: Merged Single. 3: Both Sides
-            //         symbol,
-            //         category:"linear"
-            //     });
-            //     if(Number(switchPositionMode_Res.retCode)!==0){
-            //     // an error
-            //         onError(new Error("switchPositionMode_Res: "+""+switchPositionMode_Res.retMsg));
-            //     }
-    
-            //     // Switch user margin
-            //     const setPositionLeverage_Resp = await bybit.clients.bybit_RestClientV5.switchMarginToCrossOrIsolated({
-            //         buyLeverage: String(leverage),
-            //         sellLeverage: String(leverage),
-            //         category:"inverse",
-            //         symbol,
-            //         tradeMode: 1//0: cross margin. 1: isolated margin
-            //     });
-            //     if(setPositionLeverage_Resp.retCode!==0){
-            //     // an error
-            //         onError(new Error("setPositionLeverage_Resp: "+setPositionLeverage_Resp.retMsg));
-            //     }
-            //     // Set user leverage
-            //     const setUserLeverage_Res = await bybit.clients.bybit_RestClientV5.setUserLeverage({
-            //         buyLeverage: String(leverage),
-            //         sellLeverage: String(leverage),
-            //         symbol,
-            //         category:"linear"
-            //     });
-                
-            //     if(setUserLeverage_Res.retCode!==0){
-            //         // an error
-            //         onError(new Error("setUserLeverage_Res: "+""+setUserLeverage_Res.retMsg+"("+symbol+")"));
-            //     }
+
 
 
 

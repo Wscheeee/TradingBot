@@ -4,7 +4,7 @@
 /**
  * 
  * @param {{
-*      masterBybit: import("../../Trader/Bybit").Bybit,
+*      masterBybit: import("..//Bybit").Bybit,
 *      subAccountsUids:string[],
 * }} param0
 */

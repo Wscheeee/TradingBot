@@ -1,6 +1,5 @@
 
 //@ts-check
-const {sleepAsync} = require("../../Utils/sleepAsync");
 
 const { enableUniversalTransferForSubAccounts } = require("./enableUniversalTransferForSubAccounts");
 
@@ -8,8 +7,8 @@ const { enableUniversalTransferForSubAccounts } = require("./enableUniversalTran
 /**
  * 
  * @param {{
-*      masterBybit: import("../../Trader/Bybit").Bybit,
-*      bybit: import("../../Trader/Bybit").Bybit,
+*      masterBybit: import("..//Bybit").Bybit,
+*      bybit: import("..//Bybit").Bybit,
 *      amount: string,
 *      toMemberId: number,
 *      fromMemberId: number,
@@ -31,7 +30,7 @@ module.exports.performUniversalTransfer =  async function performUniversalTransf
             toAccountType:"UNIFIED",
             toMemberId,
             fromMemberId,
-            transferId: require("../../Utils/generateUID").generateUID()
+            transferId: bybit.utils.generateUID()
         });
         console.log(createUniversalTransfer_Res);
         if(createUniversalTransfer_Res.retCode!==0){
@@ -48,7 +47,7 @@ module.exports.performUniversalTransfer =  async function performUniversalTransf
                 });
             }else if(createUniversalTransfer_Res.retMsg.includes("biz err exist transferring contract out record") && !isRetry){//TODO: Know how many times to retry
                 console.log("Retrying...");
-                await sleepAsync(2000);
+                await bybit.utils.sleepAsync(2000);
                 return await performUniversalTransfer({
                     masterBybit,bybit,amount,fromMemberId,subAccountsUids,toMemberId,isRetry:true
                 });

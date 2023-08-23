@@ -174,7 +174,8 @@ async function handler({
             mongoDatabase,
             action:"trade_close",
             user,
-            telegram_userMessagingBot:bot
+            telegram_userMessagingBot:bot,
+            decimal_allocation: subAccountDocument.allocation
         });
         const sizeToExecute = sizesToExecute[0];
         console.log({sizesToExecute,sizeToExecute});

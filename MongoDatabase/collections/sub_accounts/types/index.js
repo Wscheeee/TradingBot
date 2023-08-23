@@ -1,6 +1,7 @@
 /**
  * @typedef {{
  *      sub_account_username: string,
+ *      allocation: number,
  *      trader_username: string,
  *      trader_uid: string,
  *      weight: number,

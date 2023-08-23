@@ -13,6 +13,7 @@ const {sendTradeExecutionFailedMessage_toUser} = require("../../../../Telegram/m
  *      mongoDatabase: import("../../../../MongoDatabase").MongoDatabase,
  *      telegram_userMessagingBot: import("../../../../Telegram").Telegram,
  *      totalUSDT_balance?: number,
+ *      decimal_allocation: number
  * }} param0
  */
 module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgorithm({
@@ -23,7 +24,8 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
     bybit,
     mongoDatabase,
     telegram_userMessagingBot,
-    totalUSDT_balance 
+    totalUSDT_balance,
+    decimal_allocation
 }) {
     const FUNCTION_NAME = "(fn:newPositionSizingAlgorithm)";
     try{
@@ -100,17 +102,31 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
             }
             // - Check if balance changed more than 15% from yesterday (this is to prevent from innacurate balance calculations)
             // const diff = Math.abs((trader_balance_today - trader_balance_yesterday).dividedBy(trader_balance_yesterday)) * 100;
-            const diff = Math.abs(new DecimalMath((trader_balance_today - trader_balance_yesterday)).divide(trader_balance_yesterday).getResult()) * 100;
+            // const diff = Math.abs(new DecimalMath((trader_balance_today - trader_balance_yesterday)).divide(trader_balance_yesterday).getResult()) * 100;
                 
             // - Calculate the trader allocated balance for this trade
+            // let qty = 0;
+            // const ratio = tradeValue / trader_balance_today;
+            // qty = totalUSDT_balance * ratio;
+
             let qty = 0;
-    
-            if (diff > 15) {
-                qty = trader_balance_today * 0.01;          
-            } else {
+            if (decimal_allocation === 0){
+
                 const ratio = tradeValue / trader_balance_today;
                 qty = totalUSDT_balance * ratio;
-            }
+
+            } else if (decimal_allocation > 0) {
+
+                qty = totalUSDT_balance * decimal_allocation;
+            }else{
+                throw new Error("decimal_allocation for sub account is neiither 0 nor >0");
+            };
+            // if (diff > 15) {
+            //     qty = trader_balance_today * 0.01;          
+            // } else {
+            //     const ratio = tradeValue / trader_balance_today;
+            //     qty = totalUSDT_balance * ratio;
+            // }
     
     
             // END

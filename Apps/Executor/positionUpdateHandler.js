@@ -219,7 +219,8 @@ async function handler({
             action:"new_trade",
             user,
             totalUSDT_balance,
-            telegram_userMessagingBot:bot
+            telegram_userMessagingBot:bot,
+            decimal_allocation: subAccountDocument.allocation
         });
         const sizeToExecute = sizesToExecute[0];
         console.log({sizesToExecute,sizeToExecute});

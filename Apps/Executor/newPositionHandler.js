@@ -243,13 +243,14 @@ async function handler({
         const {sizesToExecute, symbolLotStepSize, symbolMaxLotSize} = await newPositionSizingAlgorithm({
             bybit,
             position,
-            trader,
+            trader, 
             mongoDatabase,
             action:"new_trade",
             user,
             //need to pass totalUSDT_balance in newPositionSizingAlgorithm
             totalUSDT_balance,
-            telegram_userMessagingBot:bot
+            telegram_userMessagingBot:bot,
+            decimal_allocation: subAccountDocument.allocation
         });
         const sizeToExecute = sizesToExecute[0];
         console.log({sizesToExecute,sizeToExecute});

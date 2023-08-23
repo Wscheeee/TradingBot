@@ -46,6 +46,8 @@ Contact @AzmaFr`;
             reason_msg = "Original Position was not Opened";
         }else if (reason.toLowerCase().includes("thetradeinbybit")){            
             reason_msg = "Original Position was not Opened";
+        }else if(reason.toLowerCase().includes("not enough balance")){
+            reason_msg = "Balance too low to execute";
         }
 
         await bot.sendMessage(chatId,

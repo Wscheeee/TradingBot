@@ -406,7 +406,7 @@ process.env.TZ = dotEnvObj.TZ;
                                             testnet: subDocument.testnet===false?false:true
                                         });
                     
-                                        closeAllPositionsInASubAccount({
+                                        await closeAllPositionsInASubAccount({
                                             bybit,
                                             mongoDatabase,
                                             onError:(error)=>{
@@ -417,6 +417,8 @@ process.env.TZ = dotEnvObj.TZ;
                                             //@ts-ignore
                                             user
                                         });
+
+                                        // Set sub account weight to 0
 
                                     }
                                 }

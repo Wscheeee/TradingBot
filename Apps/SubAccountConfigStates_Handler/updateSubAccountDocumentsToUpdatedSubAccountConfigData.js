@@ -17,6 +17,7 @@ module.exports.updateSubAccountDocumentsToUpdatedSubAccountConfigData = async fu
     mongoDatabase,sub_link_name,updatedSubAccountConfigDocument,user
 }){
     const FUNCTION_NAME = "(fn:updateSubAccountDocumentsToUpdatedSubAccountConfigData)";
+    console.log(FUNCTION_NAME);
     try{
        
         /**

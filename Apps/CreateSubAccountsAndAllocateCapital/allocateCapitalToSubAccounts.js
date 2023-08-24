@@ -82,7 +82,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
         // Retrieve the weight of each trader and calculate the correct capital for each account
         for (const subAccount of userSubAccounts_Array) {
             const weight = Number(subAccount.weight);
-            const desiredBalance = totalAccountsBalance * weight;
+            const desiredBalance = user.status===false?0:totalAccountsBalance * weight;
             const accountBalance = accountUsernameToTheirDetailsObj[subAccount.sub_account_username].balance;
             // Calculate the difference between current and desired balances
             const accountDifference = accountBalance - desiredBalance;
@@ -279,7 +279,7 @@ module.exports.allocateCapitalToSubAccounts = async function allocateCapitalToSu
                     if(subAccountInfoBalancesCalcsObj && subAccountInfoBalancesCalcsObj.difference>0 && Number(subAccountInfoBalancesCalcsObj.difference.toFixed(2))>0.0){
                         const amount = new DecimalMath(subAccountInfoBalancesCalcsObj.difference).removeDecimals().getResult();
                         if(amount>0){
-                            await performUniversalTransfer({
+                            await bybit.helpers.performUniversalTransfer({
                                 amount: String(amount),
                                 toMemberId: Number(getMasterAccountAPIKeyInfo_Res.result.userID),
                                 fromMemberId: Number(subAccount.sub_account_uid),

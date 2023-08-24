@@ -21,7 +21,7 @@ module.exports.createSubAccountApiKeys = async function createSubAccountApiKeys(
                 Wallet:["AccountTransfer","SubMemberTransferList"],
                 Exchange:["ExchangeHistory"],
                 Spot:["SpotTrade"],
-                Options:["DerivativesTrade"]
+                Options:["OptionsTrade"]
 
             }, 
             //@ts-ignore

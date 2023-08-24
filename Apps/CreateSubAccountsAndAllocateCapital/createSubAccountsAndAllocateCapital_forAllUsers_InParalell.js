@@ -28,7 +28,7 @@ module.exports.createSubAccountsAndAllocateCapital_forAllUsers_InParalell =  asy
         if(!mongoDatabase)return;
         console.log("Getting users with status ===true");
         // Loop through users and create requuired subaccounts
-        const usersDocuments_Cursor = await mongoDatabase.collection.usersCollection.getAllDocumentsBy({
+        const usersDocuments_Cursor = user?await mongoDatabase.collection.usersCollection.getAllDocuments():await mongoDatabase.collection.usersCollection.getAllDocumentsBy({
             status: true
         });
         // const l = (await usersDocuments_Cursor.toArray()).length;

@@ -110,7 +110,7 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
             // qty = totalUSDT_balance * ratio;
 
             let qty = 0;
-            if (decimal_allocation === 0){
+            if (!decimal_allocation || decimal_allocation === 0){
 
                 const ratio = tradeValue / trader_balance_today;
                 qty = totalUSDT_balance * ratio;
@@ -119,7 +119,7 @@ module.exports.newPositionSizingAlgorithm = async function newPositionSizingAlgo
 
                 qty = totalUSDT_balance * decimal_allocation;
             }else{
-                throw new Error("decimal_allocation for sub account is neiither 0 nor >0");
+                throw new Error("decimal_allocation for sub account is neither 0 nor >0 nor undefined decimal_allocation:"+decimal_allocation);
             };
             // if (diff > 15) {
             //     qty = trader_balance_today * 0.01;          

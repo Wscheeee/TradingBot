@@ -1,7 +1,9 @@
 // const {performFetch} = require("../Utils/performFetch")
-const  {  Browser, Page} =  require('puppeteer');
+const  {  Browser, Page} =  require("puppeteer");
 // types
-const {TradeType_Types , StaticticsType_Types} = require("./types/index")
+const {TradeType_Types , StaticticsType_Types} = require("./types/index");
+
+const {performFetchWithinBrowser} = require("./utils/performFetchWithinBrowser");
 /**
  * 
  * @typedef {"DAILY"|"WEEKLY"|"EXACT_WEEKLY"|"EXACT_YEARLY"|"EXACT_MONTHLY"|"MONTHLY"|"YEARLY"|"ALL"} PerformancePeriodType_Types
@@ -40,8 +42,9 @@ const {TradeType_Types , StaticticsType_Types} = require("./types/index")
  * @returns {GetOtherPerformance_API_Response_Interface} 
  */
 exports.getOtherPerformance_API = async function getOtherPerformance_API(page,payload){
+    const FUNCTION_NAME = "[method:getOtherPerformance_API]";
     try {
-        console.log("[method:getOtherPerformance_API]")
+        console.log(FUNCTION_NAME);
         const res = await page.evaluate(async ({encryptedUid,tradeType})=>{
             const url = "https://www.binance.com/bapi/futures/v2/public/future/leaderboard/getOtherPerformance";
             const method = "POST";
@@ -54,10 +57,10 @@ exports.getOtherPerformance_API = async function getOtherPerformance_API(page,pa
                 tradeType
             };
 
-            const postBody = JSON.stringify(requestPayload)
+            const postBody = JSON.stringify(requestPayload);
 
 
-            const res = await fetch(url,{
+            const res = await performFetchWithinBrowser(url,{
                 method,
                 body:postBody,
                 credentials:"include",
@@ -76,22 +79,23 @@ exports.getOtherPerformance_API = async function getOtherPerformance_API(page,pa
                 // console.log(res)
                 if(resJson.code!=="000000"){
                     // an error occcurred
-                    throw new Error(resJson.message)
+                    throw new Error(resJson.message);
                 }else {
                     return resJson;
                 }
             }catch(error){
-                const text = await resCopy.text()
+                const text = await resCopy.text();
                 throw new Error(text);
-            };
+            }
             
-        },payload)
+        },payload);
         // const res = await getLeaderboardRank()
         return res;
     }catch(error){
+        error.message  = `${FUNCTION_NAME} ${error.message}`;
         throw error;
     }
-}
+};
 
 
 
@@ -111,7 +115,7 @@ class BinanceTraderPerfomance {
     //utils
     toJson(){
         return this.#performanceData;
-    };
+    }
 
     // getters
     get periodType(){
@@ -144,12 +148,12 @@ module.exports.getValueForPerformance = function getValueForPerformance(performa
     */
     const performancePeriodTypesAvailableAndTheirAvailableStatTypes = {};
     performanceList.forEach((performance)=> {
-         if(!performancePeriodTypesAvailableAndTheirAvailableStatTypes[performance.periodType]){
-             performancePeriodTypesAvailableAndTheirAvailableStatTypes[performance.periodType] = [];
-         };
-         performancePeriodTypesAvailableAndTheirAvailableStatTypes[performance.periodType].push(performance.statisticsType)
+        if(!performancePeriodTypesAvailableAndTheirAvailableStatTypes[performance.periodType]){
+            performancePeriodTypesAvailableAndTheirAvailableStatTypes[performance.periodType] = [];
+        }
+        performancePeriodTypesAvailableAndTheirAvailableStatTypes[performance.periodType].push(performance.statisticsType);
 
-     });
+    });
 
     const performancePeriodTypesAvailable = performanceList.map((performance)=> performance.periodType);
     // const performanceStatisticsTypesAvailable = performanceList.map((performance)=> performance.statisticsType);
@@ -165,10 +169,10 @@ module.exports.getValueForPerformance = function getValueForPerformance(performa
         if(performance.periodType===periodType && performance.statisticsType===statisticsType){
             v = performance && performance.value? performance.value: defaultValue_;
         }
-    })
+    });
     return v;
 
-}
+};
 
 module.exports.BinanceTraderPerfomance = BinanceTraderPerfomance;
 

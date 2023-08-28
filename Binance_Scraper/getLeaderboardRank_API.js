@@ -1,5 +1,7 @@
 // const {performFetch} = require("../Utils/performFetch")
 const  {  Browser, Page} =  require("puppeteer");
+
+const {performFetchWithinBrowser} = require("./utils/performFetchWithinBrowser");
 /**
  * @typedef  {{
  *      encryptedUid: string,
@@ -48,7 +50,7 @@ const  {  Browser, Page} =  require("puppeteer");
 
 
 /***
- * @param {Page} page
+ * @param {import("puppeteer").Page} page
  * @param {GetOtherLeaderboardBaseInfo_API_Payload_Interface} payload 
  * @returns {GetLeaderboardRank_Response_Interface} 
  */
@@ -63,7 +65,7 @@ exports.getLeaderboardRank_API = async function getLeaderboardRank_API(page,payl
             const postBody = JSON.stringify(payload);
 
             
-            const res = await fetch(url,{
+            const res = await performFetchWithinBrowser(url,{
                 method,
                 body:postBody,
                 credentials:"include",

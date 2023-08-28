@@ -1,10 +1,10 @@
-'use strict';
+"use strict";
 //@ts-check
-const  {  Browser, Page} =  require('puppeteer');
+const  {  Browser, Page} =  require("puppeteer");
 // types
-const {TradeType_Types, PeriodType_Types, StaticticsType_Types} = require("./types/index")
+const {TradeType_Types, PeriodType_Types, StaticticsType_Types} = require("./types/index");
 
-
+const {performFetchWithinBrowser} = require("./utils/performFetchWithinBrowser");
 
 /**
  * @typedef {[year:number,month:number,day:number,hour:number,minute:number,second:number,ms:number]} UpdateTime_Interface
@@ -42,7 +42,7 @@ const {TradeType_Types, PeriodType_Types, StaticticsType_Types} = require("./typ
 
 /**
  * @typedef {{
- *      encryptedUid:string, tradeType:TradeType_Types
+ *      encryptedUid:string, tradeType: import("./types/index").TradeType_Types
  *  }} GetOtherPosition_API_Payload_Interface
  */
 /***
@@ -51,8 +51,9 @@ const {TradeType_Types, PeriodType_Types, StaticticsType_Types} = require("./typ
  * @returns {GetOtherPosition_API_Response_Interface} 
 */
 exports.getOtherPosition_API = async function getOtherPosition_API(page,payload){
+    const FUNCTION_NAME = "[method:getOtherPosition_API]";
     try {
-        console.log("[method:getOtherPosition_API]")
+        console.log(FUNCTION_NAME);
         const res = await page.evaluate(async ({encryptedUid,tradeType})=>{
             const url = "https://www.binance.com/bapi/futures/v1/public/future/leaderboard/getOtherPosition";
             const method = "POST";
@@ -65,9 +66,9 @@ exports.getOtherPosition_API = async function getOtherPosition_API(page,payload)
                 tradeType
             };
 
-            const postBody = JSON.stringify(requestPayload)
+            const postBody = JSON.stringify(requestPayload);
 
-            const res = await fetch(url,{
+            const res = await performFetchWithinBrowser(url,{
                 method,
                 body:postBody,
                 credentials:"include",
@@ -86,21 +87,22 @@ exports.getOtherPosition_API = async function getOtherPosition_API(page,payload)
                 // console.log(res)
                 if(resJson.code!=="000000"){
                     // an error occcurred
-                    throw new Error(resJson.message)
+                    throw new Error(resJson.message);
                 }else {
                     return resJson;
                 }
             }catch(error){
-                const text = await resCopy.text()
+                const text = await resCopy.text();
                 throw new Error(text);
             }
-        },payload)
+        },payload);
         // const res = await getLeaderboardRank()
         return res;
     }catch(error){
+        error.message = `${FUNCTION_NAME} ${error.message}`;
         throw error;
     }
-}
+};
 
 
 
@@ -129,13 +131,13 @@ module.exports.BinancePosition =  class BinancePosition {
     //utils
     toJson(){
         return this.#positionData;
-    };
+    }
 
     get direction(){
         return this.#direction;
     }
     get amount(){
-        return Math.abs(this.#positionData.amount)
+        return Math.abs(this.#positionData.amount);
     }
 
     get entryPrice(){

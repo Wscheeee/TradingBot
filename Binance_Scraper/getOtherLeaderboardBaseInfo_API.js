@@ -1,5 +1,6 @@
 // const {performFetch} = require("../Utils/performFetch")
-const  {  Browser, Page} =  require('puppeteer');
+
+const {performFetchWithinBrowser} = require("./utils/performFetchWithinBrowser");
 /**
  * @typedef  {{
  *      deliveryPosiitionShared:boolean,
@@ -17,6 +18,8 @@ const  {  Browser, Page} =  require('puppeteer');
  * }} BinanceOtherLeaderboardBaseInfo_Interface
  */
 
+
+
 /**
  * 
  * @typedef {{
@@ -29,7 +32,7 @@ const  {  Browser, Page} =  require('puppeteer');
  */
 /**
  * @typedef {{encryptedUid:string}} GetOtherLeaderboardBaseInfo_Payload_Interface
- */
+ */ 
 
 /***
  * @param {Page} page
@@ -37,8 +40,9 @@ const  {  Browser, Page} =  require('puppeteer');
  * @returns {GetOtherLeaderboardBaseInfo_API_Response_Interface} 
  */
 exports.getOtherLeaderboardBaseInfo_API = async function getOtherLeaderboardBaseInfo_API(page,payload){
+    const FUNCTION_NAME = "[method:getOtherLeaderboardBaseInfo_API]";
     try {
-        console.log("[method:getOtherLeaderboardBaseInfo_API]")
+        console.log(FUNCTION_NAME);
         const res = await page.evaluate(async ({encryptedUid})=>{
             const url = "https://www.binance.com/bapi/futures/v2/public/future/leaderboard/getOtherLeaderboardBaseInfo";
             const method = "POST";
@@ -50,9 +54,18 @@ exports.getOtherLeaderboardBaseInfo_API = async function getOtherLeaderboardBase
                 encryptedUid
             };
 
-            const postBody = JSON.stringify(requestPayload)
+            const postBody = JSON.stringify(requestPayload);
 
-            const res = await fetch(url,{
+            // const res = await fetch(url,{
+            // method,
+            // body:postBody,
+            // credentials:"include",
+            // headers:{
+            //     "Content-Type":"application/json",
+            //     "User-Agent":"Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Mobile Safari/537.36"
+            // }
+            // });
+            const res = await performFetchWithinBrowser(url,{
                 method,
                 body:postBody,
                 credentials:"include",
@@ -71,19 +84,20 @@ exports.getOtherLeaderboardBaseInfo_API = async function getOtherLeaderboardBase
                 // console.log(res)
                 if(resJson.code!=="000000"){
                     // an error occcurred
-                    throw new Error(resJson.message)
+                    throw new Error(resJson.message);
                 }else {
                     return resJson;
                 }
             }catch(error){
-                const text = await resCopy.text()
+                const text = await resCopy.text();
                 throw new Error(text);
             }
-        },payload)
+        },payload);
         // const res = await getLeaderboardRank()
         return res;
     }catch(error){
+        error.message = `${FUNCTION_NAME} ${error.message}`;
         throw error;
     }
-}
+};
 

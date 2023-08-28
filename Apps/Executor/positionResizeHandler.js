@@ -188,7 +188,7 @@ async function handler({
             symbol: position.pair
         });
         
-        const SIZE_FOR_TRADE_IN_BYBIT_BEFORE_UPDATE = parseFloat(theTradeInBybit.size);
+        // const SIZE_FOR_TRADE_IN_BYBIT_BEFORE_UPDATE = parseFloat(theTradeInBybit.size);
         //    position.previous_size_before_partial_close
     
         /**
@@ -360,11 +360,14 @@ async function handler({
         /**
          * Update the original traded position in DB
          */
+        // const remainingTradedPositionQTY = new DecimalMath(tradedPositionObj.size).subtract(closedPositionAccumulatedDetails.qty).getResult();
+        const remainingTradedPositionQTY = new DecimalMath(theTradeInBybit.size).subtract(closedPositionAccumulatedDetails.qty).getResult();
         await mongoDatabase.collection.tradedPositionsCollection.
             updateDocument(tradedPositionObj._id,{
                 position_id_in_openTradesCollection: position._id,
-                size: new DecimalMath(tradedPositionObj.size).subtract(closedPositionAccumulatedDetails.qty).getResult(),
-                traded_value: new DecimalMath(tradedPositionObj.traded_value).subtract(closedPositionAccumulatedDetails.tradedValue).getResult(),
+                size: remainingTradedPositionQTY,
+                // traded_value: new DecimalMath(tradedPositionObj.traded_value).subtract(closedPositionAccumulatedDetails.tradedValue).getResult(),
+                traded_value: new DecimalMath(theTradeInBybit.positionValue).subtract(closedPositionAccumulatedDetails.tradedValue).getResult(),
             });
         logger.info("Updated position in tradedPositionCollection db");
 
@@ -378,8 +381,9 @@ async function handler({
                 position_pair: tradedPositionObj.pair,
                 chatId: user.tg_user_id,
                 trader_username:  trader.username,
-                change_by: -(closedPositionAccumulatedDetails.qty),
-                change_by_percentage:calculatePercentageChange(finalUpdatedTradedPosition.size,SIZE_FOR_TRADE_IN_BYBIT_BEFORE_UPDATE),
+                change_by: -(closedPositionAccumulatedDetails.qty), 
+                // change_by_percentage:calculatePercentageChange(finalUpdatedTradedPosition.size,SIZE_FOR_TRADE_IN_BYBIT_BEFORE_UPDATE),
+                change_by_percentage:calculatePercentageChange(closedPositionAccumulatedDetails.qty,remainingTradedPositionQTY),
                 position_roi:calculateRoiFromPosition({
                     close_price: closedPositionAccumulatedDetails.avgExitPrice,
                     direction: position.direction,

@@ -27,7 +27,7 @@ module.exports.sendTradeExecutionFailedMessage_toUser = async function ({
 Contact @AzmaFr`;
         // if(reason.toLowerCase().includes("key")===false)return; // filter out some messages
         if (reason.toLowerCase().includes("key")){
-            reason_msg = "API Key is invalid or missing";
+            reason_msg = "⚠️ Missing or wrong API KEYS";
         } else if (reason.toLowerCase().includes("subaccount")){
             reason_msg = "Subaccount doesn't exist / Please Check API Keys";
         } else if (reason.toLowerCase().includes("35")){

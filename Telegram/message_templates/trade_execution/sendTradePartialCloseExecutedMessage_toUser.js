@@ -36,4 +36,4 @@ ROI: ${new DecimalMath(position_roi).truncateToDecimalPlaces(2).getResult()}% | 
         error.message = `${FUNCTION_NAME} ${error.message}`;
         throw error;
     }
-};
+}; 

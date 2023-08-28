@@ -1,12 +1,17 @@
+//@ts-check
 const axios = require("axios");
 const fs = require("fs");
 
 const {PROXY_FILE_PATH} = require("./constants");
 
+/**
+ * @type {{host:string,port:number}[]}
+ */
 let proxyPool = [];
 let proxyIndex = 0;
 
 const loadProxies = () => {
+    console.log("Loading proxies...");
     const proxyData = fs.readFileSync(PROXY_FILE_PATH, "utf-8");
     proxyPool = proxyData.trim().split("\n").map(proxy => {
         const [host, port] = proxy.split(":");
@@ -14,11 +19,15 @@ const loadProxies = () => {
     });
 };
 
+
 const getNextProxy = () => {
     proxyIndex = (proxyIndex + 1) % proxyPool.length;
     const proxy = proxyPool[proxyIndex];
     return proxy;
 };
+
+
+
 
 const sendRequestWithProxy = async (url, config = {}, maxRetries = 5) => {
     loadProxies(); // Reload proxies from file
@@ -62,3 +71,5 @@ const sendRequestWithProxy = async (url, config = {}, maxRetries = 5) => {
 
 
 module.exports.sendRequestWithProxy = sendRequestWithProxy;
+module.exports.getNextProxy = getNextProxy;
+module.exports.loadProxies = loadProxies;

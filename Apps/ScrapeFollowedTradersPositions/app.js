@@ -8,6 +8,7 @@ const {Logger} = require("../../Logger");
 const APP_NAME = "App:ScrapeFollowedTradersPositions";
 const logger = new Logger({app_name:APP_NAME});
 const {IfHoursPassed} = require("../../Utils/IfHoursPassed");
+const {getNextProxy,loadProxies} = require("../../Proxy");
 
 const {IS_LIVE} = require("../../appConfig");
 const dotEnvObj = readAndConfigureDotEnv(IS_LIVE); 
@@ -37,12 +38,15 @@ console.log(process.env);
             //  */
             mongoDatabase = new MongoDatabase(process.env.DATABASE_URI);
             await mongoDatabase.connect(process.env.DATABASE_NAME);
+            loadProxies();
+            const proxy = getNextProxy();
             browser = await createPuppeteerBrowser({
                 IS_LIVE,
                 browserRevisionToDownload:"901912",
                 devtools: true,
                 headless:true,
-                downloadBrowserRevision: false
+                downloadBrowserRevision: false,
+                proxyServer: `${proxy.host}:${proxy.port}` 
             });
             const page = await browser.newPage(); 
             page.setDefaultNavigationTimeout(0);

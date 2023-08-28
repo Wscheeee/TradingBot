@@ -1,14 +1,19 @@
 const {BinanceScraper} = require("../index");
 const {createPuppeteerBrowser} = require("../createPuppeteerBrowser");
+const {getNextProxy,loadProxies} = require("../../Proxy");
 (async ()=>{
     try{
         console.log("Running binanceScraper app")
+        loadProxies()
+        const proxy = getNextProxy();
+        console.log({proxy});
         const browser = await createPuppeteerBrowser({
             IS_LIVE: false,
             browserRevisionToDownload:"901912",
             devtools: true,
             headless:true,
-            downloadBrowserRevision: false
+            downloadBrowserRevision: false,
+            proxyServer: `${proxy.host}:${proxy.port}` 
         })
         const binanceScraper = new BinanceScraper({isLive:false,browser:browser})
         const page = await binanceScraper.createNewPage();

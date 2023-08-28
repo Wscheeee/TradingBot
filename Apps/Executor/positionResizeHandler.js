@@ -383,7 +383,7 @@ async function handler({
                 trader_username:  trader.username,
                 change_by: -(closedPositionAccumulatedDetails.qty), 
                 // change_by_percentage:calculatePercentageChange(finalUpdatedTradedPosition.size,SIZE_FOR_TRADE_IN_BYBIT_BEFORE_UPDATE),
-                change_by_percentage:calculatePercentageChange(closedPositionAccumulatedDetails.qty,remainingTradedPositionQTY),
+                change_by_percentage:calculatePercentageChange(closedPositionAccumulatedDetails.qty,parseFloat(theTradeInBybit.size)),
                 position_roi:calculateRoiFromPosition({
                     close_price: closedPositionAccumulatedDetails.avgExitPrice,
                     direction: position.direction,

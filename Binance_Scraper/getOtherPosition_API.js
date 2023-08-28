@@ -51,7 +51,7 @@ const {TradeType_Types, PeriodType_Types, StaticticsType_Types} = require("./typ
 exports.getOtherPosition_API = async function getOtherPosition_API(page,payload){
     const FUNCTION_NAME = "[method:getOtherPosition_API]";
     try {
-        console.log(FUNCTION_NAME);
+        console.log(FUNCTION_NAME); 
         const res = await page.evaluate(async ({encryptedUid,tradeType})=>{
             const url = "https://www.binance.com/bapi/futures/v1/public/future/leaderboard/getOtherPosition";
             const method = "POST";

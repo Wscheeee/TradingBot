@@ -3,11 +3,11 @@ const path = require("path");
 
 
 /***
- *@param {{IS_LIVE:boolean, devtools:boolean, headless: boolean,downloadBrowserRevision:boolean,browserRevisionToDownload:"901912" }} param0
+ *@param {{IS_LIVE:boolean, devtools:boolean, headless: boolean,downloadBrowserRevision:boolean,browserRevisionToDownload:"901912",proxyServer?:string }} param0
  *@returns {Promise<Browser>} 
  */
 exports.createPuppeteerBrowser =  async function createPuppeteerBrowser({
-    IS_LIVE,devtools,headless,downloadBrowserRevision,browserRevisionToDownload
+    IS_LIVE,devtools,headless,downloadBrowserRevision,browserRevisionToDownload,proxyServer
 }){
     /**
      * @type {Browser|null}
@@ -36,7 +36,7 @@ exports.createPuppeteerBrowser =  async function createPuppeteerBrowser({
                 // create browser
                 if(IS_LIVE){
                     browser = await launch({
-                        args: ["--no-sandbox", "--disable-setuid-sandbox"],
+                        args:proxyServer? ["--no-sandbox", "--disable-setuid-sandbox",`--proxy-server=${proxyServer}`]:["--no-sandbox", "--disable-setuid-sandbox"],
                         executablePath: revisionInfo.executablePath,
                         headless:headless,devtools:devtools
                     });
@@ -57,7 +57,7 @@ exports.createPuppeteerBrowser =  async function createPuppeteerBrowser({
             console.log("Using default browser");
             if(IS_LIVE){
                 browser = await launch({
-                    args: ["--no-sandbox", "--disable-setuid-sandbox"],
+                    args: proxyServer?["--no-sandbox", "--disable-setuid-sandbox",`--proxy-server=${proxyServer}`]:["--no-sandbox", "--disable-setuid-sandbox"],
                     headless:headless,devtools:devtools
                 });
                     

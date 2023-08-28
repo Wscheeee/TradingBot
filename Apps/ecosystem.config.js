@@ -21,6 +21,10 @@ module.exports = {
             script: "./PerformanceCalc/app.js"
         },
         {
+            name: "ProxyUpdater",
+            script: "./ProxyUpdater/app.js"
+        },
+        {
             name : "ScrapeFollowedTradersPositions",
             script : "./ScrapeFollowedTradersPositions/app.js"
         },

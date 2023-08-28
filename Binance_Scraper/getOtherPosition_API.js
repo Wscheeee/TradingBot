@@ -4,8 +4,6 @@ const  {  Browser, Page} =  require("puppeteer");
 // types
 const {TradeType_Types, PeriodType_Types, StaticticsType_Types} = require("./types/index");
 
-const {performFetchWithinBrowser} = require("./utils/performFetchWithinBrowser");
-
 /**
  * @typedef {[year:number,month:number,day:number,hour:number,minute:number,second:number,ms:number]} UpdateTime_Interface
  */
@@ -67,8 +65,7 @@ exports.getOtherPosition_API = async function getOtherPosition_API(page,payload)
             };
 
             const postBody = JSON.stringify(requestPayload);
-
-            const res = await performFetchWithinBrowser(url,{
+            const res = await fetch(url,{
                 method,
                 body:postBody,
                 credentials:"include",

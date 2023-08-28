@@ -1,7 +1,9 @@
+
+
 // const {performFetch} = require("../Utils/performFetch")
 const  {  Browser, Page} =  require("puppeteer");
 
-const {performFetchWithinBrowser} = require("./utils/performFetchWithinBrowser");
+// const {performFetchWithinBrowser} = require("./utils/performFetchWithinBrowser");
 /**
  * @typedef  {{
  *      encryptedUid: string,
@@ -57,15 +59,13 @@ const {performFetchWithinBrowser} = require("./utils/performFetchWithinBrowser")
 exports.getLeaderboardRank_API = async function getLeaderboardRank_API(page,payload){
     try {
         console.log("[method:getLeaderboardRank]");
-        const res = await page.evaluate(async (payload)=>{
+        const res = await page.evaluate(async ({payload})=>{
             const url = "https://www.binance.com/bapi/futures/v3/public/future/leaderboard/getLeaderboardRank";
             const host = "www.binance.com";
             const pathname = "/bapi/futures/v3/public/future/leaderboard/getLeaderboardRank";
             const method = "POST";
             const postBody = JSON.stringify(payload);
-
-            
-            const res = await performFetchWithinBrowser(url,{
+            const res = await fetch(url,{
                 method,
                 body:postBody,
                 credentials:"include",
@@ -95,7 +95,7 @@ exports.getLeaderboardRank_API = async function getLeaderboardRank_API(page,payl
 
 
 
-        },payload);
+        },{payload});
         // const res = await getLeaderboardRank()
         return res;
     }catch(error){

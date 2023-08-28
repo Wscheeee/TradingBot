@@ -15,8 +15,8 @@ const loadProxies = () => {
 };
 
 const getNextProxy = () => {
-    const proxy = proxyPool[proxyIndex];
     proxyIndex = (proxyIndex + 1) % proxyPool.length;
+    const proxy = proxyPool[proxyIndex];
     return proxy;
 };
 

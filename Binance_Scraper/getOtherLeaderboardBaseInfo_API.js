@@ -1,6 +1,6 @@
 // const {performFetch} = require("../Utils/performFetch")
 
-const {performFetchWithinBrowser} = require("./utils/performFetchWithinBrowser");
+// const {performFetchWithinBrowser} = require("./utils/performFetchWithinBrowser");
 /**
  * @typedef  {{
  *      deliveryPosiitionShared:boolean,
@@ -56,16 +56,7 @@ exports.getOtherLeaderboardBaseInfo_API = async function getOtherLeaderboardBase
 
             const postBody = JSON.stringify(requestPayload);
 
-            // const res = await fetch(url,{
-            // method,
-            // body:postBody,
-            // credentials:"include",
-            // headers:{
-            //     "Content-Type":"application/json",
-            //     "User-Agent":"Mozilla/5.0 (Linux; Android 6.0; Nexus 5 Build/MRA58N) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/111.0.0.0 Mobile Safari/537.36"
-            // }
-            // });
-            const res = await performFetchWithinBrowser(url,{
+            const res = await fetch(url,{
                 method,
                 body:postBody,
                 credentials:"include",

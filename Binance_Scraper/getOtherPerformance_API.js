@@ -3,7 +3,6 @@ const  {  Browser, Page} =  require("puppeteer");
 // types
 const {TradeType_Types , StaticticsType_Types} = require("./types/index");
 
-const {performFetchWithinBrowser} = require("./utils/performFetchWithinBrowser");
 /**
  * 
  * @typedef {"DAILY"|"WEEKLY"|"EXACT_WEEKLY"|"EXACT_YEARLY"|"EXACT_MONTHLY"|"MONTHLY"|"YEARLY"|"ALL"} PerformancePeriodType_Types
@@ -45,6 +44,7 @@ exports.getOtherPerformance_API = async function getOtherPerformance_API(page,pa
     const FUNCTION_NAME = "[method:getOtherPerformance_API]";
     try {
         console.log(FUNCTION_NAME);
+        
         const res = await page.evaluate(async ({encryptedUid,tradeType})=>{
             const url = "https://www.binance.com/bapi/futures/v2/public/future/leaderboard/getOtherPerformance";
             const method = "POST";
@@ -60,7 +60,7 @@ exports.getOtherPerformance_API = async function getOtherPerformance_API(page,pa
             const postBody = JSON.stringify(requestPayload);
 
 
-            const res = await performFetchWithinBrowser(url,{
+            const res = await fetch(url,{
                 method,
                 body:postBody,
                 credentials:"include",

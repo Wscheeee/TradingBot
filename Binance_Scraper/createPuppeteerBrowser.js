@@ -1,5 +1,5 @@
-const  { BrowserFetcher, Browser, launch} =  require('puppeteer');
-const path = require('path');
+const  { BrowserFetcher, Browser, launch} =  require("puppeteer");
+const path = require("path");
 
 
 /***
@@ -20,23 +20,23 @@ exports.createPuppeteerBrowser =  async function createPuppeteerBrowser({
         const browserRevsionToDownload = browserRevisionToDownload;
         const browserFetcher = new BrowserFetcher({path:browserDownloadPath,product:"chrome"});
         const localRevisions = browserFetcher.localRevisions();
-        console.log("Local Revisions:",browserFetcher.localRevisions())
+        console.log("Local Revisions:",browserFetcher.localRevisions());
         if(localRevisions.includes(browserRevsionToDownload)==false && downloadBrowserRevision){
-            console.log("Downloadable revision not downloaded!")
-            canDownloadBrowserRevision = await browserFetcher.canDownload(browserRevsionToDownload)
+            console.log("Downloadable revision not downloaded!");
+            canDownloadBrowserRevision = await browserFetcher.canDownload(browserRevsionToDownload);
         }else {
-            console.log("Downloadable revision already downloaded!")
-        };
-        console.log({canDownloadBrowserRevision})
+            console.log("Downloadable revision already downloaded!");
+        }
+        console.log({canDownloadBrowserRevision});
         if(canDownloadBrowserRevision && downloadBrowserRevision){
-            console.log("Downloading browser revision: ",browserRevsionToDownload)
+            console.log("Downloading browser revision: ",browserRevsionToDownload);
             const revisionInfo = await browserFetcher.download(browserRevsionToDownload);
-            console.log("Download complete...")
+            console.log("Download complete...");
             if(revisionInfo){
                 // create browser
                 if(IS_LIVE){
                     browser = await launch({
-                        args: ['--no-sandbox', '--disable-setuid-sandbox'],
+                        args: ["--no-sandbox", "--disable-setuid-sandbox"],
                         executablePath: revisionInfo.executablePath,
                         headless:headless,devtools:devtools
                     });
@@ -48,16 +48,16 @@ exports.createPuppeteerBrowser =  async function createPuppeteerBrowser({
                         headless:headless,devtools:devtools
                     });
                 }
-                console.log("Browser created: revision:",canDownloadBrowserRevision)
-            };
+                console.log("Browser created: revision:",canDownloadBrowserRevision);
+            }
 
-        }else {};
+        }else {}
         if(!browser){
             // create browser
-            console.log("Using default browser")
+            console.log("Using default browser");
             if(IS_LIVE){
                 browser = await launch({
-                    args: ['--no-sandbox', '--disable-setuid-sandbox'],
+                    args: ["--no-sandbox", "--disable-setuid-sandbox"],
                     headless:headless,devtools:devtools
                 });
                     
@@ -67,17 +67,17 @@ exports.createPuppeteerBrowser =  async function createPuppeteerBrowser({
                 });
                     
             }
-            console.log("Default Browser created")
+            console.log("Default Browser created");
         }
         if(!browser){
-            throw new Error("Could not create Browser")
+            throw new Error("Could not create Browser");
         }else {
             return browser;
         }
     }catch(error){
         if(browser){
-            await browser.close()
+            await browser.close();
         }
         throw error;
     }
-}
+};

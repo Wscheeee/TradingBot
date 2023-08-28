@@ -23,20 +23,20 @@ console.log(process.env);
     let run = true;
     while(run){
         try{
-            // const errorbot = new Telegram({telegram_bot_token:dotEnvObj.TELEGRAM_BOT_TOKEN,requestDelay:2000});
-            // logger.info("Create Telegram error bot");
-            // logger.addLogCallback("error",async (cbIndex,message)=>{
-            //     await errorbot.sendMessage(dotEnvObj.TELEGRAM_ERROR_CHHANNEL_ID,message);
-            //     logger.info("Send error message to telegram error channel");
-            // });
+            const errorbot = new Telegram({telegram_bot_token:dotEnvObj.TELEGRAM_BOT_TOKEN,requestDelay:2000});
+            logger.info("Create Telegram error bot");
+            logger.addLogCallback("error",async (cbIndex,message)=>{
+                await errorbot.sendMessage(dotEnvObj.TELEGRAM_ERROR_CHHANNEL_ID,message);
+                logger.info("Send error message to telegram error channel");
+            });
             
             const if3HoursPassed = new IfHoursPassed(3);
             if3HoursPassed.start();
             // /**
             //  * 0. Create db and Create a browser 
             //  */
-            // mongoDatabase = new MongoDatabase(process.env.DATABASE_URI);
-            // await mongoDatabase.connect(process.env.DATABASE_NAME);
+            mongoDatabase = new MongoDatabase(process.env.DATABASE_URI);
+            await mongoDatabase.connect(process.env.DATABASE_NAME);
             browser = await createPuppeteerBrowser({
                 IS_LIVE,
                 browserRevisionToDownload:"901912",

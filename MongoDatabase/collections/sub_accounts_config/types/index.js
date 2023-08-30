@@ -15,6 +15,7 @@
  *      weight: number,
  *      sub_link_name: string,
  *      trader_username: string,
+ *      allocaion: number,
  * }} Sub_Account_Config_Document_Interface
  */
 

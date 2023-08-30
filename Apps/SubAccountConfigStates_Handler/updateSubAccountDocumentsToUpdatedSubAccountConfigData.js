@@ -36,7 +36,8 @@ module.exports.updateSubAccountDocumentsToUpdatedSubAccountConfigData = async fu
             await mongoDatabase.collection.subAccountsCollection.updateDocument(subAccount_document._id,{
                 trader_uid:updatedSubAccountConfigDocument?updatedSubAccountConfigDocument.trader_uid:"",
                 trader_username:updatedSubAccountConfigDocument?updatedSubAccountConfigDocument.trader_username:"",
-                weight: updatedSubAccountConfigDocument?Number(updatedSubAccountConfigDocument.weight):0
+                weight: updatedSubAccountConfigDocument?Number(updatedSubAccountConfigDocument.weight):0,
+                allocation: updatedSubAccountConfigDocument?Number(updatedSubAccountConfigDocument.allocaion):0
             });
         }
 

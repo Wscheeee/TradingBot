@@ -31,7 +31,7 @@ module.exports.positionsHandler = async function positionsHandler({mongoDatabase
         while(await followedTradersCursor.hasNext()){
             const savedTraderDbDoc = await followedTradersCursor.next();
             if(!savedTraderDbDoc)return;
-            await sleepAsync(1000);
+            await sleepAsync(2000);
             const traderPositions = await binanceScraper.getOtherPosition(binanceScraper.globalPage,{encryptedUid:savedTraderDbDoc.uid,tradeType:"PERPETUAL"});
             //::## WORK ON POSITIONS
             const savedPositionsDbDocCursor = await mongoDatabase.collection.openTradesCollection.getDocumentsByTraderUid(savedTraderDbDoc.uid);

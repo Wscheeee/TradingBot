@@ -8,16 +8,19 @@ const {Logger} = require("../../Logger");
 const APP_NAME = "App:ScrapeFollowedTradersPositions";
 const logger = new Logger({app_name:APP_NAME});
 const {IfHoursPassed} = require("../../Utils/IfHoursPassed");
-const {getNextProxy,loadProxies} = require("../../Proxy");
+const {ProxyRotator} = require("../../Proxy");
 
 const {IS_LIVE} = require("../../appConfig");
 const dotEnvObj = readAndConfigureDotEnv(IS_LIVE); 
 process.env.TZ = dotEnvObj.TZ;
 process.env.DATABASE_URI = dotEnvObj.DATABASE_URI;
 process.env.DATABASE_NAME = dotEnvObj.DATABASE_NAME;
-console.log(process.env);
+// console.log(process.env);
 
  
+const proxyRotator  = new ProxyRotator();
+proxyRotator.resetProxyIndex();
+proxyRotator.loadProxies();
 (async ()=>{
     let mongoDatabase = null;
     let browser = null;
@@ -38,15 +41,16 @@ console.log(process.env);
             //  */
             mongoDatabase = new MongoDatabase(process.env.DATABASE_URI);
             await mongoDatabase.connect(process.env.DATABASE_NAME);
-            loadProxies();
-            const proxy = getNextProxy();
+            
+            const proxy = proxyRotator.getNextProxy();
+            console.log({proxy});
             browser = await createPuppeteerBrowser({
                 IS_LIVE,
                 browserRevisionToDownload:"901912",
                 devtools: true,
                 headless:true,
                 downloadBrowserRevision: false,
-                proxyServer: `${proxy.host}:${proxy.port}` 
+                // proxyServer: `${proxy.host}:${proxy.port}` 
             });
             const page = await browser.newPage(); 
             page.setDefaultNavigationTimeout(0);
@@ -54,7 +58,7 @@ console.log(process.env);
              * 1. Get traders and their info
              */
             const binance = new BinanceScraper({
-                browser,isLive:IS_LIVE,delayPerRequestInMs:1000
+                browser,isLive:IS_LIVE,delayPerRequestInMs:2000
             });
             binance.setGlobalPage(page);
             await binance.openLeaderboardFuturesPage(page);
@@ -65,7 +69,7 @@ console.log(process.env);
 
             await browser.close();
             await mongoDatabase.disconnect();
-            await sleepAsync((1000*10));
+            // await sleepAsync((1000*10));
             if(if3HoursPassed.isTrue()){
                 process.exit();
             }

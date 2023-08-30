@@ -1,7 +1,7 @@
 const {proxyUpdater} = require("./ProxyUpdater");
-const {sendRequestWithProxy,getNextProxy,loadProxies} = require("./proxyRotator");
+const {ProxyRotator} = require("./proxyRotator");
 
 
 module.exports = {
-    proxyUpdater,sendRequestWithProxy,getNextProxy,loadProxies
+    proxyUpdater,ProxyRotator
 };

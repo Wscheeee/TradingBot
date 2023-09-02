@@ -170,7 +170,7 @@ module.exports.createSubAccountsAndAllocateCapital_forAllUsersWhoseLastAlloation
                         });
 
                     }catch(error){
-                        await tg_user_bot.sendMessage(user.chatId,error.message);
+                        await tg_user_bot.sendMessage(user.chatId,(error.message && error.message.includes("API key is invalid")?"⚠️ API Keys Invalid or Empty":error.message));
                         const nwErrorMessage = `${FUNCTION_NAME} => (fn:request) user:${user.username} (${user.tg_user_id}) ${error.message}`;
                         error.message = nwErrorMessage;
                         onError(error);

@@ -164,7 +164,7 @@ module.exports.createSubAccountsAndAllocateCapital_forAllUsers_InParalell =  asy
 
                     }catch(error){
                         await tg_user_bot.sendMessage(user.chatId,(error.message && error.message.includes("API key is invalid")?"⚠️ API Keys Invalid or Empty":error.message));
-                        const nwErrorMessage = `(fn:createSubAccountsAndAllocateCapital_forAllUsers_InParalell) => (fn:request) user:${user.username} (${user.tg_user_id}) ${error.message}`;
+                        const nwErrorMessage = `(fn:createSubAccountsAndAllocateCapital_forAllUsers_InParalell) => (fn:request) user:${user.username} (${user.tg_user_id}) ${(error.message && error.message.includes("API key is invalid")?"⚠️ API Keys Invalid or Empty":error.message)}`;
                         error.message = nwErrorMessage;
                         onError(error);
                     }

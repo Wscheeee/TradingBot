@@ -282,7 +282,7 @@ module.exports.closeAllPositionsInASubAccount = async function closeAllPositions
 
         
     }catch(error){
-        const newErrorMessage = `(fn:closeAnAccountAllOpenPositions) ${error.message}`;
+        const newErrorMessage = `(fn:closeAnAccountAllOpenPositions) ${error.message.replace("API key is invalid.","⚠️ API Keys Invalid or Empty")}`;
         error.message = newErrorMessage;
         throw error;
     }
